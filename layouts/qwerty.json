@@ -1,0 +1,60 @@
+{
+  "layers": [
+    {
+      "id": "default",
+      "rows": [
+        {
+          "keys": [
+            { "type": "key", "label": "q", "key": "q" },
+            { "type": "key", "label": "w", "key": "w" },
+            { "type": "key", "label": "e", "key": "e" },
+            { "type": "key", "label": "r", "key": "r" },
+            { "type": "key", "label": "t", "key": "t" },
+            { "type": "key", "label": "y", "key": "y" },
+            { "type": "key", "label": "u", "key": "u" },
+            { "type": "key", "label": "i", "key": "i" },
+            { "type": "key", "label": "o", "key": "o" },
+            { "type": "key", "label": "p", "key": "p" }
+          ]
+        },
+        {
+          "keys": [
+            { "type": "placeholder", "flex": "0.5" },
+            { "type": "key", "label": "a", "key": "a" },
+            { "type": "key", "label": "s", "key": "s" },
+            { "type": "key", "label": "d", "key": "d" },
+            { "type": "key", "label": "f", "key": "f" },
+            { "type": "key", "label": "g", "key": "g" },
+            { "type": "key", "label": "h", "key": "h" },
+            { "type": "key", "label": "j", "key": "j" },
+            { "type": "key", "label": "k", "key": "k" },
+            { "type": "key", "label": "l", "key": "l" },
+            { "type": "placeholder", "flex": "0.5" }
+          ]
+        },
+        {
+          "keys": [
+            { "type": "key", "label": "⇧", "flex": "1.5" },
+            { "type": "key", "label": "z", "key": "z" },
+            { "type": "key", "label": "x", "key": "x" },
+            { "type": "key", "label": "c", "key": "c" },
+            { "type": "key", "label": "v", "key": "v" },
+            { "type": "key", "label": "b", "key": "b" },
+            { "type": "key", "label": "n", "key": "n" },
+            { "type": "key", "label": "m", "key": "m" },
+            { "type": "key", "label": "⌫", "flex": "1.5" }
+          ]
+        },
+        {
+          "keys": [
+            { "type": "placeholder", "flex": "1.5" },
+            { "type": "key", "label": ",", "key": "," },
+            { "type": "key", "label": "␣", "key": " ", "flex": "5" },
+            { "type": "key", "label": ".", "key": "." },
+            { "type": "placeholder", "flex": "1.5" }
+          ]
+        }
+      ]
+    }
+  ]
+}

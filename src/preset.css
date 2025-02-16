@@ -1,0 +1,40 @@
+.fcitx-keyboard-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  user-select: none; /* disable text select */
+  font-family: sans-serif;
+}
+
+.fcitx-keyboard-toolbar {
+  height: 20%;
+}
+
+.fcitx-keyboard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* calc(100% - toolbar.height) */
+}
+
+.fcitx-keyboard-row {
+  display: flex;
+  flex: 1;
+}
+
+.fcitx-keyboard-key-container {
+  position: relative;
+  flex: 1;
+  container-type: size;
+}
+
+.fcitx-keyboard-key {
+  position:absolute;
+  inset: 4px 3px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  font-size: 40cqh;
+}
