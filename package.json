@@ -1,0 +1,19 @@
+{
+  "name": "fcitx5-keyboard-web",
+  "type": "module",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "check": "tsc --noEmit",
+    "dev": "parcel preview/index.html"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.2.1",
+    "@parcel/transformer-inline-string": "2.13.3",
+    "eslint": "^9.20.1",
+    "parcel": "^2.13.3",
+    "typescript": "^5.7.3"
+  }
+}

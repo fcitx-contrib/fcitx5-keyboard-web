@@ -1,0 +1,11 @@
+body {
+  margin: 0;
+}
+
+#app {
+  background-color: #e3e4e6; /* Harmony default */
+  width: 100vw;
+  height: calc(200vw / 3);
+  position: fixed;
+  bottom: 0;
+}
