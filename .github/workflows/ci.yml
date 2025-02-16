@@ -25,3 +25,18 @@ jobs:
         run: |
           pnpm run lint
           pnpm run check
+
+      - name: Build
+        run: |
+          pnpm run build:harmony
+
+      - name: Release
+        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: harmony
+          prerelease: true
+          title: Harmony Build
+          files: |
+            dist/index.html

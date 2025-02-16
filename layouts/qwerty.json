@@ -42,7 +42,7 @@
             { "type": "key", "label": "b", "key": "b" },
             { "type": "key", "label": "n", "key": "n" },
             { "type": "key", "label": "m", "key": "m" },
-            { "type": "key", "label": "⌫", "flex": "1.5" }
+            { "type": "key", "label": "⌫", "code": "Backspace", "flex": "1.5" }
           ]
         },
         {

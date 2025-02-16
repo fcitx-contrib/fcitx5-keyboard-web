@@ -13,6 +13,7 @@ export function renderKey(key: Key) {
       const el = div('fcitx-keyboard-key')
       el.textContent = key.label ?? ''
       container.appendChild(el)
+      container.setAttribute('data-key', JSON.stringify(key))
       break
     }
   }

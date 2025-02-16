@@ -3,6 +3,7 @@ import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../layouts/qwerty.json'
 import { renderKey } from './key'
 import { div } from './util'
+import { onTouchEnd, onTouchStart } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
@@ -24,6 +25,9 @@ export function setLayout(id: string, layout: Layout) {
   for (const row of layout.layers[0].rows) {
     keyboard.appendChild(renderRow(row))
   }
+  keyboard.addEventListener('touchstart', onTouchStart)
+  keyboard.addEventListener('touchend', onTouchEnd)
+
   const container = div('fcitx-keyboard-container')
   container.appendChild(style)
   container.appendChild(toolbar)
