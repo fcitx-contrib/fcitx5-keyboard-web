@@ -1,11 +1,14 @@
 export interface Style { [key: string]: string | undefined }
 
-export type Key = {
+export interface NormalKey {
   type: 'key'
   label: string
-  key: string
+  key?: string
+  code?: string
   flex?: string
-} | {
+}
+
+export type Key = NormalKey | {
   type: 'placeholder'
   flex: string
 }
