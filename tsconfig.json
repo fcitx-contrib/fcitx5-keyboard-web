@@ -10,5 +10,5 @@
     "esModuleInterop": true,
     "isolatedModules": true
   },
-  "include": ["src/*.ts"]
+  "include": ["src/*.ts", "harmony/*.ts", "preview/*.ts", "tests/*.ts"]
 }

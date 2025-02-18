@@ -29,6 +29,12 @@ jobs:
       - name: Build
         run: |
           pnpm run build:harmony
+          pnpm run build:preview
+
+      - name: Test
+        run: |
+          npx playwright install
+          pnpm run test
 
       - name: Release
         if: ${{ github.ref == 'refs/heads/master' }}

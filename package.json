@@ -8,11 +8,15 @@
     "lint:fix": "eslint --fix",
     "check": "tsc --noEmit",
     "dev": "rimraf .parcel-cache && parcel preview/index.html",
-    "build:harmony": "rimraf .parcel-cache && parcel build harmony/index.html"
+    "build:harmony": "rimraf .parcel-cache && parcel build harmony/index.html",
+    "build:preview": "rimraf .parcel-cache && parcel build --dist-dir dist/preview preview/index.html",
+    "test": "playwright test"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.2.1",
     "@parcel/transformer-inline-string": "2.13.3",
+    "@playwright/test": "^1.50.1",
+    "@types/node": "^22.13.4",
     "eslint": "^9.20.1",
     "parcel": "^2.13.3",
     "rimraf": "^6.0.1",
