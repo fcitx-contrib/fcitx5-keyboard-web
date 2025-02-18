@@ -3,19 +3,18 @@ import type { VirtualKeyboardClient } from './api'
 
 let client_: VirtualKeyboardClient
 
-let pressedKey: NormalKey | null = null
+let pressedContainer: HTMLElement | null = null
 
 export function setClient(client: VirtualKeyboardClient) {
   client_ = client
 }
 
-function getKey(target: EventTarget | null): NormalKey | null {
+function getKeyContainer(target: EventTarget | null): HTMLElement | null {
   const ancestor = document.querySelector('.fcitx-keyboard')
   let el = target as HTMLElement | null
   while (el !== ancestor && el !== null) {
-    const dataKey = el.getAttribute('data-key')
-    if (dataKey) {
-      return JSON.parse(dataKey)
+    if (el.classList.contains('fcitx-keyboard-key-container')) {
+      return el
     }
     el = el.parentElement
   }
@@ -23,12 +22,16 @@ function getKey(target: EventTarget | null): NormalKey | null {
 }
 
 export function onTouchStart(event: TouchEvent) {
-  pressedKey = getKey(event.target)
+  pressedContainer = getKeyContainer(event.target)
+  pressedContainer?.classList.add('fcitx-keyboard-pressed')
 }
 
 export function onTouchEnd() {
-  if (pressedKey) {
+  const dataKey = pressedContainer?.getAttribute('data-key')
+  if (dataKey) {
+    const pressedKey = JSON.parse(dataKey) as NormalKey
     client_.sendEvent({ type: 'KEY_DOWN', data: { key: pressedKey.key ?? '', code: pressedKey.code ?? '' } })
-    pressedKey = null
   }
+  pressedContainer?.classList.remove('fcitx-keyboard-pressed')
+  pressedContainer = null
 }
