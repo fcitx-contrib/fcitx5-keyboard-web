@@ -1,5 +1,4 @@
 import type {
-  Locator,
   Page,
 } from '@playwright/test'
 import { dirname, join } from 'node:path'
