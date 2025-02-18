@@ -33,7 +33,7 @@ jobs:
 
       - name: Test
         run: |
-          npx playwright install
+          npx playwright install chromium
           pnpm run test
 
       - name: Release
