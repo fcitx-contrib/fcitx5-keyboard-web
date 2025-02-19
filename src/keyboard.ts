@@ -1,30 +1,32 @@
-import type { BUILTIN_LAYOUT, Layout, Row } from './layout'
+import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../layouts/qwerty.json'
-import { renderKey } from './key'
+import { renderRow } from './key'
 import { div } from './util'
-import { onTouchEnd, onTouchStart } from './ux'
+import { onTouchEnd, onTouchStart, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
-function renderRow(row: Row) {
-  const el = div('fcitx-keyboard-row')
-  for (const key of row.keys) {
-    el.appendChild(renderKey(key))
-  }
-  return el
-}
-
 export function setLayout(id: string, layout: Layout) {
+  setLayout_(layout)
+
   const style = document.createElement('style')
   style.textContent = presetCss
 
   const toolbar = div('fcitx-keyboard-toolbar')
 
   const keyboard = div('fcitx-keyboard')
-  for (const row of layout.layers[0].rows) {
-    keyboard.appendChild(renderRow(row))
+  for (const layer of layout.layers) {
+    if (layer.id === 'default') {
+      for (const row of layer.rows) {
+        keyboard.appendChild(renderRow(row, {
+          layer: layer.id,
+          locked: false,
+        }))
+      }
+    }
   }
+
   keyboard.addEventListener('touchstart', onTouchStart)
   keyboard.addEventListener('touchend', onTouchEnd)
 

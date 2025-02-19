@@ -5,12 +5,17 @@ export interface NormalKey {
   label: string
   key?: string
   code?: string
-  flex?: string
 }
 
-export type Key = NormalKey | {
+export interface ShiftKey {
+  type: 'shift'
+}
+
+export type Key = ({
+  flex?: string
+}) & NormalKey |
+ShiftKey | {
   type: 'placeholder'
-  flex: string
 }
 
 export interface Row {
@@ -27,3 +32,8 @@ export interface Layout {
 }
 
 export type BUILTIN_LAYOUT = 'qwerty'
+
+export interface Context {
+  layer: string
+  locked: boolean
+}

@@ -34,7 +34,7 @@
         },
         {
           "keys": [
-            { "type": "key", "label": "⇧", "flex": "1.5" },
+            { "type": "shift", "flex": "1.5" },
             { "type": "key", "label": "z", "key": "z" },
             { "type": "key", "label": "x", "key": "x" },
             { "type": "key", "label": "c", "key": "c" },
@@ -42,6 +42,62 @@
             { "type": "key", "label": "b", "key": "b" },
             { "type": "key", "label": "n", "key": "n" },
             { "type": "key", "label": "m", "key": "m" },
+            { "type": "key", "label": "⌫", "code": "Backspace", "flex": "1.5" }
+          ]
+        },
+        {
+          "keys": [
+            { "type": "placeholder", "flex": "1.5" },
+            { "type": "key", "label": ",", "key": "," },
+            { "type": "key", "label": "␣", "key": " ", "flex": "5" },
+            { "type": "key", "label": ".", "key": "." },
+            { "type": "placeholder", "flex": "1.5" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shift",
+      "rows": [
+        {
+          "keys": [
+            { "type": "key", "label": "Q", "key": "Q" },
+            { "type": "key", "label": "W", "key": "W" },
+            { "type": "key", "label": "E", "key": "E" },
+            { "type": "key", "label": "R", "key": "R" },
+            { "type": "key", "label": "T", "key": "T" },
+            { "type": "key", "label": "Y", "key": "Y" },
+            { "type": "key", "label": "U", "key": "U" },
+            { "type": "key", "label": "I", "key": "I" },
+            { "type": "key", "label": "O", "key": "O" },
+            { "type": "key", "label": "P", "key": "P" }
+          ]
+        },
+        {
+          "keys": [
+            { "type": "placeholder", "flex": "0.5" },
+            { "type": "key", "label": "A", "key": "A" },
+            { "type": "key", "label": "S", "key": "S" },
+            { "type": "key", "label": "D", "key": "D" },
+            { "type": "key", "label": "F", "key": "F" },
+            { "type": "key", "label": "G", "key": "G" },
+            { "type": "key", "label": "H", "key": "H" },
+            { "type": "key", "label": "J", "key": "J" },
+            { "type": "key", "label": "K", "key": "K" },
+            { "type": "key", "label": "L", "key": "L" },
+            { "type": "placeholder", "flex": "0.5" }
+          ]
+        },
+        {
+          "keys": [
+            { "type": "shift", "flex": "1.5" },
+            { "type": "key", "label": "Z", "key": "Z" },
+            { "type": "key", "label": "X", "key": "X" },
+            { "type": "key", "label": "C", "key": "C" },
+            { "type": "key", "label": "V", "key": "V" },
+            { "type": "key", "label": "B", "key": "B" },
+            { "type": "key", "label": "N", "key": "N" },
+            { "type": "key", "label": "M", "key": "M" },
             { "type": "key", "label": "⌫", "code": "Backspace", "flex": "1.5" }
           ]
         },

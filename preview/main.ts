@@ -6,6 +6,7 @@ window.sentEvents = []
 
 setClient({
   sendEvent(event: VirtualKeyboardEvent) {
+    console.info(JSON.stringify(event)) // eslint-disable-line no-console
     window.sentEvents.push(event)
   },
 })

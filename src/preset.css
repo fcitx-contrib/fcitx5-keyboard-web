@@ -43,3 +43,7 @@
 .fcitx-keyboard-pressed .fcitx-keyboard-key {
   background-color: #bcc0c7;
 }
+
+.fcitx-keyboard-key.fcitx-keyboard-shift svg {
+  height: 50%;
+}
