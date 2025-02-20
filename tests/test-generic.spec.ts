@@ -45,3 +45,33 @@ test('Shift', async ({ page }) => {
     data: { key: 'q', code: '' },
   })
 })
+
+test('Shift locked', async ({ page }) => {
+  await init(page)
+
+  const q = page.getByText('q')
+  const shift = page.locator('.fcitx-keyboard-shift')
+  await tap(shift)
+  await tap(shift)
+  await expect(q).toHaveText('Q')
+
+  await tap(q)
+  await tap(q)
+  await expect(q).toHaveText('Q')
+
+  await tap(shift)
+  await expect(q).toHaveText('q')
+
+  await tap(q)
+  const sentEvents = await getSentEvents(page)
+  expect(sentEvents).toEqual([{
+    type: 'KEY_DOWN',
+    data: { key: 'Q', code: '' },
+  }, {
+    type: 'KEY_DOWN',
+    data: { key: 'Q', code: '' },
+  }, {
+    type: 'KEY_DOWN',
+    data: { key: 'q', code: '' },
+  }])
+})
