@@ -42,7 +42,7 @@
             { "type": "key", "label": "b", "key": "b" },
             { "type": "key", "label": "n", "key": "n" },
             { "type": "key", "label": "m", "key": "m" },
-            { "type": "key", "label": "⌫", "code": "Backspace", "flex": "1.5" }
+            { "type": "backspace", "flex": "1.5" }
           ]
         },
         {
@@ -98,7 +98,7 @@
             { "type": "key", "label": "B", "key": "B" },
             { "type": "key", "label": "N", "key": "N" },
             { "type": "key", "label": "M", "key": "M" },
-            { "type": "key", "label": "⌫", "code": "Backspace", "flex": "1.5" }
+            { "type": "backspace", "flex": "1.5" }
           ]
         },
         {

@@ -2,24 +2,41 @@ import {
   expect,
   test,
 } from '@playwright/test'
-import { getSentEvents, init, tap } from './util'
+import { getSentEvents, GRAY, init, tap, WHITE } from './util'
 
 test('Click', async ({ page }) => {
   await init(page)
 
   const q = page.getByText('q')
-  await expect(q).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  await expect(q).toHaveCSS('background-color', WHITE)
 
   await q.dispatchEvent('touchstart')
   expect(await getSentEvents(page), 'To support other gestures, no event should be sent on press.').toEqual([])
-  await expect(q).toHaveCSS('background-color', 'rgb(188, 192, 199)')
+  await expect(q).toHaveCSS('background-color', GRAY)
 
   await q.dispatchEvent('touchend')
-  expect(await getSentEvents(page), '').toEqual([{
+  expect(await getSentEvents(page)).toEqual([{
     type: 'KEY_DOWN',
     data: { key: 'q', code: '' },
   }])
-  await expect(q).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  await expect(q).toHaveCSS('background-color', WHITE)
+})
+
+test('Backspace', async ({ page }) => {
+  await init(page)
+
+  const backspace = page.locator('.fcitx-keyboard-backspace')
+  await expect(backspace).toHaveCSS('background-color', GRAY)
+
+  await backspace.dispatchEvent('touchstart')
+  await expect(backspace).toHaveCSS('background-color', WHITE)
+
+  await backspace.dispatchEvent('touchend')
+  expect(await getSentEvents(page)).toEqual([{
+    type: 'KEY_DOWN',
+    data: { key: '', code: 'Backspace' },
+  }])
+  await expect(backspace).toHaveCSS('background-color', GRAY)
 })
 
 test('Shift', async ({ page }) => {

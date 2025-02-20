@@ -1,5 +1,7 @@
 import type { Style } from './layout'
 
+export const DATA_KEY = 'data-key'
+
 export function div(klass: string, style?: Style) {
   const el = document.createElement('div')
   el.classList.add(klass)

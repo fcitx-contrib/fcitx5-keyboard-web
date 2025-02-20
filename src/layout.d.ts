@@ -11,12 +11,17 @@ export interface ShiftKey {
   type: 'shift'
 }
 
-export type Key = ({
-  flex?: string
-}) & NormalKey |
-ShiftKey | {
-  type: 'placeholder'
+export interface BackspaceKey {
+  type: 'backspace'
 }
+
+export type Key = {
+  flex?: string
+} & (NormalKey |
+  BackspaceKey |
+  ShiftKey | {
+    type: 'placeholder'
+  })
 
 export interface Row {
   keys: Key[]

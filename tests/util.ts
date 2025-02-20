@@ -4,6 +4,9 @@ import type {
 } from '@playwright/test'
 import { dirname, join } from 'node:path'
 
+export const WHITE = 'rgb(255, 255, 255)'
+export const GRAY = 'rgb(188, 192, 199)'
+
 export async function init(page: Page) {
   const url = `file://${join(dirname(import.meta.url), '..', 'dist', 'preview', 'index.html').substring('file:'.length)}`
   await page.goto(url)

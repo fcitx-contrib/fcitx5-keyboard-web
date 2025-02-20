@@ -1,8 +1,9 @@
 import type { Context, Key, Row, Style } from './layout'
+import Backspace from 'bundle-text:../svg/backspace.svg'
 import ShiftFiled from 'bundle-text:../svg/shift-filled.svg'
 import ShiftUppercaseFiled from 'bundle-text:../svg/shift-uppercase-filled.svg'
 import Shift from 'bundle-text:../svg/shift.svg'
-import { div } from './util'
+import { DATA_KEY, div } from './util'
 
 export function renderKey(key: Key, context: Context) {
   const dataKey = JSON.stringify(key)
@@ -17,15 +18,27 @@ export function renderKey(key: Key, context: Context) {
       const el = div('fcitx-keyboard-key')
       el.textContent = key.label ?? ''
       container.appendChild(el)
-      container.setAttribute('data-key', dataKey)
+      container.setAttribute(DATA_KEY, dataKey)
+      break
+    }
+    case 'backspace': {
+      const el = div('fcitx-keyboard-key')
+      el.classList.add('fcitx-keyboard-backspace')
+      el.innerHTML = Backspace
+      container.appendChild(el)
+      container.setAttribute(DATA_KEY, dataKey)
       break
     }
     case 'shift': {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-shift')
+      if (context.layer === 'shift') {
+        container.classList.add('fcitx-keyboard-pressed')
+      }
       el.innerHTML = context.layer === 'shift' ? (context.locked ? ShiftUppercaseFiled : ShiftFiled) : Shift
       container.appendChild(el)
-      container.setAttribute('data-key', dataKey)
+      container.setAttribute(DATA_KEY, dataKey)
+      break
     }
   }
   return container

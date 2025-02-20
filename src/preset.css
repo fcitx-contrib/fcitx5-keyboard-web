@@ -47,3 +47,15 @@
 .fcitx-keyboard-key.fcitx-keyboard-shift svg {
   height: 50%;
 }
+
+.fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace) {
+  background-color: #bcc0c7;
+}
+
+.fcitx-keyboard-pressed .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace) {
+  background-color: white;
+}
+
+.fcitx-keyboard-key.fcitx-keyboard-backspace svg {
+  height: 60%;
+}
