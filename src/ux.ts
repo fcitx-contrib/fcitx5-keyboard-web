@@ -1,6 +1,7 @@
 import type { Key, Layout } from '../src/layout'
 import type { VirtualKeyboardClient } from './api'
 import { renderRow } from './key'
+import { DATA_KEY } from './util'
 
 let layout_: Layout
 let currentLayer = 'default'
@@ -37,11 +38,16 @@ function getKeyContainer(target: EventTarget | null): HTMLElement | null {
 export function onTouchStart(event: TouchEvent) {
   // Don't change DOM here. It causes touchend not fired due to target removal.
   pressedContainer = getKeyContainer(event.target)
-  pressedContainer?.classList.add('fcitx-keyboard-pressed')
+  if (pressedContainer?.classList.contains('fcitx-keyboard-pressed')) { // shift
+    pressedContainer?.classList.remove('fcitx-keyboard-pressed')
+  }
+  else {
+    pressedContainer?.classList.add('fcitx-keyboard-pressed')
+  }
 }
 
 export function onTouchEnd() {
-  const dataKey = pressedContainer?.getAttribute('data-key')
+  const dataKey = pressedContainer?.getAttribute(DATA_KEY)
   if (dataKey) {
     const pressedKey = JSON.parse(dataKey) as Key
     switch (pressedKey.type) {
@@ -51,13 +57,17 @@ export function onTouchEnd() {
           setLayer('default', false)
         }
         break
+      case 'backspace': {
+        client_.sendEvent({ type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } })
+        break
+      }
       case 'shift': {
         const time = new Date().getTime()
         if (currentLayer === 'default') {
           setLayer('shift', false)
         }
         else {
-          const previousDataKey = previousContainer?.getAttribute('data-key')
+          const previousDataKey = previousContainer?.getAttribute(DATA_KEY)
           const isDoubleTap = previousDataKey && (JSON.parse(previousDataKey) as Key).type === 'shift' && (time - shiftReleaseTime <= DOUBLE_TAP_INTERVAL)
           if (isDoubleTap) {
             setLayer('shift', true)
