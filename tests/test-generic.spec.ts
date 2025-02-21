@@ -2,7 +2,7 @@ import {
   expect,
   test,
 } from '@playwright/test'
-import { getSentEvents, GRAY, init, tap, WHITE } from './util'
+import { getSentEvents, GRAY, init, sendSystemEvent, tap, WHITE } from './util'
 
 test('Click', async ({ page }) => {
   await init(page)
@@ -37,6 +37,22 @@ test('Backspace', async ({ page }) => {
     data: { key: '', code: 'Backspace' },
   }])
   await expect(backspace).toHaveCSS('background-color', GRAY)
+})
+
+test('Enter', async ({ page }) => {
+  await init(page)
+
+  const enter = page.locator('.fcitx-keyboard-enter')
+  await expect(enter.locator('svg')).toBeVisible()
+
+  await tap(enter)
+  expect(await getSentEvents(page)).toEqual([{
+    type: 'KEY_DOWN',
+    data: { key: '\r', code: 'Enter' },
+  }])
+
+  await sendSystemEvent(page, { type: 'ENTER_KEY_TYPE', data: '搜索' })
+  await expect(enter).toHaveText('搜索')
 })
 
 test('Shift', async ({ page }) => {

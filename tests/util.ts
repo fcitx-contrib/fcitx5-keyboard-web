@@ -2,6 +2,7 @@ import type {
   Locator,
   Page,
 } from '@playwright/test'
+import type { SystemEvent } from '../src/api'
 import { dirname, join } from 'node:path'
 
 export const WHITE = 'rgb(255, 255, 255)'
@@ -19,4 +20,10 @@ export async function tap(locator: Locator) {
 
 export function getSentEvents(page: Page) {
   return page.evaluate(() => window.sentEvents)
+}
+
+export function sendSystemEvent(page: Page, event: SystemEvent) {
+  return page.evaluate((event: SystemEvent) => {
+    window.onMessage(JSON.stringify(event))
+  }, event)
 }

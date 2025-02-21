@@ -1,5 +1,6 @@
 import type { Key, Layout } from '../src/layout'
 import type { VirtualKeyboardClient } from './api'
+import Enter from 'bundle-text:../svg/enter.svg'
 import { renderRow } from './key'
 import { DATA_KEY } from './util'
 
@@ -7,6 +8,7 @@ let layout_: Layout
 let currentLayer = 'default'
 let layerLocked = false
 let shiftReleaseTime = 0
+let enterKeyType = ''
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 
@@ -57,6 +59,10 @@ export function onTouchEnd() {
           setLayer('default', false)
         }
         break
+      case 'enter': {
+        client_.sendEvent({ type: 'KEY_DOWN', data: { key: '\r', code: 'Enter' } })
+        break
+      }
       case 'backspace': {
         client_.sendEvent({ type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } })
         break
@@ -101,4 +107,20 @@ export function setLayer(id: string, locked: boolean) {
       }
     }
   }
+}
+
+export function getEnterKeyLabel() {
+  if (enterKeyType) {
+    return enterKeyType
+  }
+  return Enter
+}
+
+export function setEnterKeyType(label: string) {
+  enterKeyType = label || Enter
+  const enter = document.querySelector('.fcitx-keyboard-enter')
+  if (!enter) {
+    return
+  }
+  enter.innerHTML = label
 }

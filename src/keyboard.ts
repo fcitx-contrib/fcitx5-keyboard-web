@@ -1,9 +1,10 @@
+import type { SystemEvent } from './api'
 import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../layouts/qwerty.json'
 import { renderRow } from './key'
 import { div } from './util'
-import { onTouchEnd, onTouchStart, setLayout as setLayout_ } from './ux'
+import { onTouchEnd, onTouchStart, setEnterKeyType, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
@@ -24,6 +25,7 @@ export function setLayout(id: string, layout: Layout) {
           locked: false,
         }))
       }
+      break
     }
   }
 
@@ -42,4 +44,13 @@ export function setLayout(id: string, layout: Layout) {
 
 export function setBuiltInLayout(id: string, name: BUILTIN_LAYOUT) {
   setLayout(id, builtInLayoutMap[name])
+}
+
+export function onMessage(message: string) {
+  const event = JSON.parse(message) as SystemEvent
+  switch (event.type) {
+    case 'ENTER_KEY_TYPE':
+      setEnterKeyType(event.data)
+      break
+  }
 }
