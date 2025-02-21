@@ -1,8 +1,9 @@
 import type { VirtualKeyboardEvent } from '../src/api'
-import { setBuiltInLayout } from '../src/keyboard'
+import { onMessage, setBuiltInLayout } from '../src/keyboard'
 import { setClient } from '../src/ux'
 
 window.sentEvents = []
+window.onMessage = onMessage
 
 setClient({
   sendEvent(event: VirtualKeyboardEvent) {

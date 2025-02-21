@@ -1,3 +1,8 @@
+export interface SystemEvent {
+  type: 'ENTER_KEY_TYPE'
+  data: string
+}
+
 export interface VirtualKeyboardEvent {
   type: 'KEY_DOWN' | 'KEY_UP'
   data: {

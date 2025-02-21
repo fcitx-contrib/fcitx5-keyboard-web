@@ -15,9 +15,14 @@ export interface BackspaceKey {
   type: 'backspace'
 }
 
+export interface EnterKey {
+  type: 'enter'
+}
+
 export type Key = {
   flex?: string
 } & (NormalKey |
+  EnterKey |
   BackspaceKey |
   ShiftKey | {
     type: 'placeholder'
