@@ -54,3 +54,31 @@ test('Enter', async ({ page }) => {
   await sendSystemEvent(page, { type: 'ENTER_KEY_TYPE', data: '搜索' })
   await expect(enter).toHaveText('搜索')
 })
+
+test('Preserve press order', async ({ page }) => {
+  await init(page)
+
+  const w = page.getByText('w')
+  await expect(w).toHaveCSS('background-color', WHITE)
+
+  const o = page.getByText('o')
+  await expect(o).toHaveCSS('background-color', WHITE)
+
+  const wTouchId = await touchDown(w)
+  await expect(w).toHaveCSS('background-color', GRAY)
+
+  const oTouchId = await touchDown(o)
+  await expect(o).toHaveCSS('background-color', GRAY)
+
+  await touchUp(o, oTouchId)
+  await touchUp(w, wTouchId)
+  expect(await getSentEvents(page)).toEqual([{
+    type: 'KEY_DOWN',
+    data: { key: 'w', code: '' },
+  }, {
+    type: 'KEY_DOWN',
+    data: { key: 'o', code: '' },
+  }])
+  await expect(w).toHaveCSS('background-color', WHITE)
+  await expect(o).toHaveCSS('background-color', WHITE)
+})
