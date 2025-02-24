@@ -29,13 +29,17 @@ export function setLayout(id: string, layout: Layout) {
     }
   }
 
-  keyboard.addEventListener('touchstart', onTouchStart)
-  keyboard.addEventListener('touchend', onTouchEnd)
+  // Use a mask layer above the keyboard to handle all events, otherwise
+  // layer change will destroy event target thus make touchend not fired.
+  const mask = div('fcitx-keyboard-mask')
+  mask.addEventListener('touchstart', onTouchStart)
+  mask.addEventListener('touchend', onTouchEnd)
 
   const container = div('fcitx-keyboard-container')
   container.appendChild(style)
   container.appendChild(toolbar)
   container.appendChild(keyboard)
+  container.appendChild(mask)
 
   const app = document.getElementById(id)!
   app.innerHTML = ''
