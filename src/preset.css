@@ -4,6 +4,7 @@
   flex-direction: column;
   user-select: none; /* disable text select */
   font-family: sans-serif;
+  container-type: size; /* for mask */
 }
 
 .fcitx-keyboard-toolbar {
@@ -11,10 +12,16 @@
 }
 
 .fcitx-keyboard {
-  height: 100%;
   display: flex;
   flex-direction: column;
   flex: 1; /* calc(100% - toolbar.height) */
+}
+
+.fcitx-keyboard-mask {
+  position: fixed;
+  bottom: 0;
+  height: 80cqh;
+  width: 100%;
 }
 
 .fcitx-keyboard-row {

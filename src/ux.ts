@@ -1,14 +1,19 @@
-import type { Key, Layout } from '../src/layout'
+import type { Layout } from '../src/layout'
 import type { VirtualKeyboardClient } from './api'
 import Enter from 'bundle-text:../svg/enter.svg'
 import { renderRow } from './key'
-import { DATA_KEY } from './util'
+import { getContainer, getKey } from './util'
 
 let layout_: Layout
 let currentLayer = 'default'
 let layerLocked = false
-let shiftReleaseTime = 0
+let shiftPressTime = 0
+let shiftPressed = false
+let shiftReleased = true
+let keyPressedWithShiftPressed = false
 let enterKeyType = ''
+let pendingTouch: Touch | null = null
+const touches: { [key: number]: Touch } = {}
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 
@@ -18,78 +23,101 @@ export function setLayout(layout: Layout) {
 
 let client_: VirtualKeyboardClient
 
-let previousContainer: HTMLElement | null = null
-let pressedContainer: HTMLElement | null = null
-
 export function setClient(client: VirtualKeyboardClient) {
   client_ = client
 }
 
-function getKeyContainer(target: EventTarget | null): HTMLElement | null {
-  const ancestor = document.querySelector('.fcitx-keyboard')
-  let el = target as HTMLElement | null
-  while (el !== ancestor && el !== null) {
-    if (el.classList.contains('fcitx-keyboard-key-container')) {
-      return el
+function touchDown(touch: Touch) {
+  const container = getContainer(touch)
+  const key = getKey(container)
+  switch (key?.type) {
+    case 'key': {
+      client_.sendEvent({ type: 'KEY_DOWN', data: { key: key.key ?? '', code: key.code ?? '' } })
+      if (shiftPressed) {
+        keyPressedWithShiftPressed = true
+      }
+      else if (currentLayer === 'shift' && !layerLocked) {
+        setLayer('default', false)
+      }
+      break
     }
-    el = el.parentElement
+    case 'enter': {
+      client_.sendEvent({ type: 'KEY_DOWN', data: { key: '\r', code: 'Enter' } })
+      break
+    }
+    case 'backspace': {
+      client_.sendEvent({ type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } })
+      break
+    }
+    case 'shift': {
+      shiftPressed = true
+      keyPressedWithShiftPressed = false
+      const time = new Date().getTime()
+      if (currentLayer === 'default') {
+        setLayer('shift', false)
+      }
+      else {
+        const isDoubleTap = shiftReleased && time - shiftPressTime <= DOUBLE_TAP_INTERVAL
+        if (isDoubleTap) {
+          setLayer('shift', true)
+        }
+        else {
+          setLayer('default', false)
+        }
+      }
+      shiftPressTime = time
+      break
+    }
   }
-  return null
+}
+
+function touchUp(touch: Touch) {
+  const container = getContainer(touch)
+  const key = getKey(container)
+  if (key?.type === 'shift') {
+    shiftPressed = false
+    shiftReleased = true
+    if (keyPressedWithShiftPressed) {
+      setLayer('default', false)
+    }
+  }
+  else {
+    shiftReleased = false
+  }
 }
 
 export function onTouchStart(event: TouchEvent) {
-  // Don't change DOM here. It causes touchend not fired due to target removal.
-  pressedContainer = getKeyContainer(event.target)
-  if (pressedContainer?.classList.contains('fcitx-keyboard-pressed')) { // shift
-    pressedContainer?.classList.remove('fcitx-keyboard-pressed')
-  }
-  else {
-    pressedContainer?.classList.add('fcitx-keyboard-pressed')
-  }
-}
-
-export function onTouchEnd() {
-  const dataKey = pressedContainer?.getAttribute(DATA_KEY)
-  if (dataKey) {
-    const pressedKey = JSON.parse(dataKey) as Key
-    switch (pressedKey.type) {
-      case 'key':
-        client_.sendEvent({ type: 'KEY_DOWN', data: { key: pressedKey.key ?? '', code: pressedKey.code ?? '' } })
-        if (currentLayer === 'shift' && !layerLocked) {
-          setLayer('default', false)
-        }
-        break
-      case 'enter': {
-        client_.sendEvent({ type: 'KEY_DOWN', data: { key: '\r', code: 'Enter' } })
-        break
-      }
-      case 'backspace': {
-        client_.sendEvent({ type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } })
-        break
-      }
-      case 'shift': {
-        const time = new Date().getTime()
-        if (currentLayer === 'default') {
-          setLayer('shift', false)
-        }
-        else {
-          const previousDataKey = previousContainer?.getAttribute(DATA_KEY)
-          const isDoubleTap = previousDataKey && (JSON.parse(previousDataKey) as Key).type === 'shift' && (time - shiftReleaseTime <= DOUBLE_TAP_INTERVAL)
-          if (isDoubleTap) {
-            setLayer('shift', true)
-          }
-          else {
-            setLayer('default', false)
-          }
-        }
-        shiftReleaseTime = time
-        break
-      }
+  const touch = event.changedTouches[0]
+  const key = getKey(getContainer(touch))
+  if (key) {
+    if (pendingTouch) {
+      touchDown(pendingTouch)
+    }
+    if (key.type === 'shift') {
+      touchDown(touch)
+      pendingTouch = null
+    }
+    else {
+      pendingTouch = touch
     }
   }
-  pressedContainer?.classList.remove('fcitx-keyboard-pressed')
-  previousContainer = pressedContainer
-  pressedContainer = null
+  // Must recalculate container as layer may have been changed.
+  const container = getContainer(touch)
+  container?.classList.add('fcitx-keyboard-pressed')
+  touches[touch.identifier] = touch
+}
+
+export function onTouchEnd(event: TouchEvent) {
+  const touchId = event.changedTouches[0].identifier
+  const touch: Touch = touches[touchId]
+  if (pendingTouch?.identifier === touch.identifier) {
+    touchDown(touch)
+    pendingTouch = null
+  }
+  touchUp(touch)
+  const container = getContainer(touch)
+  container?.classList.remove('fcitx-keyboard-pressed')
+  delete touches[touchId]
 }
 
 export function setLayer(id: string, locked: boolean) {
