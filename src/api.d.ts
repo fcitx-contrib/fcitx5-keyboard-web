@@ -1,6 +1,8 @@
-export interface SystemEvent {
+export type SystemEvent = {
   type: 'ENTER_KEY_TYPE'
   data: string
+} | {
+  type: 'HIDE'
 }
 
 export interface VirtualKeyboardEvent {

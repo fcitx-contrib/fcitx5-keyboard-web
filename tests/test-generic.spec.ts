@@ -82,3 +82,15 @@ test('Preserve press order', async ({ page }) => {
   await expect(w).toHaveCSS('background-color', WHITE)
   await expect(o).toHaveCSS('background-color', WHITE)
 })
+
+test('HIDE event', async ({ page }) => {
+  await init(page)
+
+  const q = page.getByText('q')
+  const shift = page.locator('.fcitx-keyboard-shift')
+  await tap(shift)
+  await expect(q).toHaveText('Q')
+
+  await sendSystemEvent(page, { type: 'HIDE' })
+  await expect(q).toHaveText('q')
+})

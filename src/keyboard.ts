@@ -4,7 +4,7 @@ import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../layouts/qwerty.json'
 import { renderRow } from './key'
 import { div } from './util'
-import { onTouchEnd, onTouchStart, setEnterKeyType, setLayout as setLayout_ } from './ux'
+import { onTouchEnd, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
@@ -55,6 +55,9 @@ export function onMessage(message: string) {
   switch (event.type) {
     case 'ENTER_KEY_TYPE':
       setEnterKeyType(event.data)
+      break
+    case 'HIDE':
+      setLayer('default', false)
       break
   }
 }
