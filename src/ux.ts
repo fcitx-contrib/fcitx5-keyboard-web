@@ -1,6 +1,11 @@
 import type { Layout } from '../src/layout'
 import type { VirtualKeyboardClient } from './api'
+import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
+import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
+import CheckMark from 'bundle-text:../svg/checkmark.svg'
 import Enter from 'bundle-text:../svg/enter.svg'
+import Search from 'bundle-text:../svg/search.svg'
+import Send from 'bundle-text:../svg/send.svg'
 import { renderRow } from './key'
 import { getContainer, getKey } from './util'
 
@@ -137,18 +142,21 @@ export function setLayer(id: string, locked: boolean) {
   }
 }
 
-export function getEnterKeyLabel() {
-  if (enterKeyType) {
-    return enterKeyType
-  }
-  return Enter
+export function getEnterKeyInnerHTML() {
+  return {
+    search: Search,
+    send: Send,
+    next: ArrowRight,
+    done: CheckMark,
+    previous: ArrowLeft,
+  }[enterKeyType] || Enter
 }
 
 export function setEnterKeyType(label: string) {
-  enterKeyType = label || Enter
+  enterKeyType = label
   const enter = document.querySelector('.fcitx-keyboard-enter')
   if (!enter) {
     return
   }
-  enter.innerHTML = label
+  enter.innerHTML = getEnterKeyInnerHTML()
 }

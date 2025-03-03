@@ -43,7 +43,8 @@ test('Enter', async ({ page }) => {
   await init(page)
 
   const enter = page.locator('.fcitx-keyboard-enter')
-  await expect(enter.locator('svg')).toBeVisible()
+  const svg = enter.locator('svg')
+  const enterSvg = await svg.innerHTML()
 
   await tap(enter)
   expect(await getSentEvents(page)).toEqual([{
@@ -51,8 +52,9 @@ test('Enter', async ({ page }) => {
     data: { key: '\r', code: 'Enter' },
   }])
 
-  await sendSystemEvent(page, { type: 'ENTER_KEY_TYPE', data: '搜索' })
-  await expect(enter).toHaveText('搜索')
+  await sendSystemEvent(page, { type: 'ENTER_KEY_TYPE', data: 'search' })
+  const searchSvg = await svg.innerHTML()
+  expect(enterSvg).not.toEqual(searchSvg)
 })
 
 test('Preserve press order', async ({ page }) => {
