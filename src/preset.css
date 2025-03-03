@@ -67,10 +67,6 @@
   height: 60%;
 }
 
-.fcitx-keyboard-key.fcitx-keyboard-enter {
-  font-size: 36cqh;
-}
-
 .fcitx-keyboard-key.fcitx-keyboard-enter svg {
-  height: 80%;
+  height: 60%;
 }
