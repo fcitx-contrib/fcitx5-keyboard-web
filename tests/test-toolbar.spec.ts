@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { getSentEvents, init, tap } from './util'
+import { getSentEvents, init } from './util'
 
 test('Undo', async ({ page }) => {
   await init(page)
@@ -7,7 +7,7 @@ test('Undo', async ({ page }) => {
   const undo = page.locator('.fcitx-keyboard-toolbar-button:nth-child(1)')
   await undo.tap()
   expect(await getSentEvents(page)).toEqual([{
-    type: 'UNDO'
+    type: 'UNDO',
   }])
 })
 
@@ -17,6 +17,6 @@ test('Redo', async ({ page }) => {
   const undo = page.locator('.fcitx-keyboard-toolbar-button:nth-child(2)')
   await undo.tap()
   expect(await getSentEvents(page)).toEqual([{
-    type: 'REDO'
+    type: 'REDO',
   }])
 })
