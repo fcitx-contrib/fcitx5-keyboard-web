@@ -32,6 +32,14 @@ export function setClient(client: VirtualKeyboardClient) {
   client_ = client
 }
 
+export function undo() {
+  client_.sendEvent({ type: 'UNDO' })
+}
+
+export function redo() {
+  client_.sendEvent({ type: 'REDO' })
+}
+
 function touchDown(touch: Touch) {
   const container = getContainer(touch)
   const key = getKey(container)

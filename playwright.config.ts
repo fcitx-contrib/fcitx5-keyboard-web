@@ -5,6 +5,6 @@ export default defineConfig({
   fullyParallel: true,
   projects: [{
     name: 'chromium',
-    use: { isMobile: true, viewport: { width: 360, height: 240 } },
+    use: { isMobile: true, viewport: { width: 360, height: 240 }, hasTouch: true },
   }],
 })

@@ -3,6 +3,7 @@ import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../layouts/qwerty.json'
 import { renderRow } from './key'
+import { renderToolbar } from './toolbar'
 import { div } from './util'
 import { onTouchEnd, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
 
@@ -14,7 +15,7 @@ export function setLayout(id: string, layout: Layout) {
   const style = document.createElement('style')
   style.textContent = presetCss
 
-  const toolbar = div('fcitx-keyboard-toolbar')
+  const toolbar = renderToolbar()
 
   const keyboard = div('fcitx-keyboard')
   for (const layer of layout.layers) {
