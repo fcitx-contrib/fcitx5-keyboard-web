@@ -5,12 +5,14 @@ export type SystemEvent = {
   type: 'HIDE'
 }
 
-export interface VirtualKeyboardEvent {
+export type VirtualKeyboardEvent = {
   type: 'KEY_DOWN' | 'KEY_UP'
   data: {
     key: string
     code: string
   }
+} | {
+  type: 'UNDO' | 'REDO'
 }
 
 export interface VirtualKeyboardClient {

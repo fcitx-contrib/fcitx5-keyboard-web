@@ -9,6 +9,32 @@
 
 .fcitx-keyboard-toolbar {
   height: 20%;
+  padding-left: 15%;
+  display: flex;
+  align-items: center;
+  gap: 5%;
+}
+
+.fcitx-keyboard-toolbar-button {
+  height: 80%;
+  aspect-ratio: 1 / 1;
+  border-radius: 10%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fcitx-keyboard-toolbar-button.fcitx-keyboard-pressed {
+  background-color: #c8cacf;
+}
+
+.fcitx-keyboard-toolbar-button svg {
+  height: 70%;
+  color: #595a5c;
+}
+
+.fcitx-keyboard-toolbar-button.fcitx-keyboard-pressed svg {
+  color: #505153;
 }
 
 .fcitx-keyboard {
