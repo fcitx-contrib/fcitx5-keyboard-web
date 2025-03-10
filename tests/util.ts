@@ -4,12 +4,14 @@ import type {
 } from '@playwright/test'
 import type { SystemEvent } from '../src/api'
 import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 export const WHITE = 'rgb(255, 255, 255)'
 export const GRAY = 'rgb(188, 192, 199)'
 
 export async function init(page: Page) {
-  const url = `file://${join(dirname(import.meta.url), '..', 'dist', 'preview', 'index.html').substring('file:'.length)}`
+  const baseDir = dirname(dirname(fileURLToPath(import.meta.url)))
+  const url = `file://${join(baseDir, 'dist', 'preview', 'index.html')}`
   await page.goto(url)
 }
 
