@@ -1,3 +1,7 @@
+.fcitx-keyboard-hidden {
+  display: none!important;
+}
+
 .fcitx-keyboard-container {
   height: 100%;
   display: flex;
@@ -35,6 +39,33 @@
 
 .fcitx-keyboard-toolbar-button.fcitx-keyboard-pressed svg {
   color: #505153;
+}
+
+.fcitx-keyboard-candidates {
+  height: 20%;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  gap: 1%;
+  overflow-x: scroll;
+  scrollbar-width: none;
+  container-type: size;
+}
+
+.fcitx-keyboard-candidates::-webkit-scrollbar { 
+  display: none; /* Harmony's webview */
+}
+
+.fcitx-keyboard-candidate {
+  font-size: 40cqh;
+  padding: 7.5cqh 15cqh;
+  border-radius: 10cqh;
+  flex-shrink: 0;
+}
+
+.fcitx-keyboard-candidate.fcitx-keyboard-highlighted {
+  background-color: white;
+  color: #0a59f7;
 }
 
 .fcitx-keyboard {

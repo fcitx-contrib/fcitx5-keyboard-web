@@ -31,3 +31,19 @@ export function div(klass: string, style?: Style) {
   }
   return el
 }
+
+export function hide(element: HTMLElement) {
+  element.classList.add('fcitx-keyboard-hidden')
+}
+
+export function show(element: HTMLElement) {
+  element.classList.remove('fcitx-keyboard-hidden')
+}
+
+export function getToolbar() {
+  return document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement
+}
+
+export function getCandidateBar() {
+  return document.querySelector('.fcitx-keyboard-candidates') as HTMLElement
+}
