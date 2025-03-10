@@ -25,6 +25,9 @@ export type VirtualKeyboardEvent = {
   }
 } | {
   type: 'UNDO' | 'REDO'
+} | {
+  type: 'SELECT_CANDIDATE'
+  data: number
 }
 
 export interface VirtualKeyboardClient {

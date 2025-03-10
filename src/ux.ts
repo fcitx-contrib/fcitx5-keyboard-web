@@ -40,6 +40,10 @@ export function redo() {
   client_.sendEvent({ type: 'REDO' })
 }
 
+export function selectCandidate(index: number) {
+  client_.sendEvent({ type: 'SELECT_CANDIDATE', data: index })
+}
+
 function touchDown(touch: Touch) {
   const container = getContainer(touch)
   const key = getKey(container)
