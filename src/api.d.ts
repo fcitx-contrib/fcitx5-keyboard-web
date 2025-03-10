@@ -1,8 +1,20 @@
+export interface Candidate {
+  text: string
+  label: string
+  comment: string
+}
+
 export type SystemEvent = {
   type: 'ENTER_KEY_TYPE'
   data: string
 } | {
-  type: 'HIDE'
+  type: 'CLEAR' | 'HIDE'
+} | {
+  type: 'CANDIDATES'
+  data: {
+    candidates: Candidate[]
+    highlighted: number
+  }
 }
 
 export type VirtualKeyboardEvent = {
