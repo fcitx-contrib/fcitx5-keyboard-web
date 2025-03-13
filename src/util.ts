@@ -40,10 +40,52 @@ export function show(element: HTMLElement) {
   element.classList.remove('fcitx-keyboard-hidden')
 }
 
-export function getToolbar() {
-  return document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement
+export function renderToolbarButton(svg: string) {
+  const button = div('fcitx-keyboard-toolbar-button')
+  button.innerHTML = svg
+  button.addEventListener('touchstart', () => {
+    button.classList.add('fcitx-keyboard-pressed')
+  })
+  button.addEventListener('touchend', () => {
+    button.classList.remove('fcitx-keyboard-pressed')
+  })
+  return button
 }
 
 export function getCandidateBar() {
   return document.querySelector('.fcitx-keyboard-candidates') as HTMLElement
+}
+
+export type DisplayMode = 'initial' | 'candidates' | 'edit'
+
+export function setDisplayMode(mode: DisplayMode) {
+  const toolbar = document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement
+  const candidateBar = getCandidateBar() as HTMLElement
+  const returnBar = document.querySelector('.fcitx-keyboard-return-bar') as HTMLElement
+  const keyboard = document.querySelector('.fcitx-keyboard') as HTMLElement
+  const editor = document.querySelector('.fcitx-keyboard-editor') as HTMLElement
+
+  switch (mode) {
+    case 'initial':
+      show(toolbar)
+      hide(candidateBar)
+      hide(returnBar)
+      show(keyboard)
+      hide(editor)
+      break
+    case 'candidates':
+      hide(toolbar)
+      show(candidateBar)
+      hide(returnBar)
+      show(keyboard)
+      hide(editor)
+      break
+    case 'edit':
+      hide(toolbar)
+      hide(candidateBar)
+      show(returnBar)
+      hide(keyboard)
+      show(editor)
+      break
+  }
 }

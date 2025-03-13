@@ -11,6 +11,55 @@
   container-type: size; /* for mask */
 }
 
+.fcitx-keyboard-return-bar {
+  height: 20%;
+  padding-left: 2%;
+  display: flex;
+  align-items: center;
+}
+
+.fcitx-keyboard-editor {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+}
+
+.fcitx-keyboard-editor-button-container {
+  position: relative;
+  container-type: size;
+}
+
+.fcitx-keyboard-editor-button {
+  position: absolute;
+  inset: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  font-size: 35cqh;
+  box-shadow: 0 1px rgb(0 0 0 / 30%);
+}
+
+.fcitx-keyboard-editor-button svg {
+  height: 60cqh;
+}
+
+.fcitx-keyboard-editor-cursor {
+  background-color: white;
+}
+
+.fcitx-keyboard-pressed .fcitx-keyboard-editor-cursor {
+  background-color: #bcc0c7;
+}
+
+.fcitx-keyboard-editor-function {
+  background-color: #bcc0c7;
+}
+
+.fcitx-keyboard-pressed .fcitx-keyboard-editor-function {
+  background-color: white;
+}
+
 .fcitx-keyboard-toolbar {
   height: 20%;
   padding-left: 15%;
@@ -74,7 +123,7 @@
   flex: 1; /* calc(100% - toolbar.height) */
 }
 
-.fcitx-keyboard-mask {
+.fcitx-keyboard-frame {
   position: fixed;
   bottom: 0;
   height: 80cqh;
@@ -93,7 +142,7 @@
 }
 
 .fcitx-keyboard-key {
-  position:absolute;
+  position: absolute;
   inset: 4px 3px;
   border-radius: 4px;
   display: flex;
@@ -121,9 +170,9 @@
 }
 
 .fcitx-keyboard-key.fcitx-keyboard-backspace svg {
-  height: 60%;
+  height: 60cqh;
 }
 
 .fcitx-keyboard-key.fcitx-keyboard-enter svg {
-  height: 60%;
+  height: 60cqh;
 }

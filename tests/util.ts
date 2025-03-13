@@ -78,3 +78,11 @@ export function sendSystemEvent(page: Page, event: SystemEvent) {
     window.onMessage(JSON.stringify(event))
   }, event)
 }
+
+export function getKey(page: Page, key: string) {
+  return page.locator('.fcitx-keyboard').getByText(key)
+}
+
+export function getToolbarButton(page: Page, nth: number) {
+  return page.locator(`.fcitx-keyboard-toolbar .fcitx-keyboard-toolbar-button:nth-child(${nth})`)
+}

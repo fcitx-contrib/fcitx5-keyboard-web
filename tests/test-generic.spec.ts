@@ -1,13 +1,10 @@
-import {
-  expect,
-  test,
-} from '@playwright/test'
-import { getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchUp, WHITE } from './util'
+import { expect, test } from '@playwright/test'
+import { getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchUp, WHITE } from './util'
 
 test('Click', async ({ page }) => {
   await init(page)
 
-  const q = page.getByText('q')
+  const q = getKey(page, 'q')
   await expect(q).toHaveCSS('background-color', WHITE)
 
   const touchId = await touchDown(q)
@@ -60,10 +57,10 @@ test('Enter', async ({ page }) => {
 test('Preserve press order', async ({ page }) => {
   await init(page)
 
-  const w = page.getByText('w')
+  const w = getKey(page, 'w')
   await expect(w).toHaveCSS('background-color', WHITE)
 
-  const o = page.getByText('o')
+  const o = getKey(page, 'o')
   await expect(o).toHaveCSS('background-color', WHITE)
 
   const wTouchId = await touchDown(w)
@@ -88,7 +85,7 @@ test('Preserve press order', async ({ page }) => {
 test('HIDE event', async ({ page }) => {
   await init(page)
 
-  const q = page.getByText('q')
+  const q = getKey(page, 'q')
   const shift = page.locator('.fcitx-keyboard-shift')
   await tap(shift)
   await expect(q).toHaveText('Q')
