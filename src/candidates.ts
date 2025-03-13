@@ -1,11 +1,10 @@
 import type { Candidate } from './api'
-import { div, getCandidateBar, getToolbar, hide, show } from './util'
+import { div, getCandidateBar, setDisplayMode } from './util'
 import { selectCandidate } from './ux'
 
 export function setCandidates(cands: Candidate[], highlighted: number) {
-  hide(getToolbar())
+  setDisplayMode('candidates')
   const candidateBar = getCandidateBar()
-  show(candidateBar)
   candidateBar.innerHTML = ''
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')

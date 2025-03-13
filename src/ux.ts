@@ -1,5 +1,5 @@
 import type { Layout } from '../src/layout'
-import type { VirtualKeyboardClient } from './api'
+import type { VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
 import CheckMark from 'bundle-text:../svg/checkmark.svg'
@@ -32,16 +32,28 @@ export function setClient(client: VirtualKeyboardClient) {
   client_ = client
 }
 
+export function sendEvent(data: VirtualKeyboardEvent) {
+  client_.sendEvent(data)
+}
+
 export function undo() {
-  client_.sendEvent({ type: 'UNDO' })
+  sendEvent({ type: 'UNDO' })
 }
 
 export function redo() {
-  client_.sendEvent({ type: 'REDO' })
+  sendEvent({ type: 'REDO' })
+}
+
+export function sendKeyDown(key: string, code: string) {
+  sendEvent({ type: 'KEY_DOWN', data: { key, code } })
+}
+
+export function backspace() {
+  sendKeyDown('', 'Backspace')
 }
 
 export function selectCandidate(index: number) {
-  client_.sendEvent({ type: 'SELECT_CANDIDATE', data: index })
+  sendEvent({ type: 'SELECT_CANDIDATE', data: index })
 }
 
 function touchDown(touch: Touch) {
@@ -49,7 +61,7 @@ function touchDown(touch: Touch) {
   const key = getKey(container)
   switch (key?.type) {
     case 'key': {
-      client_.sendEvent({ type: 'KEY_DOWN', data: { key: key.key ?? '', code: key.code ?? '' } })
+      sendKeyDown(key.key ?? '', key.code ?? '')
       if (shiftPressed) {
         keyPressedWithShiftPressed = true
       }
@@ -59,11 +71,11 @@ function touchDown(touch: Touch) {
       break
     }
     case 'enter': {
-      client_.sendEvent({ type: 'KEY_DOWN', data: { key: '\r', code: 'Enter' } })
+      sendKeyDown('\r', 'Enter')
       break
     }
     case 'backspace': {
-      client_.sendEvent({ type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } })
+      backspace()
       break
     }
     case 'shift': {

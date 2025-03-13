@@ -24,7 +24,7 @@ export type VirtualKeyboardEvent = {
     code: string
   }
 } | {
-  type: 'UNDO' | 'REDO'
+  type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE'
 } | {
   type: 'SELECT_CANDIDATE'
   data: number
