@@ -51,7 +51,7 @@ test('Overflow', async ({ page }) => {
   await init(page)
 
   const event: SystemEvent = { type: 'CANDIDATES', data: {
-    candidates: [{ text: '长长长长长长长长长长长长长长长长长长长长', label: '', comment: '' }],
+    candidates: [{ text: '长长长长长长长长长长长长长长长长长长长长长长长长长长长长', label: '', comment: '' }],
     highlighted: 0,
   } }
   const candidate = getCandidateBar(page).locator('.fcitx-keyboard-candidate')
