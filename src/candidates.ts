@@ -5,6 +5,7 @@ import { selectCandidate } from './ux'
 export function setCandidates(cands: Candidate[], highlighted: number) {
   setDisplayMode('candidates')
   const candidateBar = getCandidateBar()
+  candidateBar.scroll({ left: 0 })
   candidateBar.innerHTML = ''
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')
