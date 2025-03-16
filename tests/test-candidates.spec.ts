@@ -58,6 +58,7 @@ test('Overflow', async ({ page }) => {
   await sendSystemEvent(page, event)
   const initialBox = (await candidate.boundingBox())!
   await page.evaluate(() => document.querySelector('.fcitx-keyboard-candidates')?.scrollBy(20, 0))
+  await page.waitForTimeout(1000)
   const intermediateBox = (await candidate.boundingBox())!
   expect(intermediateBox.x).toEqual(initialBox.x - 20)
 
