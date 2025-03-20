@@ -4,6 +4,15 @@ export interface Candidate {
   comment: string
 }
 
+export interface StatusAreaAction {
+  id: number
+  desc: string
+  icon: string
+  checked?: boolean
+  separator?: boolean
+  children?: StatusAreaAction[]
+}
+
 export type SystemEvent = {
   type: 'ENTER_KEY_TYPE'
   data: string
@@ -15,6 +24,9 @@ export type SystemEvent = {
     candidates: Candidate[]
     highlighted: number
   }
+} | {
+  type: 'STATUS_AREA'
+  data: StatusAreaAction[]
 }
 
 export type VirtualKeyboardEvent = {
@@ -26,7 +38,7 @@ export type VirtualKeyboardEvent = {
 } | {
   type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE'
 } | {
-  type: 'SELECT_CANDIDATE'
+  type: 'SELECT_CANDIDATE' | 'STATUS_AREA_ACTION'
   data: number
 }
 

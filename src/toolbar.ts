@@ -1,4 +1,6 @@
+import Clipboard from 'bundle-text:../svg/clipboard.svg'
 import CursorMove from 'bundle-text:../svg/cursor-move.svg'
+import Ellipsis from 'bundle-text:../svg/ellipsis.svg'
 import Undo from 'bundle-text:../svg/undo.svg'
 import { div, renderToolbarButton, setDisplayMode } from './util'
 import { redo, undo } from './ux'
@@ -17,7 +19,12 @@ export function renderToolbar() {
   const editButton = renderToolbarButton(CursorMove)
   editButton.addEventListener('click', () => setDisplayMode('edit'))
 
-  for (const button of [undoButton, redoButton, editButton]) {
+  const clipboardButton = renderToolbarButton(Clipboard)
+
+  const statusAreaButton = renderToolbarButton(Ellipsis)
+  statusAreaButton.addEventListener('click', () => setDisplayMode('statusArea'))
+
+  for (const button of [undoButton, redoButton, editButton, clipboardButton, statusAreaButton]) {
     toolbar.appendChild(button)
   }
   return toolbar

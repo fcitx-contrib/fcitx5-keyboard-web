@@ -32,8 +32,8 @@ export function setClient(client: VirtualKeyboardClient) {
   client_ = client
 }
 
-export function sendEvent(data: VirtualKeyboardEvent) {
-  client_.sendEvent(data)
+export function sendEvent(event: VirtualKeyboardEvent) {
+  client_.sendEvent(event)
 }
 
 export function undo() {

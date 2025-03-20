@@ -6,8 +6,9 @@ import { setCandidates } from './candidates'
 import { renderEditor } from './editor'
 import { renderRow } from './key'
 import { renderReturnBar } from './return'
+import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderToolbar } from './toolbar'
-import { div, hide, setDisplayMode } from './util'
+import { div, getDisplayMode, setDisplayMode } from './util'
 import { onTouchEnd, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
@@ -20,9 +21,7 @@ export function setLayout(id: string, layout: Layout) {
 
   const toolbar = renderToolbar()
   const candidateBar = div('fcitx-keyboard-candidates')
-  hide(candidateBar)
   const returnBar = renderReturnBar()
-  hide(returnBar)
 
   const keyboard = div('fcitx-keyboard')
   for (const layer of layout.layers) {
@@ -46,7 +45,9 @@ export function setLayout(id: string, layout: Layout) {
 
   const editor = renderEditor()
   editor.classList.add('fcitx-keyboard-frame')
-  hide(editor)
+
+  const statusArea = renderStatusArea()
+  statusArea.classList.add('fcitx-keyboard-frame')
 
   const container = div('fcitx-keyboard-container')
   container.appendChild(style)
@@ -56,10 +57,12 @@ export function setLayout(id: string, layout: Layout) {
   container.appendChild(keyboard)
   container.appendChild(mask)
   container.appendChild(editor)
+  container.appendChild(statusArea)
 
   const app = document.getElementById(id)!
   app.innerHTML = ''
   app.appendChild(container)
+  setDisplayMode('initial')
 }
 
 export function setBuiltInLayout(id: string, name: BUILTIN_LAYOUT) {
@@ -76,10 +79,15 @@ export function onMessage(message: string) {
       setLayer('default', false)
     // fall through
     case 'CLEAR':
-      setDisplayMode('initial')
+      if (getDisplayMode() === 'candidates') {
+        setDisplayMode('initial')
+      }
       break
     case 'CANDIDATES':
       setCandidates(event.data.candidates, event.data.highlighted)
+      break
+    case 'STATUS_AREA':
+      setStatusArea(event.data)
       break
   }
 }
