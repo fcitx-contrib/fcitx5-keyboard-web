@@ -56,14 +56,25 @@ export function getCandidateBar() {
   return document.querySelector('.fcitx-keyboard-candidates') as HTMLElement
 }
 
-export type DisplayMode = 'initial' | 'candidates' | 'edit'
+export function getStatusArea() {
+  return document.querySelector('.fcitx-keyboard-status-area') as HTMLElement
+}
+
+export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea'
+
+let displayMode: DisplayMode = 'initial'
+
+export function getDisplayMode() {
+  return displayMode
+}
 
 export function setDisplayMode(mode: DisplayMode) {
   const toolbar = document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement
-  const candidateBar = getCandidateBar() as HTMLElement
+  const candidateBar = getCandidateBar()
   const returnBar = document.querySelector('.fcitx-keyboard-return-bar') as HTMLElement
   const keyboard = document.querySelector('.fcitx-keyboard') as HTMLElement
   const editor = document.querySelector('.fcitx-keyboard-editor') as HTMLElement
+  const statusArea = getStatusArea()
 
   switch (mode) {
     case 'initial':
@@ -72,6 +83,7 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(returnBar)
       show(keyboard)
       hide(editor)
+      hide(statusArea)
       break
     case 'candidates':
       hide(toolbar)
@@ -79,6 +91,7 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(returnBar)
       show(keyboard)
       hide(editor)
+      hide(statusArea)
       break
     case 'edit':
       hide(toolbar)
@@ -86,6 +99,16 @@ export function setDisplayMode(mode: DisplayMode) {
       show(returnBar)
       hide(keyboard)
       show(editor)
+      hide(statusArea)
+      break
+    case 'statusArea':
+      hide(toolbar)
+      hide(candidateBar)
+      show(returnBar)
+      hide(keyboard)
+      hide(editor)
+      show(statusArea)
       break
   }
+  displayMode = mode
 }
