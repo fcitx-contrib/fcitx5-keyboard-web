@@ -36,7 +36,7 @@ export type VirtualKeyboardEvent = {
     code: string
   }
 } | {
-  type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE'
+  type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE'
 } | {
   type: 'SELECT_CANDIDATE' | 'STATUS_AREA_ACTION'
   data: number

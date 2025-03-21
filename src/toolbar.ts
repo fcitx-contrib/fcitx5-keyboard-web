@@ -1,9 +1,10 @@
+import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import Clipboard from 'bundle-text:../svg/clipboard.svg'
 import CursorMove from 'bundle-text:../svg/cursor-move.svg'
 import Ellipsis from 'bundle-text:../svg/ellipsis.svg'
 import Undo from 'bundle-text:../svg/undo.svg'
-import { div, renderToolbarButton, setDisplayMode } from './util'
-import { redo, undo } from './ux'
+import { div, renderToolbarButton, setDisplayMode, setSvgStyle } from './util'
+import { redo, sendEvent, undo } from './ux'
 
 export function renderToolbar() {
   const toolbar = div('fcitx-keyboard-toolbar')
@@ -24,7 +25,11 @@ export function renderToolbar() {
   const statusAreaButton = renderToolbarButton(Ellipsis)
   statusAreaButton.addEventListener('click', () => setDisplayMode('statusArea'))
 
-  for (const button of [undoButton, redoButton, editButton, clipboardButton, statusAreaButton]) {
+  const collapseButton = renderToolbarButton(ChevronLeft)
+  collapseButton.addEventListener('click', () => sendEvent({ type: 'COLLAPSE' }))
+  setSvgStyle(collapseButton, { transform: 'rotate(270deg)' })
+
+  for (const button of [undoButton, redoButton, editButton, clipboardButton, statusAreaButton, collapseButton]) {
     toolbar.appendChild(button)
   }
   return toolbar

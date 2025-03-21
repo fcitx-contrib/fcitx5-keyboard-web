@@ -20,3 +20,13 @@ test('Redo', async ({ page }) => {
     type: 'REDO',
   }])
 })
+
+test('Collapse', async ({ page }) => {
+  await init(page)
+
+  const collapse = getToolbarButton(page, 6)
+  await collapse.tap()
+  expect(await getSentEvents(page)).toEqual([{
+    type: 'COLLAPSE',
+  }])
+})

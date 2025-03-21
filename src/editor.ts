@@ -1,16 +1,8 @@
 import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import FirstPage from 'bundle-text:../svg/first-page.svg'
-import { div } from './util'
+import { div, setSvgStyle } from './util'
 import { backspace, sendEvent, sendKeyDown } from './ux'
-
-function setSvgStyle(container: HTMLElement, style: { [key: string]: string }) {
-  const svg = container.firstChild?.firstChild as SVGElement
-  for (const [k, v] of Object.entries(style)) {
-    // @ts-expect-error too hard to annotate
-    svg.style[k] = v
-  }
-}
 
 function renderEditorButton(label: string, gridArea: string) {
   const container = div('fcitx-keyboard-editor-button-container')
