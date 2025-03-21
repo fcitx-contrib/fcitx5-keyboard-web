@@ -112,3 +112,11 @@ export function setDisplayMode(mode: DisplayMode) {
   }
   displayMode = mode
 }
+
+export function setSvgStyle(container: HTMLElement, style: { [key: string]: string }) {
+  const svg = container.querySelector('svg') as SVGElement
+  for (const [k, v] of Object.entries(style)) {
+    // @ts-expect-error too hard to annotate
+    svg.style[k] = v
+  }
+}
