@@ -3,7 +3,7 @@ import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../layouts/qwerty.json'
 import { setCandidates } from './candidates'
-import { renderEditor } from './editor'
+import { deselect, renderEditor, select } from './editor'
 import { renderRow } from './key'
 import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
@@ -89,5 +89,9 @@ export function onMessage(message: string) {
     case 'STATUS_AREA':
       setStatusArea(event.data)
       break
+    case 'SELECT':
+      return select()
+    case 'DESELECT':
+      return deselect()
   }
 }
