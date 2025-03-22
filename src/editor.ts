@@ -13,6 +13,7 @@ function adjustSelectAllOrCut() {
   if (!button) {
     return
   }
+  // Harmony doesn't have a way to report whether selection is empty, so can't be used to decide button state.
   button.innerHTML = selecting ? 'Cut' : 'Select all'
 }
 
