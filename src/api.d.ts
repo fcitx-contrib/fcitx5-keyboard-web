@@ -17,7 +17,7 @@ export type SystemEvent = {
   type: 'ENTER_KEY_TYPE'
   data: string
 } | {
-  type: 'CLEAR' | 'HIDE'
+  type: 'CLEAR' | 'HIDE' | 'SELECT' | 'DESELECT'
 } | {
   type: 'CANDIDATES'
   data: {
@@ -36,7 +36,8 @@ export type VirtualKeyboardEvent = {
     code: string
   }
 } | {
-  type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE'
+  type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE' |
+    'SELECT' | 'DESELECT' | 'SELECT_ALL'
 } | {
   type: 'SELECT_CANDIDATE' | 'STATUS_AREA_ACTION'
   data: number
