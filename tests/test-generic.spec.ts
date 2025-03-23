@@ -19,6 +19,19 @@ test('Click', async ({ page }) => {
   await expect(q).toHaveCSS('background-color', WHITE)
 })
 
+test('Touch canceled', async ({ page }) => {
+  await init(page)
+
+  const q = getKey(page, 'q')
+  const touchId = await touchDown(q)
+  await touchUp(q, touchId, true)
+  expect(await getSentEvents(page)).toEqual([{
+    type: 'KEY_DOWN',
+    data: { key: 'q', code: '' },
+  }])
+  await expect(q).toHaveCSS('background-color', WHITE)
+})
+
 test('Backspace', async ({ page }) => {
   await init(page)
 
