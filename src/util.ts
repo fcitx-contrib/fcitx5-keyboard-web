@@ -49,6 +49,9 @@ export function renderToolbarButton(svg: string) {
   button.addEventListener('touchend', () => {
     button.classList.remove('fcitx-keyboard-pressed')
   })
+  button.addEventListener('touchcancel', () => {
+    button.classList.remove('fcitx-keyboard-pressed')
+  })
   return button
 }
 

@@ -44,7 +44,7 @@ export async function touchDown(locator: Locator) {
   return touchId++
 }
 
-export async function touchUp(locator: Locator, touchId: number) {
+export async function touchUp(locator: Locator, touchId: number, cancel: boolean = false) {
   const ctr = await center(locator)
   await locator.page().evaluate((arg) => {
     const { touchId, center } = arg
@@ -56,7 +56,7 @@ export async function touchUp(locator: Locator, touchId: number) {
       clientY: center.y,
     })
     window.touches = window.touches.filter(touch => touch.identifier !== touchId)
-    const touchEvent = new TouchEvent('touchend', {
+    const touchEvent = new TouchEvent(cancel ? 'touchcancel' : 'touchend', {
       touches: window.touches,
       changedTouches: [touch],
     })

@@ -42,6 +42,7 @@ export function setLayout(id: string, layout: Layout) {
   mask.classList.add('fcitx-keyboard-frame')
   mask.addEventListener('touchstart', onTouchStart)
   mask.addEventListener('touchend', onTouchEnd)
+  mask.addEventListener('touchcancel', onTouchEnd)
 
   const editor = renderEditor()
   editor.classList.add('fcitx-keyboard-frame')

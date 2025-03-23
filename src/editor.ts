@@ -40,6 +40,7 @@ function renderEditorButton(label: string, gridArea: string) {
   if (label !== 'Select') {
     container.addEventListener('touchstart', () => container.classList.add('fcitx-keyboard-pressed'))
     container.addEventListener('touchend', () => container.classList.remove('fcitx-keyboard-pressed'))
+    container.addEventListener('touchcancel', () => container.classList.remove('fcitx-keyboard-pressed'))
   }
   return container
 }
