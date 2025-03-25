@@ -44,10 +44,10 @@ export async function touchDown(locator: Locator) {
   return touchId++
 }
 
-export async function touchUp(locator: Locator, touchId: number) {
+export async function touchUp(locator: Locator, touchId: number, cancel: boolean = false) {
   const ctr = await center(locator)
   await locator.page().evaluate((arg) => {
-    const { touchId, center } = arg
+    const { touchId, center, cancel } = arg
     const mask = document.querySelector('.fcitx-keyboard-mask')!
     const touch = new Touch({
       identifier: touchId,
@@ -56,12 +56,12 @@ export async function touchUp(locator: Locator, touchId: number) {
       clientY: center.y,
     })
     window.touches = window.touches.filter(touch => touch.identifier !== touchId)
-    const touchEvent = new TouchEvent('touchend', {
+    const touchEvent = new TouchEvent(cancel ? 'touchcancel' : 'touchend', {
       touches: window.touches,
       changedTouches: [touch],
     })
     mask.dispatchEvent(touchEvent)
-  }, { touchId, center: ctr })
+  }, { touchId, center: ctr, cancel })
 }
 
 export async function tap(locator: Locator) {
