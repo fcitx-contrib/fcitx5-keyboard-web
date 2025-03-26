@@ -3,7 +3,8 @@ import Clipboard from 'bundle-text:../svg/clipboard.svg'
 import CursorMove from 'bundle-text:../svg/cursor-move.svg'
 import Ellipsis from 'bundle-text:../svg/ellipsis.svg'
 import Undo from 'bundle-text:../svg/undo.svg'
-import { div, renderToolbarButton, setDisplayMode, setSvgStyle } from './util'
+import { setDisplayMode } from './display'
+import { div, renderToolbarButton, setSvgStyle } from './util'
 import { redo, sendEvent, undo } from './ux'
 
 export function renderToolbar() {

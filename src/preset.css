@@ -197,11 +197,11 @@
   height: 50%;
 }
 
-.fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter) {
+.fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol) {
   background-color: #bcc0c7;
 }
 
-.fcitx-keyboard-pressed .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter) {
+.fcitx-keyboard-pressed .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol) {
   background-color: white;
 }
 
@@ -211,4 +211,43 @@
 
 .fcitx-keyboard-key.fcitx-keyboard-enter svg {
   height: 60cqh;
+}
+
+.fcitx-keyboard-symbol-selector {
+  display: flex;
+  font-size: 8cqh;
+}
+
+.fcitx-keyboard-symbol-categories {
+  width: 20%;
+}
+
+.fcitx-keyboard-symbol-category {
+  height: 20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fcitx-keyboard-symbol-category.fcitx-keyboard-pressed {
+  background-color: #bcc0c7;
+}
+
+.fcitx-keyboard-symbol-panel {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  overflow-y: auto;
+}
+
+.fcitx-keyboard-symbol-item {
+  height: 20%;
+  flex: 0 0 20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fcitx-keyboard-symbol-item:active {
+  background-color: #bcc0c7;
 }

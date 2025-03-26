@@ -19,12 +19,17 @@ export interface EnterKey {
   type: 'enter'
 }
 
+export interface SymbolKey {
+  type: 'symbol'
+}
+
 export type Key = {
   flex?: string
 } & (NormalKey |
   EnterKey |
   BackspaceKey |
-  ShiftKey | {
+  ShiftKey |
+  SymbolKey | {
     type: 'placeholder'
   })
 

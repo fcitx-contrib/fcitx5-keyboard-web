@@ -3,12 +3,14 @@ import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../layouts/qwerty.json'
 import { setCandidates } from './candidates'
+import { removeCandidatesFromStack, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
 import { renderRow } from './key'
 import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
+import { renderSymbolSelector } from './symbol'
 import { renderToolbar } from './toolbar'
-import { div, getDisplayMode, setDisplayMode } from './util'
+import { div } from './util'
 import { onTouchEnd, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
@@ -50,6 +52,9 @@ export function setLayout(id: string, layout: Layout) {
   const statusArea = renderStatusArea()
   statusArea.classList.add('fcitx-keyboard-frame')
 
+  const symbol = renderSymbolSelector()
+  symbol.classList.add('fcitx-keyboard-frame')
+
   const container = div('fcitx-keyboard-container')
   container.appendChild(style)
   container.appendChild(toolbar)
@@ -59,6 +64,7 @@ export function setLayout(id: string, layout: Layout) {
   container.appendChild(mask)
   container.appendChild(editor)
   container.appendChild(statusArea)
+  container.appendChild(symbol)
 
   const app = document.getElementById(id)!
   app.innerHTML = ''
@@ -80,9 +86,7 @@ export function onMessage(message: string) {
       setLayer('default', false)
     // fall through
     case 'CLEAR':
-      if (getDisplayMode() === 'candidates') {
-        setDisplayMode('initial')
-      }
+      removeCandidatesFromStack()
       break
     case 'CANDIDATES':
       setCandidates(event.data.candidates, event.data.highlighted)

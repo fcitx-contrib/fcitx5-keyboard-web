@@ -63,57 +63,8 @@ export function getStatusArea() {
   return document.querySelector('.fcitx-keyboard-status-area') as HTMLElement
 }
 
-export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea'
-
-let displayMode: DisplayMode = 'initial'
-
-export function getDisplayMode() {
-  return displayMode
-}
-
-export function setDisplayMode(mode: DisplayMode) {
-  const toolbar = document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement
-  const candidateBar = getCandidateBar()
-  const returnBar = document.querySelector('.fcitx-keyboard-return-bar') as HTMLElement
-  const keyboard = document.querySelector('.fcitx-keyboard') as HTMLElement
-  const editor = document.querySelector('.fcitx-keyboard-editor') as HTMLElement
-  const statusArea = getStatusArea()
-
-  switch (mode) {
-    case 'initial':
-      show(toolbar)
-      hide(candidateBar)
-      hide(returnBar)
-      show(keyboard)
-      hide(editor)
-      hide(statusArea)
-      break
-    case 'candidates':
-      hide(toolbar)
-      show(candidateBar)
-      hide(returnBar)
-      show(keyboard)
-      hide(editor)
-      hide(statusArea)
-      break
-    case 'edit':
-      hide(toolbar)
-      hide(candidateBar)
-      show(returnBar)
-      hide(keyboard)
-      show(editor)
-      hide(statusArea)
-      break
-    case 'statusArea':
-      hide(toolbar)
-      hide(candidateBar)
-      show(returnBar)
-      hide(keyboard)
-      hide(editor)
-      show(statusArea)
-      break
-  }
-  displayMode = mode
+export function getSymbolSelector() {
+  return document.querySelector('.fcitx-keyboard-symbol-selector') as HTMLElement
 }
 
 export function setSvgStyle(container: HTMLElement, style: { [key: string]: string }) {

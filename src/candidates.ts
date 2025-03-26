@@ -1,5 +1,6 @@
 import type { Candidate } from './api'
-import { div, getCandidateBar, setDisplayMode } from './util'
+import { setDisplayMode } from './display'
+import { div, getCandidateBar } from './util'
 import { selectCandidate } from './ux'
 
 export function setCandidates(cands: Candidate[], highlighted: number) {

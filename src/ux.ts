@@ -6,6 +6,7 @@ import CheckMark from 'bundle-text:../svg/checkmark.svg'
 import Enter from 'bundle-text:../svg/enter.svg'
 import Search from 'bundle-text:../svg/search.svg'
 import Send from 'bundle-text:../svg/send.svg'
+import { setDisplayMode } from './display'
 import { renderRow } from './key'
 import { getContainer, getKey } from './util'
 
@@ -97,6 +98,9 @@ function touchDown(touch: Touch) {
       shiftPressTime = time
       break
     }
+    case 'symbol':
+      setDisplayMode('symbol')
+      break
   }
 }
 
