@@ -36,6 +36,9 @@ export type VirtualKeyboardEvent = {
     code: string
   }
 } | {
+  type: 'COMMIT'
+  data: string
+} | {
   type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE' |
     'SELECT' | 'DESELECT' | 'SELECT_ALL'
 } | {

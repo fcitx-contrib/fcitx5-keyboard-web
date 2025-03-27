@@ -49,6 +49,13 @@ export function renderKey(key: Key, context: Context) {
       container.setAttribute(DATA_KEY, dataKey)
       break
     }
+    case 'symbol': {
+      const el = div('fcitx-keyboard-key')
+      el.classList.add('fcitx-keyboard-symbol')
+      el.innerHTML = '#+='
+      container.appendChild(el)
+      container.setAttribute(DATA_KEY, dataKey)
+    }
   }
   return container
 }

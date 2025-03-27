@@ -87,6 +87,6 @@ export function getToolbarButton(page: Page, nth: number) {
   return page.locator(`.fcitx-keyboard-toolbar .fcitx-keyboard-toolbar-button:nth-child(${nth})`)
 }
 
-export function returnInitial(page: Page) {
+export function tapReturn(page: Page) {
   return page.locator('.fcitx-keyboard-return-bar .fcitx-keyboard-toolbar-button').tap()
 }
