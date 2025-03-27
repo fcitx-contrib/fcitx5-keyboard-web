@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { getKey, getSentEvents, getToolbarButton, init, returnInitial, sendSystemEvent } from './util'
+import { getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn } from './util'
 
 function gotoEditor(page: Page) {
   return getToolbarButton(page, 3).tap()
@@ -76,6 +76,6 @@ test('Return', async ({ page }) => {
   await gotoEditor(page)
   await expect(q).not.toBeVisible()
 
-  await returnInitial(page)
+  await tapReturn(page)
   await expect(q).toBeVisible()
 })
