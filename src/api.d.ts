@@ -19,6 +19,9 @@ export type SystemEvent = {
 } | {
   type: 'CLEAR' | 'HIDE' | 'SELECT' | 'DESELECT'
 } | {
+  type: 'UNDO' | 'REDO'
+  data: boolean
+} | {
   type: 'CANDIDATES'
   data: {
     candidates: Candidate[]

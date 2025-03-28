@@ -40,6 +40,14 @@ export function show(element: HTMLElement) {
   element.classList.remove('fcitx-keyboard-hidden')
 }
 
+export function disable(element: HTMLElement) {
+  element.classList.add('fcitx-keyboard-disabled')
+}
+
+export function enable(element: HTMLElement) {
+  element.classList.remove('fcitx-keyboard-disabled')
+}
+
 export function renderToolbarButton(svg: string) {
   const button = div('fcitx-keyboard-toolbar-button')
   button.innerHTML = svg

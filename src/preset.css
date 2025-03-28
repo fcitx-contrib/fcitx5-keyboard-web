@@ -126,6 +126,10 @@
   color: #505153;
 }
 
+.fcitx-keyboard-toolbar-button.fcitx-keyboard-disabled svg {
+  color: #7f7f7f;
+}
+
 .fcitx-keyboard-candidates {
   height: 20%;
   padding: 0 3px;
