@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url'
 
 export const WHITE = 'rgb(255, 255, 255)'
 export const GRAY = 'rgb(188, 192, 199)'
+export const ENABLED = 'rgb(89, 90, 92)'
+export const DISABLED = 'rgb(127, 127, 127)'
 
 export async function init(page: Page) {
   const baseDir = dirname(dirname(fileURLToPath(import.meta.url)))

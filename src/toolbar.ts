@@ -7,8 +7,8 @@ import { setDisplayMode } from './display'
 import { disable, div, enable, renderToolbarButton, setSvgStyle } from './util'
 import { redo, sendEvent, undo } from './ux'
 
-let isUndoEnabled: boolean = false
-let isRedoEnabled: boolean = false
+let isUndoEnabled: boolean = true
+let isRedoEnabled: boolean = true
 let undoButton: HTMLElement | null = null
 let redoButton: HTMLElement | null = null
 
@@ -27,50 +27,24 @@ export function enableRedo(enabled: boolean) {
 function renderDisableButton(icon: string, enabled: () => boolean) {
   const button = div('fcitx-keyboard-toolbar-button')
   button.innerHTML = icon
-  const touchStart = () => {
-    if (!enabled())
-      return
-    button.classList.add('fcitx-keyboard-pressed')
-  }
-  const touchEnd = () => {
-    if (!enabled())
-      return
-    button.classList.remove('fcitx-keyboard-pressed')
-  }
+  const touchStart = () => enabled() && button.classList.add('fcitx-keyboard-pressed')
+  const touchEnd = () => button.classList.remove('fcitx-keyboard-pressed')
   button.addEventListener('touchstart', touchStart)
   button.addEventListener('touchend', touchEnd)
   button.addEventListener('touchcancel', touchEnd)
   return button
 }
 
-function renderUndoButton() {
-  return renderDisableButton(Undo, () => isUndoEnabled)
-}
-
-function renderRedoButton() {
-  return renderDisableButton(Undo, () => isRedoEnabled)
-}
-
 export function renderToolbar() {
   const toolbar = div('fcitx-keyboard-toolbar')
 
-  undoButton = renderUndoButton()
-  enableUndo(isUndoEnabled)
+  undoButton = renderDisableButton(Undo, () => isUndoEnabled)
   // No fancy gesture so just use click.
-  undoButton.addEventListener('click', () => {
-    if (!isUndoEnabled)
-      return
-    undo()
-  })
+  undoButton.addEventListener('click', () => isUndoEnabled && undo())
 
-  redoButton = renderRedoButton()
-  enableRedo(isRedoEnabled)
+  redoButton = renderDisableButton(Undo, () => isRedoEnabled)
   redoButton.style.transform = 'scaleX(-1)'
-  redoButton.addEventListener('click', () => {
-    if (!isRedoEnabled)
-      return
-    redo()
-  })
+  redoButton.addEventListener('click', () => isRedoEnabled && redo())
 
   const editButton = renderToolbarButton(CursorMove)
   editButton.addEventListener('click', () => setDisplayMode('edit'))
