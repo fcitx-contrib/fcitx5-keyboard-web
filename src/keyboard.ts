@@ -9,7 +9,7 @@ import { renderRow } from './key'
 import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
-import { renderToolbar } from './toolbar'
+import { enableRedo, enableUndo, renderToolbar } from './toolbar'
 import { div } from './util'
 import { onTouchEnd, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
 
@@ -98,5 +98,9 @@ export function onMessage(message: string) {
       return select()
     case 'DESELECT':
       return deselect()
+    case 'UNDO':
+      return enableUndo(event.data)
+    case 'REDO':
+      return enableRedo(event.data)
   }
 }

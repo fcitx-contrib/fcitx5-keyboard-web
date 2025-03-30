@@ -4,19 +4,47 @@ import CursorMove from 'bundle-text:../svg/cursor-move.svg'
 import Ellipsis from 'bundle-text:../svg/ellipsis.svg'
 import Undo from 'bundle-text:../svg/undo.svg'
 import { setDisplayMode } from './display'
-import { div, renderToolbarButton, setSvgStyle } from './util'
+import { disable, div, enable, renderToolbarButton, setSvgStyle } from './util'
 import { redo, sendEvent, undo } from './ux'
+
+let isUndoEnabled: boolean = true
+let isRedoEnabled: boolean = true
+let undoButton: HTMLElement | null = null
+let redoButton: HTMLElement | null = null
+
+export function enableUndo(enabled: boolean) {
+  isUndoEnabled = enabled
+  if (undoButton)
+    enabled ? enable(undoButton) : disable(undoButton)
+}
+
+export function enableRedo(enabled: boolean) {
+  isRedoEnabled = enabled
+  if (redoButton)
+    enabled ? enable(redoButton) : disable(redoButton)
+}
+
+function renderDisableButton(icon: string, enabled: () => boolean) {
+  const button = div('fcitx-keyboard-toolbar-button')
+  button.innerHTML = icon
+  const touchStart = () => enabled() && button.classList.add('fcitx-keyboard-pressed')
+  const touchEnd = () => button.classList.remove('fcitx-keyboard-pressed')
+  button.addEventListener('touchstart', touchStart)
+  button.addEventListener('touchend', touchEnd)
+  button.addEventListener('touchcancel', touchEnd)
+  return button
+}
 
 export function renderToolbar() {
   const toolbar = div('fcitx-keyboard-toolbar')
 
-  const undoButton = renderToolbarButton(Undo)
+  undoButton = renderDisableButton(Undo, () => isUndoEnabled)
   // No fancy gesture so just use click.
-  undoButton.addEventListener('click', undo)
+  undoButton.addEventListener('click', () => isUndoEnabled && undo())
 
-  const redoButton = renderToolbarButton(Undo)
+  redoButton = renderDisableButton(Undo, () => isRedoEnabled)
   redoButton.style.transform = 'scaleX(-1)'
-  redoButton.addEventListener('click', redo)
+  redoButton.addEventListener('click', () => isRedoEnabled && redo())
 
   const editButton = renderToolbarButton(CursorMove)
   editButton.addEventListener('click', () => setDisplayMode('edit'))
