@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { ENABLED, DISABLED, getSentEvents, getToolbarButton, init, sendSystemEvent } from './util'
+import { DISABLED, ENABLED, getSentEvents, getToolbarButton, init, sendSystemEvent } from './util'
 
 test('Undo', async ({ page }) => {
   await init(page)
