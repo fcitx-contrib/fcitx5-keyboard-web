@@ -18,6 +18,7 @@ let shiftPressed = false
 let shiftReleased = true
 let keyPressedWithShiftPressed = false
 let enterKeyType = ''
+let spaceKeyLabel = ''
 let pendingTouch: Touch | null = null
 const touches: { [key: number]: Touch } = {}
 
@@ -73,6 +74,10 @@ function touchDown(touch: Touch) {
     }
     case 'enter': {
       sendKeyDown('\r', 'Enter')
+      break
+    }
+    case 'space': {
+      sendKeyDown(' ', 'Space')
       break
     }
     case 'backspace': {
@@ -187,4 +192,16 @@ export function setEnterKeyType(label: string) {
     return
   }
   enter.innerHTML = getEnterKeyInnerHTML()
+}
+
+export function getSpaceKeyLabel() {
+  return spaceKeyLabel
+}
+
+export function setSpaceKeyLabel(label: string) {
+  spaceKeyLabel = label
+  const space = document.querySelector('.fcitx-keyboard-space')
+  if (space) {
+    space.innerHTML = spaceKeyLabel
+  }
 }

@@ -49,7 +49,7 @@
           "keys": [
             { "type": "symbol", "flex": "1.5" },
             { "type": "key", "label": ",", "key": "," },
-            { "type": "key", "label": "␣", "key": " ", "flex": "5" },
+            { "type": "space", "flex": "5" },
             { "type": "key", "label": ".", "key": "." },
             { "type": "enter", "flex": "1.5" }
           ]
@@ -105,7 +105,7 @@
           "keys": [
             { "type": "symbol", "flex": "1.5" },
             { "type": "key", "label": ",", "key": "," },
-            { "type": "key", "label": "␣", "key": " ", "flex": "5" },
+            { "type": "space", "flex": "5" },
             { "type": "key", "label": ".", "key": "." },
             { "type": "enter", "flex": "1.5" }
           ]

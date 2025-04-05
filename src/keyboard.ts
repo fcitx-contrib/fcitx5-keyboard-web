@@ -92,7 +92,7 @@ export function onMessage(message: string) {
       setCandidates(event.data.candidates, event.data.highlighted)
       break
     case 'STATUS_AREA':
-      setStatusArea(event.data)
+      setStatusArea(event.data.actions, event.data.currentInputMethod, event.data.inputMethods)
       break
     case 'SELECT':
       return select()

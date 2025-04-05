@@ -4,7 +4,7 @@ import ShiftFiled from 'bundle-text:../svg/shift-filled.svg'
 import ShiftUppercaseFiled from 'bundle-text:../svg/shift-uppercase-filled.svg'
 import Shift from 'bundle-text:../svg/shift.svg'
 import { DATA_KEY, div } from './util'
-import { getEnterKeyInnerHTML } from './ux'
+import { getEnterKeyInnerHTML, getSpaceKeyLabel } from './ux'
 
 export function renderKey(key: Key, context: Context) {
   const dataKey = JSON.stringify(key)
@@ -34,6 +34,14 @@ export function renderKey(key: Key, context: Context) {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-enter')
       el.innerHTML = getEnterKeyInnerHTML()
+      container.appendChild(el)
+      container.setAttribute(DATA_KEY, dataKey)
+      break
+    }
+    case 'space': {
+      const el = div('fcitx-keyboard-key')
+      el.classList.add('fcitx-keyboard-space')
+      el.innerHTML = getSpaceKeyLabel()
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
       break
