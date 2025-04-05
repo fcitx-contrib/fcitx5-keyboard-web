@@ -15,6 +15,10 @@ export interface BackspaceKey {
   type: 'backspace'
 }
 
+export interface SpaceKey {
+  type: 'space'
+}
+
 export interface EnterKey {
   type: 'enter'
 }
@@ -29,6 +33,7 @@ export type Key = {
   EnterKey |
   BackspaceKey |
   ShiftKey |
+  SpaceKey |
   SymbolKey | {
     type: 'placeholder'
   })

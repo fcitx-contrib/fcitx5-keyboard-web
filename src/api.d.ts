@@ -13,6 +13,11 @@ export interface StatusAreaAction {
   children?: StatusAreaAction[]
 }
 
+export interface InputMethod {
+  name: string
+  displayName: string
+}
+
 export type SystemEvent = {
   type: 'ENTER_KEY_TYPE'
   data: string
@@ -29,7 +34,11 @@ export type SystemEvent = {
   }
 } | {
   type: 'STATUS_AREA'
-  data: StatusAreaAction[]
+  data: {
+    actions: StatusAreaAction[]
+    currentInputMethod: string
+    inputMethods: InputMethod[]
+  }
 }
 
 export type VirtualKeyboardEvent = {
