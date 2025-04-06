@@ -22,17 +22,27 @@ async function center(locator: Locator) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 }
 }
 
+async function isInside(point: { x: number, y: number }, locator: Locator) {
+  const box = (await locator.boundingBox())!
+  return box.x <= point.x && point.x <= box.x + box.width && box.y <= point.y && point.y <= box.y + box.height
+}
+
+function isUnderMask(point: { x: number, y: number }, page: Page) {
+  return isInside(point, page.locator('.fcitx-keyboard-mask'))
+}
+
 let touchId = 0
 
 export async function touchDown(locator: Locator) {
   const ctr = await center(locator)
+  const underMask = await isUnderMask(ctr, locator.page())
   await locator.page().evaluate((arg) => {
-    const { touchId, center } = arg
+    const { touchId, center, underMask, element } = arg
     window.touches ||= []
-    const mask = document.querySelector('.fcitx-keyboard-mask')!
+    const target = underMask ? document.querySelector('.fcitx-keyboard-mask')! : element
     const touch = new Touch({
       identifier: touchId,
-      target: mask,
+      target,
       clientX: center.x,
       clientY: center.y,
     })
@@ -41,8 +51,8 @@ export async function touchDown(locator: Locator) {
       touches: window.touches,
       changedTouches: [touch],
     })
-    mask.dispatchEvent(touchEvent)
-  }, { touchId, center: ctr })
+    target.dispatchEvent(touchEvent)
+  }, { touchId, center: ctr, underMask, element: (await locator.elementHandle())! })
   return touchId++
 }
 
@@ -50,10 +60,11 @@ export async function touchUp(locator: Locator, touchId: number, cancel: boolean
   const ctr = await center(locator)
   await locator.page().evaluate((arg) => {
     const { touchId, center, cancel } = arg
-    const mask = document.querySelector('.fcitx-keyboard-mask')!
+    const { target } = window.touches.filter(touch => touch.identifier === touchId)[0]
+    // const mask = document.querySelector('.fcitx-keyboard-mask')!
     const touch = new Touch({
       identifier: touchId,
-      target: mask,
+      target,
       clientX: center.x,
       clientY: center.y,
     })
@@ -62,12 +73,18 @@ export async function touchUp(locator: Locator, touchId: number, cancel: boolean
       touches: window.touches,
       changedTouches: [touch],
     })
-    mask.dispatchEvent(touchEvent)
+    target.dispatchEvent(touchEvent)
   }, { touchId, center: ctr, cancel })
 }
 
 export async function tap(locator: Locator) {
   const touchId = await touchDown(locator)
+  return touchUp(locator, touchId)
+}
+
+export async function longPress(locator: Locator) {
+  const touchId = await touchDown(locator)
+  await locator.page().waitForTimeout(500)
   return touchUp(locator, touchId)
 }
 

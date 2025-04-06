@@ -3,7 +3,7 @@ import Backspace from 'bundle-text:../svg/backspace.svg'
 import ShiftFiled from 'bundle-text:../svg/shift-filled.svg'
 import ShiftUppercaseFiled from 'bundle-text:../svg/shift-uppercase-filled.svg'
 import Shift from 'bundle-text:../svg/shift.svg'
-import { DATA_KEY, div } from './util'
+import { DATA_KEY, div, press } from './util'
 import { getEnterKeyInnerHTML, getSpaceKeyLabel } from './ux'
 
 export function renderKey(key: Key, context: Context) {
@@ -50,7 +50,7 @@ export function renderKey(key: Key, context: Context) {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-shift')
       if (context.layer === 'shift') {
-        container.classList.add('fcitx-keyboard-pressed')
+        press(container)
       }
       el.innerHTML = context.layer === 'shift' ? (context.locked ? ShiftUppercaseFiled : ShiftFiled) : Shift
       container.appendChild(el)

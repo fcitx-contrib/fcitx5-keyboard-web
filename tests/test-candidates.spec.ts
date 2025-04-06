@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
-import type { SystemEvent } from '../src/api'
+import type { SystemEvent, VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
-import { getSentEvents, init, sendSystemEvent } from './util'
+import { getSentEvents, init, longPress, sendSystemEvent } from './util'
 
 function getCandidateBar(page: Page) {
   return page.locator('.fcitx-keyboard-candidates')
@@ -66,4 +66,27 @@ test('Overflow', async ({ page }) => {
   await sendSystemEvent(page, event)
   const finalBox = (await candidate.boundingBox())!
   expect(finalBox.x).toEqual(initialBox.x)
+})
+
+test('Actions', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: [{ text: '一', label: '1', comment: '' }],
+    highlighted: 0,
+  } })
+  const candidate = page.locator('.fcitx-keyboard-candidate')
+  await longPress(candidate)
+  const sentEvents: VirtualKeyboardEvent[] = [{ type: 'ASK_CANDIDATE_ACTIONS', data: 0 }]
+  expect(await getSentEvents(page)).toEqual(sentEvents)
+
+  await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
+    index: 0,
+    actions: [{ id: 1, text: '置顶' }, { id: 2, text: '删词' }],
+  } })
+  const deleteButton = page.getByText('删词')
+  await deleteButton.tap()
+  await expect(deleteButton).not.toBeVisible()
+  sentEvents.push({ type: 'CANDIDATE_ACTION', data: { index: 0, id: 2 } })
+  expect(await getSentEvents(page)).toEqual(sentEvents)
 })

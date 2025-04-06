@@ -2,7 +2,8 @@ import type { SystemEvent } from './api'
 import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../layouts/qwerty.json'
-import { setCandidates } from './candidates'
+import { setCandidateActions, setCandidates } from './candidates'
+import { renderContextmenu } from './contextmenu'
 import { removeCandidatesFromStack, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
 import { renderRow } from './key'
@@ -10,7 +11,7 @@ import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
-import { div } from './util'
+import { div, hide } from './util'
 import { onTouchEnd, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
@@ -55,16 +56,24 @@ export function setLayout(id: string, layout: Layout) {
   const symbol = renderSymbolSelector()
   symbol.classList.add('fcitx-keyboard-frame')
 
+  const contextmenu = renderContextmenu()
+  hide(contextmenu)
+
   const container = div('fcitx-keyboard-container')
-  container.appendChild(style)
-  container.appendChild(toolbar)
-  container.appendChild(candidateBar)
-  container.appendChild(returnBar)
-  container.appendChild(keyboard)
-  container.appendChild(mask)
-  container.appendChild(editor)
-  container.appendChild(statusArea)
-  container.appendChild(symbol)
+  for (const element of [
+    style,
+    toolbar,
+    candidateBar,
+    returnBar,
+    keyboard,
+    mask,
+    editor,
+    statusArea,
+    symbol,
+    contextmenu,
+  ]) {
+    container.appendChild(element)
+  }
 
   const app = document.getElementById(id)!
   app.innerHTML = ''
@@ -90,6 +99,9 @@ export function onMessage(message: string) {
       break
     case 'CANDIDATES':
       setCandidates(event.data.candidates, event.data.highlighted)
+      break
+    case 'CANDIDATE_ACTIONS':
+      setCandidateActions(event.data.index, event.data.actions)
       break
     case 'STATUS_AREA':
       setStatusArea(event.data.actions, event.data.currentInputMethod, event.data.inputMethods)

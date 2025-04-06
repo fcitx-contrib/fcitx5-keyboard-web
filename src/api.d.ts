@@ -18,6 +18,11 @@ export interface InputMethod {
   displayName: string
 }
 
+export interface CandidateAction {
+  id: number
+  text: string
+}
+
 export type SystemEvent = {
   type: 'ENTER_KEY_TYPE'
   data: string
@@ -31,6 +36,12 @@ export type SystemEvent = {
   data: {
     candidates: Candidate[]
     highlighted: number
+  }
+} | {
+  type: 'CANDIDATE_ACTIONS'
+  data: {
+    index: number
+    actions: CandidateAction[]
   }
 } | {
   type: 'STATUS_AREA'
@@ -54,8 +65,14 @@ export type VirtualKeyboardEvent = {
   type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE' |
     'SELECT' | 'DESELECT' | 'SELECT_ALL'
 } | {
-  type: 'SELECT_CANDIDATE' | 'STATUS_AREA_ACTION'
+  type: 'SELECT_CANDIDATE' | 'ASK_CANDIDATE_ACTIONS' | 'STATUS_AREA_ACTION'
   data: number
+} | {
+  type: 'CANDIDATE_ACTION'
+  data: {
+    index: number
+    id: number
+  }
 }
 
 export interface VirtualKeyboardClient {

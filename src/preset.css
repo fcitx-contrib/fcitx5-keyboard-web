@@ -255,3 +255,26 @@
 .fcitx-keyboard-symbol-item:active {
   background-color: #bcc0c7;
 }
+
+.fcitx-keyboard-contextmenu-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+.fcitx-keyboard-contextmenu {
+  width: fit-content;
+  font-size: 8cqh;
+  border-radius: 4px;
+  background-color: white;
+  box-shadow: 0 0 8px rgb(0 0 0 / 30%);
+  position: fixed;
+}
+
+.fcitx-keyboard-contextmenu-item {
+  padding: 12px;
+}
+
+.fcitx-keyboard-contextmenu-item.fcitx-keyboard-pressed {
+  background-color: #bcc0c7;
+}

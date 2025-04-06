@@ -48,17 +48,25 @@ export function enable(element: HTMLElement) {
   element.classList.remove('fcitx-keyboard-disabled')
 }
 
+export function press(element: Element) {
+  element.classList.add('fcitx-keyboard-pressed')
+}
+
+export function release(element: Element) {
+  element.classList.remove('fcitx-keyboard-pressed')
+}
+
 export function renderToolbarButton(svg: string) {
   const button = div('fcitx-keyboard-toolbar-button')
   button.innerHTML = svg
   button.addEventListener('touchstart', () => {
-    button.classList.add('fcitx-keyboard-pressed')
+    press(button)
   })
   button.addEventListener('touchend', () => {
-    button.classList.remove('fcitx-keyboard-pressed')
+    release(button)
   })
   button.addEventListener('touchcancel', () => {
-    button.classList.remove('fcitx-keyboard-pressed')
+    release(button)
   })
   return button
 }
