@@ -1,12 +1,12 @@
 import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import FirstPage from 'bundle-text:../svg/first-page.svg'
-import { div, setSvgStyle } from './util'
+import { div, press, release, setSvgStyle } from './util'
 import { backspace, sendEvent, sendKeyDown } from './ux'
 
 let selecting = false
-let selectButton: HTMLElement | null = null
-let selectAllOrCutButton: HTMLElement | null = null
+let selectButton: HTMLElement
+let selectAllOrCutButton: HTMLElement
 
 function adjustSelectAllOrCut() {
   const button = selectAllOrCutButton?.querySelector('.fcitx-keyboard-editor-button')
@@ -19,13 +19,13 @@ function adjustSelectAllOrCut() {
 
 export function select() {
   selecting = true
-  selectButton?.classList.add('fcitx-keyboard-pressed')
+  press(selectButton)
   adjustSelectAllOrCut()
 }
 
 export function deselect() {
   selecting = false
-  selectButton?.classList.remove('fcitx-keyboard-pressed')
+  release(selectButton)
   adjustSelectAllOrCut()
 }
 
@@ -38,9 +38,9 @@ function renderEditorButton(label: string, gridArea: string) {
   container.style.gridArea = gridArea
   container.appendChild(button)
   if (label !== 'Select') {
-    container.addEventListener('touchstart', () => container.classList.add('fcitx-keyboard-pressed'))
-    container.addEventListener('touchend', () => container.classList.remove('fcitx-keyboard-pressed'))
-    container.addEventListener('touchcancel', () => container.classList.remove('fcitx-keyboard-pressed'))
+    container.addEventListener('touchstart', () => press(container))
+    container.addEventListener('touchend', () => release(container))
+    container.addEventListener('touchcancel', () => release(container))
   }
   return container
 }

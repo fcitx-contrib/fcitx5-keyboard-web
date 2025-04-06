@@ -1,4 +1,4 @@
-import { div } from './util'
+import { div, press, release } from './util'
 import { sendEvent } from './ux'
 
 /* eslint-disable antfu/consistent-list-newline */
@@ -34,10 +34,10 @@ export function selectCategory(index: number) {
         symbolItem.addEventListener('click', () => sendEvent({ type: 'COMMIT', data: symbol }))
         panel.appendChild(symbolItem)
       }
-      symbolCategories[i].classList.add('fcitx-keyboard-pressed')
+      press(symbolCategories[i])
     }
     else {
-      symbolCategories[i].classList.remove('fcitx-keyboard-pressed')
+      release(symbolCategories[i])
     }
   })
 }

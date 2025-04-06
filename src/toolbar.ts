@@ -4,7 +4,7 @@ import CursorMove from 'bundle-text:../svg/cursor-move.svg'
 import Ellipsis from 'bundle-text:../svg/ellipsis.svg'
 import Undo from 'bundle-text:../svg/undo.svg'
 import { setDisplayMode } from './display'
-import { disable, div, enable, renderToolbarButton, setSvgStyle } from './util'
+import { disable, div, enable, press, release, renderToolbarButton, setSvgStyle } from './util'
 import { redo, sendEvent, undo } from './ux'
 
 let isUndoEnabled: boolean = true
@@ -27,8 +27,8 @@ export function enableRedo(enabled: boolean) {
 function renderDisableButton(icon: string, enabled: () => boolean) {
   const button = div('fcitx-keyboard-toolbar-button')
   button.innerHTML = icon
-  const touchStart = () => enabled() && button.classList.add('fcitx-keyboard-pressed')
-  const touchEnd = () => button.classList.remove('fcitx-keyboard-pressed')
+  const touchStart = () => enabled() && press(button)
+  const touchEnd = () => release(button)
   button.addEventListener('touchstart', touchStart)
   button.addEventListener('touchend', touchEnd)
   button.addEventListener('touchcancel', touchEnd)

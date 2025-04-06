@@ -8,7 +8,7 @@ import Search from 'bundle-text:../svg/search.svg'
 import Send from 'bundle-text:../svg/send.svg'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
-import { getContainer, getKey } from './util'
+import { getContainer, getKey, press, release } from './util'
 
 let layout_: Layout
 let currentLayer = 'default'
@@ -141,7 +141,7 @@ export function onTouchStart(event: TouchEvent) {
   }
   // Must recalculate container as layer may have been changed.
   const container = getContainer(touch)
-  container?.classList.add('fcitx-keyboard-pressed')
+  container && press(container)
   touches[touch.identifier] = touch
 }
 
@@ -154,7 +154,7 @@ export function onTouchEnd(event: TouchEvent) {
   }
   touchUp(touch)
   const container = getContainer(touch)
-  container?.classList.remove('fcitx-keyboard-pressed')
+  container && release(container)
   delete touches[touchId]
 }
 
