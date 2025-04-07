@@ -1,0 +1,3 @@
+[submodule "fcitx5-keyboard-layouts"]
+	path = fcitx5-keyboard-layouts
+	url = https://github.com/fcitx-contrib/fcitx5-keyboard-layouts

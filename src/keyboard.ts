@@ -1,7 +1,7 @@
 import type { SystemEvent } from './api'
 import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
-import qwerty from '../layouts/qwerty.json'
+import qwerty from '../fcitx5-keyboard-layouts/layout/qwerty.json'
 import { setCandidateActions, setCandidates } from './candidates'
 import { renderContextmenu } from './contextmenu'
 import { removeCandidatesFromStack, setDisplayMode } from './display'
