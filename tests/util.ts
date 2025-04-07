@@ -56,25 +56,33 @@ export async function touchDown(locator: Locator) {
   return touchId++
 }
 
-export async function touchUp(locator: Locator, touchId: number, cancel: boolean = false) {
-  const ctr = await center(locator)
-  await locator.page().evaluate((arg) => {
-    const { touchId, center, cancel } = arg
-    const { target } = window.touches.filter(touch => touch.identifier === touchId)[0]
-    // const mask = document.querySelector('.fcitx-keyboard-mask')!
-    const touch = new Touch({
-      identifier: touchId,
-      target,
-      clientX: center.x,
-      clientY: center.y,
+export async function touchMove(locator: Locator, touchId: number, dx: number, dy: number) {
+  return locator.page().evaluate((arg) => {
+    const { touchId, dx, dy } = arg
+    const i = window.touches.findIndex(touch => touch.identifier === touchId)
+    const { target, clientX, clientY } = window.touches.splice(i, 1)[0]
+    const touch = new Touch({ identifier: touchId, target, clientX: clientX + dx, clientY: clientY + dy })
+    window.touches.push(touch)
+    const touchEvent = new TouchEvent('touchmove', {
+      touches: window.touches,
+      changedTouches: [touch],
     })
-    window.touches = window.touches.filter(touch => touch.identifier !== touchId)
+    target.dispatchEvent(touchEvent)
+  }, { touchId, dx, dy })
+}
+
+export function touchUp(locator: Locator, touchId: number, cancel: boolean = false) {
+  return locator.page().evaluate((arg) => {
+    const { touchId, cancel } = arg
+    const i = window.touches.findIndex(touch => touch.identifier === touchId)
+    const { target, clientX, clientY } = window.touches.splice(i, 1)[0]
+    const touch = new Touch({ identifier: touchId, target, clientX, clientY })
     const touchEvent = new TouchEvent(cancel ? 'touchcancel' : 'touchend', {
       touches: window.touches,
       changedTouches: [touch],
     })
     target.dispatchEvent(touchEvent)
-  }, { touchId, center: ctr, cancel })
+  }, { touchId, cancel })
 }
 
 export async function tap(locator: Locator) {

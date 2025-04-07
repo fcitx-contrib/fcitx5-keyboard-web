@@ -12,7 +12,7 @@ import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
 import { div, hide } from './util'
-import { onTouchEnd, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
+import { onTouchEnd, onTouchMove, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
@@ -44,6 +44,7 @@ export function setLayout(id: string, layout: Layout) {
   const mask = div('fcitx-keyboard-mask')
   mask.classList.add('fcitx-keyboard-frame')
   mask.addEventListener('touchstart', onTouchStart)
+  mask.addEventListener('touchmove', onTouchMove)
   mask.addEventListener('touchend', onTouchEnd)
   mask.addEventListener('touchcancel', onTouchEnd)
 
