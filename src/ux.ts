@@ -1,4 +1,4 @@
-import type { Layout } from '../src/layout'
+import type { Key, Layout } from '../src/layout'
 import type { VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
@@ -21,6 +21,11 @@ let enterKeyType = ''
 let spaceKeyLabel = ''
 let pendingTouch: Touch | null = null
 const touches: { [key: number]: Touch } = {}
+let startX = 0
+let lastX = 0
+let slidingKey: Key | null = null
+let completedSteps = 0
+const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 
@@ -126,8 +131,13 @@ function touchUp(touch: Touch) {
 
 export function onTouchStart(event: TouchEvent) {
   const touch = event.changedTouches[0]
+  startX = touch.clientX
+  lastX = startX
+  slidingKey = null
+  completedSteps = 0
   const key = getKey(getContainer(touch))
   if (key) {
+    slidingKey = key
     if (pendingTouch) {
       touchDown(pendingTouch)
     }
@@ -145,7 +155,27 @@ export function onTouchStart(event: TouchEvent) {
   touches[touch.identifier] = touch
 }
 
+export function onTouchMove(event: TouchEvent) {
+  const touch = event.changedTouches[0]
+  const { clientX } = touch
+  if (slidingKey?.type === 'space') {
+    if ((clientX - lastX) * (clientX - startX) < 0) { // turn around
+      completedSteps = 0
+      startX = lastX
+    }
+    const code = clientX > startX ? 'ArrowRight' : 'ArrowLeft'
+    const totalSteps = Math.floor(Math.abs((clientX - startX) / slideStep))
+    while (completedSteps < totalSteps) {
+      pendingTouch = null // Disable sending space on release.
+      sendKeyDown('', code)
+      ++completedSteps
+    }
+  }
+  lastX = clientX
+}
+
 export function onTouchEnd(event: TouchEvent) {
+  slidingKey = null
   const touchId = event.changedTouches[0].identifier
   const touch: Touch = touches[touchId]
   if (pendingTouch?.identifier === touch.identifier) {
