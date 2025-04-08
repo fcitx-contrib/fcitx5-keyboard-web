@@ -178,14 +178,15 @@ export function onTouchEnd(event: TouchEvent) {
   slidingKey = null
   const touchId = event.changedTouches[0].identifier
   const touch: Touch = touches[touchId]
+  delete touches[touchId]
+  const container = getContainer(touch)
+  container && release(container)
+
   if (pendingTouch?.identifier === touch.identifier) {
     touchDown(touch)
     pendingTouch = null
   }
   touchUp(touch)
-  const container = getContainer(touch)
-  container && release(container)
-  delete touches[touchId]
 }
 
 export function setLayer(id: string, locked: boolean) {

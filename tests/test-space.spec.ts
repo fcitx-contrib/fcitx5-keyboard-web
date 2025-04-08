@@ -1,6 +1,6 @@
 import type { VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
-import { getSentEvents, init, sendSystemEvent, tap, touchDown, touchMove, touchUp } from './util'
+import { getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
 
 test('Space', async ({ page }) => {
   await init(page)
@@ -54,4 +54,26 @@ test('Continuous slide', async ({ page }) => {
 
   await touchUp(space, touchId)
   expect(await getSentEvents(page), 'No space key event.').toEqual(sentEvents)
+})
+
+test('Continuous slide shouldn\'t be interrupted by setCandidates', async ({ page }) => {
+  await init(page)
+
+  const space = page.locator('.fcitx-keyboard-space')
+  const touchId = await touchDown(space)
+  await expect(space).toHaveCSS('background-color', GRAY)
+
+  await touchMove(space, touchId, -15, 0)
+  await expect(space).toHaveCSS('background-color', GRAY)
+
+  // When preedit exists, sliding space may move cursor thus change candidates.
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: { highlighted: 0, candidates: [{
+    text: '一',
+    label: '1',
+    comment: '',
+  }] } })
+  await expect(space).toHaveCSS('background-color', GRAY)
+
+  await touchUp(space, touchId)
+  await expect(space).toHaveCSS('background-color', WHITE)
 })

@@ -1,5 +1,5 @@
 import { selectCategory } from './symbol'
-import { getCandidateBar, getStatusArea, getSymbolSelector, hide, release, show } from './util'
+import { getCandidateBar, getStatusArea, getSymbolSelector, hide, show } from './util'
 
 export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea' | 'symbol'
 
@@ -14,13 +14,6 @@ export function setDisplayMode(mode: DisplayMode) {
   const statusArea = getStatusArea()
   const symbolSelector = getSymbolSelector()
 
-  function showKeyboard() {
-    show(keyboard)
-    for (const container of keyboard.querySelectorAll('.fcitx-keyboard-key-container.fcitx-keyboard-pressed')) {
-      release(container)
-    }
-  }
-
   function showSymbolSelector() {
     show(symbolSelector)
     selectCategory(0)
@@ -31,7 +24,7 @@ export function setDisplayMode(mode: DisplayMode) {
       show(toolbar)
       hide(candidateBar)
       hide(returnBar)
-      showKeyboard()
+      show(keyboard)
       hide(editor)
       hide(statusArea)
       hide(symbolSelector)
@@ -40,7 +33,7 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(toolbar)
       show(candidateBar)
       hide(returnBar)
-      showKeyboard()
+      show(keyboard)
       hide(editor)
       hide(statusArea)
       hide(symbolSelector)
