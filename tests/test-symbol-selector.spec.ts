@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { getSentEvents, init, sendSystemEvent, tap, tapReturn } from './util'
+import { getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, tapReturn, touchDown, WHITE } from './util'
 
 function getSymbolButton(page: Page) {
   return page.getByText('#+=')
@@ -78,11 +78,15 @@ test('Return doesn\'t clear candidates', async ({ page }) => {
   await expect(candidate).toBeVisible()
 })
 
-test('Return to see button released', async ({ page }) => {
+test('Return to see all keys released', async ({ page }) => {
   await init(page)
+
+  const k = getKey(page, 'k')
+  await touchDown(k)
 
   const symbolButton = getSymbolButton(page)
   await tap(symbolButton)
   await tapReturn(page)
-  await expect(symbolButton).not.toHaveClass(/fcitx-keyboard-pressed/)
+  await expect(k).toHaveCSS('background-color', WHITE)
+  await expect(symbolButton).toHaveCSS('background-color', GRAY)
 })
