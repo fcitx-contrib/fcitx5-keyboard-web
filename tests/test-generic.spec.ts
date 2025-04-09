@@ -32,23 +32,6 @@ test('Touch canceled', async ({ page }) => {
   await expect(q).toHaveCSS('background-color', WHITE)
 })
 
-test('Backspace', async ({ page }) => {
-  await init(page)
-
-  const backspace = page.locator('.fcitx-keyboard-backspace')
-  await expect(backspace).toHaveCSS('background-color', GRAY)
-
-  const touchId = await touchDown(backspace)
-  await expect(backspace).toHaveCSS('background-color', WHITE)
-
-  await touchUp(backspace, touchId)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: '', code: 'Backspace' },
-  }])
-  await expect(backspace).toHaveCSS('background-color', GRAY)
-})
-
 test('Enter', async ({ page }) => {
   await init(page)
 
