@@ -73,6 +73,9 @@ export type VirtualKeyboardEvent = {
     index: number
     id: number
   }
+} | {
+  type: 'BACKSPACE_SLIDE'
+  data: 'LEFT' | 'RIGHT' | 'RELEASE'
 }
 
 export interface VirtualKeyboardClient {

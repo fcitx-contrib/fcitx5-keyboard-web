@@ -23,7 +23,9 @@ let pendingTouch: Touch | null = null
 const touches: { [key: number]: Touch } = {}
 let startX = 0
 let lastX = 0
+// We assume only one key can slide at a time, and another touch suspends it.
 let slidingKey: Key | null = null
+let slid = false
 let completedSteps = 0
 const slideStep = 10
 
@@ -31,6 +33,12 @@ const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 
 export function setLayout(layout: Layout) {
   layout_ = layout
+}
+
+function resetSlide() {
+  slidingKey = null
+  slid = false
+  completedSteps = 0
 }
 
 let client_: VirtualKeyboardClient
@@ -133,8 +141,7 @@ export function onTouchStart(event: TouchEvent) {
   const touch = event.changedTouches[0]
   startX = touch.clientX
   lastX = startX
-  slidingKey = null
-  completedSteps = 0
+  resetSlide()
   const key = getKey(getContainer(touch))
   if (key) {
     slidingKey = key
@@ -158,16 +165,25 @@ export function onTouchStart(event: TouchEvent) {
 export function onTouchMove(event: TouchEvent) {
   const touch = event.changedTouches[0]
   const { clientX } = touch
-  if (slidingKey?.type === 'space') {
+  if (['space', 'backspace'].includes(slidingKey?.type ?? '')) {
     if ((clientX - lastX) * (clientX - startX) < 0) { // turn around
       completedSteps = 0
       startX = lastX
     }
-    const code = clientX > startX ? 'ArrowRight' : 'ArrowLeft'
     const totalSteps = Math.floor(Math.abs((clientX - startX) / slideStep))
+    let action: () => void
+    if (slidingKey?.type === 'space') {
+      const code = clientX > startX ? 'ArrowRight' : 'ArrowLeft'
+      action = () => sendKeyDown('', code)
+    }
+    else {
+      const data = clientX > startX ? 'RIGHT' : 'LEFT'
+      action = () => sendEvent({ type: 'BACKSPACE_SLIDE', data })
+    }
     while (completedSteps < totalSteps) {
+      slid = true
       pendingTouch = null // Disable sending space on release.
-      sendKeyDown('', code)
+      action()
       ++completedSteps
     }
   }
@@ -175,7 +191,12 @@ export function onTouchMove(event: TouchEvent) {
 }
 
 export function onTouchEnd(event: TouchEvent) {
-  slidingKey = null
+  if (slidingKey) {
+    if (slidingKey.type === 'backspace' && slid) {
+      sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
+    }
+    resetSlide()
+  }
   const touchId = event.changedTouches[0].identifier
   const touch: Touch = touches[touchId]
   delete touches[touchId]
