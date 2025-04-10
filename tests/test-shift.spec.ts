@@ -12,7 +12,7 @@ test('Shift', async ({ page }) => {
   await tap(q)
   expect(await getSentEvents(page), '').toEqual([{
     type: 'KEY_DOWN',
-    data: { key: 'Q', code: '' },
+    data: { key: 'Q', code: 'KeyQ' },
   }])
 
   await expect(q).toHaveText('q')
@@ -21,7 +21,7 @@ test('Shift', async ({ page }) => {
   expect(sentEvents).toHaveLength(2)
   expect(sentEvents[1]).toEqual({
     type: 'KEY_DOWN',
-    data: { key: 'q', code: '' },
+    data: { key: 'q', code: 'KeyQ' },
   })
 })
 
@@ -42,13 +42,13 @@ test('Shift hold', async ({ page }) => {
   const sentEvents = await getSentEvents(page)
   expect(sentEvents).toEqual([{
     type: 'KEY_DOWN',
-    data: { key: 'Q', code: '' },
+    data: { key: 'Q', code: 'KeyQ' },
   }, {
     type: 'KEY_DOWN',
-    data: { key: 'Q', code: '' },
+    data: { key: 'Q', code: 'KeyQ' },
   }, {
     type: 'KEY_DOWN',
-    data: { key: 'q', code: '' },
+    data: { key: 'q', code: 'KeyQ' },
   }])
 })
 
@@ -72,13 +72,13 @@ test('Shift locked', async ({ page }) => {
   const sentEvents = await getSentEvents(page)
   expect(sentEvents).toEqual([{
     type: 'KEY_DOWN',
-    data: { key: 'Q', code: '' },
+    data: { key: 'Q', code: 'KeyQ' },
   }, {
     type: 'KEY_DOWN',
-    data: { key: 'Q', code: '' },
+    data: { key: 'Q', code: 'KeyQ' },
   }, {
     type: 'KEY_DOWN',
-    data: { key: 'q', code: '' },
+    data: { key: 'q', code: 'KeyQ' },
   }])
 })
 
@@ -98,12 +98,12 @@ test('Shift interrupted', async ({ page }) => {
   const sentEvents = await getSentEvents(page)
   expect(sentEvents).toEqual([{
     type: 'KEY_DOWN',
-    data: { key: 'Q', code: '' },
+    data: { key: 'Q', code: 'KeyQ' },
   }, {
     type: 'KEY_DOWN',
-    data: { key: 'Q', code: '' },
+    data: { key: 'Q', code: 'KeyQ' },
   }, {
     type: 'KEY_DOWN',
-    data: { key: 'q', code: '' },
+    data: { key: 'q', code: 'KeyQ' },
   }])
 })

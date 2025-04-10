@@ -14,7 +14,7 @@ test('Click', async ({ page }) => {
   await touchUp(q, touchId)
   expect(await getSentEvents(page)).toEqual([{
     type: 'KEY_DOWN',
-    data: { key: 'q', code: '' },
+    data: { key: 'q', code: 'KeyQ' },
   }])
   await expect(q).toHaveCSS('background-color', WHITE)
 })
@@ -27,7 +27,7 @@ test('Touch canceled', async ({ page }) => {
   await touchUp(q, touchId, true)
   expect(await getSentEvents(page)).toEqual([{
     type: 'KEY_DOWN',
-    data: { key: 'q', code: '' },
+    data: { key: 'q', code: 'KeyQ' },
   }])
   await expect(q).toHaveCSS('background-color', WHITE)
 })
@@ -69,10 +69,10 @@ test('Preserve press order', async ({ page }) => {
   await touchUp(w, wTouchId)
   expect(await getSentEvents(page)).toEqual([{
     type: 'KEY_DOWN',
-    data: { key: 'w', code: '' },
+    data: { key: 'w', code: 'KeyW' },
   }, {
     type: 'KEY_DOWN',
-    data: { key: 'o', code: '' },
+    data: { key: 'o', code: 'KeyO' },
   }])
   await expect(w).toHaveCSS('background-color', WHITE)
   await expect(o).toHaveCSS('background-color', WHITE)
