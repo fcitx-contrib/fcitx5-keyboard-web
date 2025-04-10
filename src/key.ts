@@ -1,5 +1,6 @@
 import type { Context, Key, Row, Style } from './layout'
 import Backspace from 'bundle-text:../svg/backspace.svg'
+import Globe from 'bundle-text:../svg/globe.svg'
 import ShiftFiled from 'bundle-text:../svg/shift-filled.svg'
 import ShiftUppercaseFiled from 'bundle-text:../svg/shift-uppercase-filled.svg'
 import Shift from 'bundle-text:../svg/shift.svg'
@@ -61,6 +62,14 @@ export function renderKey(key: Key, context: Context) {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-symbol')
       el.innerHTML = '#+='
+      container.appendChild(el)
+      container.setAttribute(DATA_KEY, dataKey)
+      break
+    }
+    case 'globe': {
+      const el = div('fcitx-keyboard-key')
+      el.classList.add('fcitx-keyboard-globe')
+      el.innerHTML = Globe
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
     }

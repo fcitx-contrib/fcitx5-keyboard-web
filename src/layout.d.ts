@@ -27,6 +27,10 @@ export interface SymbolKey {
   type: 'symbol'
 }
 
+export interface GlobeKey {
+  type: 'globe'
+}
+
 export type Key = {
   flex?: string
 } & (NormalKey |
@@ -34,6 +38,7 @@ export type Key = {
   BackspaceKey |
   ShiftKey |
   SpaceKey |
+  GlobeKey |
   SymbolKey | {
     type: 'placeholder'
   })

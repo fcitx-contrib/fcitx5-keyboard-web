@@ -63,7 +63,7 @@ export type VirtualKeyboardEvent = {
   data: string
 } | {
   type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE' |
-    'SELECT' | 'DESELECT' | 'SELECT_ALL'
+    'SELECT' | 'DESELECT' | 'SELECT_ALL' | 'GLOBE'
 } | {
   type: 'SELECT_CANDIDATE' | 'ASK_CANDIDATE_ACTIONS' | 'STATUS_AREA_ACTION'
   data: number

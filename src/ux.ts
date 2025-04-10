@@ -119,6 +119,9 @@ function touchDown(touch: Touch) {
     case 'symbol':
       setDisplayMode('symbol')
       break
+    case 'globe':
+      sendEvent({ type: 'GLOBE' })
+      break
   }
 }
 
