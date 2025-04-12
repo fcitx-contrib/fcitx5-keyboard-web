@@ -1,11 +1,12 @@
 import type { Key, Layout } from '../src/layout'
-import type { VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
+import type { InputMethod, VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
 import CheckMark from 'bundle-text:../svg/checkmark.svg'
 import Enter from 'bundle-text:../svg/enter.svg'
 import Search from 'bundle-text:../svg/search.svg'
 import Send from 'bundle-text:../svg/send.svg'
+import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
 import { getContainer, getKey, press, release } from './util'
@@ -19,9 +20,12 @@ let shiftReleased = true
 let keyPressedWithShiftPressed = false
 let enterKeyType = ''
 let spaceKeyLabel = ''
+let inputMethods_: InputMethod[] = []
 let pendingTouch: Touch | null = null
 const touches: { [key: number]: Touch } = {}
 let startX = 0
+let startY = 0
+let longPressId: number | null = null
 let lastX = 0
 // We assume only one key can slide at a time, and another touch suspends it.
 let slidingKey: Key | null = null
@@ -30,6 +34,22 @@ let completedSteps = 0
 const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
+const LONG_PRESS_THRESHOLD = 500
+const DRAG_THRESHOLD = 10
+
+function dragged(touch: Touch) {
+  const { clientX, clientY } = touch
+  const dX = clientX - startX
+  const dY = clientY - startY
+  return dX * dX + dY * dY > DRAG_THRESHOLD
+}
+
+function cancelLongPress() {
+  if (longPressId) {
+    clearTimeout(longPressId)
+    longPressId = null
+  }
+}
 
 export function setLayout(layout: Layout) {
   layout_ = layout
@@ -143,9 +163,11 @@ function touchUp(touch: Touch) {
 export function onTouchStart(event: TouchEvent) {
   const touch = event.changedTouches[0]
   startX = touch.clientX
+  startY = touch.clientY
   lastX = startX
   resetSlide()
-  const key = getKey(getContainer(touch))
+  let container = getContainer(touch)
+  const key = getKey(container)
   if (key) {
     slidingKey = key
     if (pendingTouch) {
@@ -158,15 +180,30 @@ export function onTouchStart(event: TouchEvent) {
     else {
       pendingTouch = touch
     }
+    if (key.type === 'globe') {
+      longPressId = window.setTimeout(() => {
+        longPressId = null
+        pendingTouch = null
+        showContextmenu(container!, inputMethods_.map(inputMethod => ({
+          text: inputMethod.displayName,
+          callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
+        })))
+      }, LONG_PRESS_THRESHOLD)
+    }
   }
   // Must recalculate container as layer may have been changed.
-  const container = getContainer(touch)
+  container = getContainer(touch)
   container && press(container)
   touches[touch.identifier] = touch
 }
 
 export function onTouchMove(event: TouchEvent) {
   const touch = event.changedTouches[0]
+  // If same touch of startX/Y, great.
+  // If comparing with a more recent touch, we don't care if it's cancelled or not.
+  if (dragged(touch)) {
+    cancelLongPress()
+  }
   const { clientX } = touch
   if (['space', 'backspace'].includes(slidingKey?.type ?? '')) {
     if ((clientX - lastX) * (clientX - startX) < 0) { // turn around
@@ -194,6 +231,7 @@ export function onTouchMove(event: TouchEvent) {
 }
 
 export function onTouchEnd(event: TouchEvent) {
+  cancelLongPress()
   if (slidingKey) {
     if (slidingKey.type === 'backspace' && slid) {
       sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
@@ -264,5 +302,15 @@ export function setSpaceKeyLabel(label: string) {
     const fontSize = space.getBoundingClientRect().width * 0.95 / invisibleWidth * 16
     space.style.fontSize = `min(${fontSize}px,40cqh)`
     space.innerHTML = spaceKeyLabel
+  }
+}
+
+export function setInputMethods(inputMethods: InputMethod[], currentInputMethod: string) {
+  inputMethods_ = inputMethods
+  for (const inputMethod of inputMethods) {
+    if (inputMethod.name === currentInputMethod) {
+      setSpaceKeyLabel(inputMethod.displayName)
+      break
+    }
   }
 }

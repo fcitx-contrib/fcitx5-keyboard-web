@@ -12,8 +12,7 @@ test('Space', async ({ page }) => {
   await init(page)
 
   const space = page.locator('.fcitx-keyboard-space')
-  await sendSystemEvent(page, { type: 'STATUS_AREA', data: {
-    actions: [],
+  await sendSystemEvent(page, { type: 'INPUT_METHODS', data: {
     currentInputMethod: 'pinyin',
     inputMethods: [
       { name: 'keyboard-us', displayName: 'English' },
@@ -37,8 +36,7 @@ test('Adjust font size', async ({ page }) => {
 
   const space = page.locator('.fcitx-keyboard-space')
   const longLabel = 'Long Long Long Long Long'
-  await sendSystemEvent(page, { type: 'STATUS_AREA', data: {
-    actions: [],
+  await sendSystemEvent(page, { type: 'INPUT_METHODS', data: {
     currentInputMethod: 'long',
     inputMethods: [
       { name: 'long', displayName: longLabel },
