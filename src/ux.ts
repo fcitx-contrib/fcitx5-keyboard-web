@@ -255,8 +255,14 @@ export function getSpaceKeyLabel() {
 
 export function setSpaceKeyLabel(label: string) {
   spaceKeyLabel = label
-  const space = document.querySelector('.fcitx-keyboard-space')
+  const space = document.querySelector('.fcitx-keyboard-space') as HTMLElement | null
   if (space) {
+    const invisible = document.querySelector('.fcitx-keyboard-invisible')!
+    invisible.innerHTML = label
+    const { width: invisibleWidth } = invisible.getBoundingClientRect() // This is achievable synchronously!
+    invisible.innerHTML = ''
+    const fontSize = space.getBoundingClientRect().width * 0.95 / invisibleWidth * 16
+    space.style.fontSize = `min(${fontSize}px,40cqh)`
     space.innerHTML = spaceKeyLabel
   }
 }

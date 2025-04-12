@@ -5,7 +5,7 @@ import ShiftFiled from 'bundle-text:../svg/shift-filled.svg'
 import ShiftUppercaseFiled from 'bundle-text:../svg/shift-uppercase-filled.svg'
 import Shift from 'bundle-text:../svg/shift.svg'
 import { DATA_KEY, div, press } from './util'
-import { getEnterKeyInnerHTML, getSpaceKeyLabel } from './ux'
+import { getEnterKeyInnerHTML, getSpaceKeyLabel, setSpaceKeyLabel } from './ux'
 
 export function renderKey(key: Key, context: Context) {
   const dataKey = JSON.stringify(key)
@@ -42,7 +42,9 @@ export function renderKey(key: Key, context: Context) {
     case 'space': {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-space')
-      el.innerHTML = getSpaceKeyLabel()
+      requestAnimationFrame(() => { // Space key not rendered yet, so no way to calculate width and adjust font size.
+        setSpaceKeyLabel(getSpaceKeyLabel())
+      })
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
       break

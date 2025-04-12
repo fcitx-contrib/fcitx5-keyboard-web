@@ -60,6 +60,8 @@ export function setLayout(id: string, layout: Layout) {
   const contextmenu = renderContextmenu()
   hide(contextmenu)
 
+  const invisible = div('fcitx-keyboard-invisible')
+
   const container = div('fcitx-keyboard-container')
   for (const element of [
     style,
@@ -72,6 +74,7 @@ export function setLayout(id: string, layout: Layout) {
     statusArea,
     symbol,
     contextmenu,
+    invisible,
   ]) {
     container.appendChild(element)
   }

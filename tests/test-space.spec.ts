@@ -1,6 +1,12 @@
+import type { Locator } from '@playwright/test'
 import type { VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
 import { getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
+
+async function getFontSize(locator: Locator) {
+  const fontSize = await locator.evaluate(element => window.getComputedStyle(element).getPropertyValue('font-size'))
+  return Number(fontSize.match(/^(\S+)px$/)![1])
+}
 
 test('Space', async ({ page }) => {
   await init(page)
@@ -24,6 +30,28 @@ test('Space', async ({ page }) => {
       code: 'Space',
     },
   }])
+})
+
+test('Adjust font size', async ({ page }) => {
+  await init(page)
+
+  const space = page.locator('.fcitx-keyboard-space')
+  const longLabel = 'Long Long Long Long Long'
+  await sendSystemEvent(page, { type: 'STATUS_AREA', data: {
+    actions: [],
+    currentInputMethod: 'long',
+    inputMethods: [
+      { name: 'long', displayName: longLabel },
+    ],
+  } })
+  await expect(space).toHaveText(longLabel)
+  const fontSize = await getFontSize(space)
+  expect(fontSize).toBeLessThan(12)
+
+  const shift = page.locator('.fcitx-keyboard-shift')
+  await tap(shift)
+  await expect(space, 'Label preserved on layer change').toHaveText(longLabel)
+  expect(await getFontSize(space), 'Font size preserved on layer change').toEqual(fontSize)
 })
 
 test('Continuous slide', async ({ page }) => {
