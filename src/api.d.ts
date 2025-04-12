@@ -45,8 +45,10 @@ export type SystemEvent = {
   }
 } | {
   type: 'STATUS_AREA'
+  data: StatusAreaAction[]
+} | {
+  type: 'INPUT_METHODS'
   data: {
-    actions: StatusAreaAction[]
     currentInputMethod: string
     inputMethods: InputMethod[]
   }
@@ -59,7 +61,7 @@ export type VirtualKeyboardEvent = {
     code: string
   }
 } | {
-  type: 'COMMIT'
+  type: 'COMMIT' | 'SET_INPUT_METHOD'
   data: string
 } | {
   type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE' |

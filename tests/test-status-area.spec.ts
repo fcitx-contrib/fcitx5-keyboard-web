@@ -9,11 +9,10 @@ function gotoStatusArea(page: Page) {
 test('Simplified and traditional', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'STATUS_AREA', data: {
-    actions: [{ desc: '简体中文', icon: 'fcitx-chttrans-inactive', id: 4 }],
-    currentInputMethod: '',
-    inputMethods: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'STATUS_AREA',
+    data: [{ desc: '简体中文', icon: 'fcitx-chttrans-inactive', id: 4 }],
+  })
   await gotoStatusArea(page)
 
   const button = page.locator('.fcitx-keyboard-status-area-circle')
@@ -24,11 +23,10 @@ test('Simplified and traditional', async ({ page }) => {
     { type: 'STATUS_AREA_ACTION', data: 4 },
   ])
 
-  await sendSystemEvent(page, { type: 'STATUS_AREA', data: {
-    actions: [{ desc: '繁体中文', icon: 'fcitx-chttrans-active', id: 4 }],
-    currentInputMethod: '',
-    inputMethods: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'STATUS_AREA',
+    data: [{ desc: '繁体中文', icon: 'fcitx-chttrans-active', id: 4 }],
+  })
   await expect(button).toHaveText('繁')
 })
 

@@ -1,4 +1,4 @@
-import type { InputMethod, StatusAreaAction } from './api'
+import type { StatusAreaAction } from './api'
 import FullPunc from 'bundle-text:../svg/full-punc.svg'
 import FullWidth from 'bundle-text:../svg/full-width.svg'
 import HalfPunc from 'bundle-text:../svg/half-punc.svg'
@@ -6,7 +6,7 @@ import HalfWidth from 'bundle-text:../svg/half-width.svg'
 import LightbulbOutline from 'bundle-text:../svg/lightbulb-outline.svg'
 import Lightbulb from 'bundle-text:../svg/lightbulb.svg'
 import { div, getStatusArea } from './util'
-import { sendEvent, setSpaceKeyLabel } from './ux'
+import { sendEvent } from './ux'
 
 export function renderStatusArea() {
   return div('fcitx-keyboard-status-area')
@@ -35,7 +35,7 @@ function getLabel(icon: string) {
   }
 }
 
-export function setStatusArea(actions: StatusAreaAction[], currentInputMethod: string, inputMethods: InputMethod[]) {
+export function setStatusArea(actions: StatusAreaAction[]) {
   const statusArea = getStatusArea()
   statusArea.innerHTML = ''
   for (const action of actions) {
@@ -55,11 +55,5 @@ export function setStatusArea(actions: StatusAreaAction[], currentInputMethod: s
     button.appendChild(circle)
     button.appendChild(text)
     statusArea.appendChild(button)
-  }
-  for (const inputMethod of inputMethods) {
-    if (inputMethod.name === currentInputMethod) {
-      setSpaceKeyLabel(inputMethod.displayName)
-      break
-    }
   }
 }

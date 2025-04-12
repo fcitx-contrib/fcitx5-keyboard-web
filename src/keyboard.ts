@@ -12,7 +12,7 @@ import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
 import { div, hide } from './util'
-import { onTouchEnd, onTouchMove, onTouchStart, setEnterKeyType, setLayer, setLayout as setLayout_ } from './ux'
+import { onTouchEnd, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
@@ -108,7 +108,10 @@ export function onMessage(message: string) {
       setCandidateActions(event.data.index, event.data.actions)
       break
     case 'STATUS_AREA':
-      setStatusArea(event.data.actions, event.data.currentInputMethod, event.data.inputMethods)
+      setStatusArea(event.data)
+      break
+    case 'INPUT_METHODS':
+      setInputMethods(event.data.inputMethods, event.data.currentInputMethod)
       break
     case 'SELECT':
       return select()
