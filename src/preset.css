@@ -96,6 +96,10 @@
   text-align: center;
 }
 
+.fcitx-keyboard-globe svg {
+  height: 50cqh;
+}
+
 .fcitx-keyboard-toolbar {
   height: 20%;
   padding-left: 15%;
@@ -277,4 +281,10 @@
 
 .fcitx-keyboard-contextmenu-item.fcitx-keyboard-pressed {
   background-color: #bcc0c7;
+}
+
+.fcitx-keyboard-invisible {
+  position: absolute;
+  color: transparent;
+  font-size: 16px;
 }
