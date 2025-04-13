@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+import { SCROLL_NONE } from '../src/api.d'
 import { getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, tapReturn, touchDown, WHITE } from './util'
 
 function getSymbolButton(page: Page) {
@@ -66,6 +67,9 @@ test('Return doesn\'t clear candidates', async ({ page }) => {
       { text: '一', label: '1', comment: '' },
     ],
     highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
   } })
   const candidate = page.locator('.fcitx-keyboard-candidate')
   await expect(candidate).toBeVisible()
