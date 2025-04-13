@@ -26,13 +26,29 @@ function cancelLongPress() {
   }
 }
 
+export function setPreedit(auxUp: string, preedit: string) {
+  setDisplayMode('candidates')
+  const bar = getCandidateBar()
+  let container = bar.querySelector('.fcitx-keyboard-preedit')
+  if (auxUp || preedit) {
+    if (!container) {
+      container = div('fcitx-keyboard-preedit')
+      bar.prepend(container)
+    }
+    container.innerHTML = auxUp + preedit
+  }
+  else {
+    container?.remove()
+  }
+}
+
 export function setCandidates(cands: Candidate[], highlighted: number) {
   setDisplayMode('candidates')
   touchId = null
   longPressId = null
-  const candidateBar = getCandidateBar()
-  candidateBar.scroll({ left: 0 })
-  candidateBar.innerHTML = ''
+  const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates')!
+  container.scroll({ left: 0 })
+  container.innerHTML = ''
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')
     candidate.innerHTML = cands[i].text
@@ -66,7 +82,7 @@ export function setCandidates(cands: Candidate[], highlighted: number) {
     if (i === highlighted) {
       candidate.classList.add('fcitx-keyboard-highlighted')
     }
-    candidateBar.appendChild(candidate)
+    container.appendChild(candidate)
   }
 }
 
@@ -82,4 +98,11 @@ export function setCandidateActions(index: number, actions: CandidateAction[]) {
       id: action.id,
     } }),
   })))
+}
+
+export function renderCandidateBar() {
+  const container = div('fcitx-keyboard-candidates')
+  const bar = div('fcitx-keyboard-candidate-bar')
+  bar.appendChild(container)
+  return bar
 }

@@ -90,3 +90,23 @@ test('Actions', async ({ page }) => {
   sentEvents.push({ type: 'CANDIDATE_ACTION', data: { index: 0, id: 2 } })
   expect(await getSentEvents(page)).toEqual(sentEvents)
 })
+
+test('Preedit', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'PREEDIT', data: {
+    auxUp: 'Quick Phrase: ',
+    preedit: 'vah',
+  } })
+  const preedit = page.locator('.fcitx-keyboard-preedit')
+  await expect(preedit).toHaveText('Quick Phrase: vah')
+  const box = (await preedit.boundingBox())!
+  expect(box.y).toEqual(0)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: [{ text: '一', label: '1', comment: '' }],
+    highlighted: 0,
+  } })
+  const newBox = (await preedit.boundingBox())!
+  expect(newBox, 'No layout shift').toEqual(box)
+})
