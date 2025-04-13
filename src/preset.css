@@ -134,15 +134,26 @@
   color: #7f7f7f;
 }
 
-.fcitx-keyboard-candidates {
+.fcitx-keyboard-candidate-bar {
   height: 20%;
   padding: 0 3px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  container-type: size;
+}
+
+.fcitx-keyboard-preedit {
+  height: 32cqh;
+  font-size: 24cqh;
+}
+
+.fcitx-keyboard-candidates {
+  height: 68cqh;
+  display: flex;
   gap: 1%;
   overflow-x: scroll;
   scrollbar-width: none;
-  container-type: size;
 }
 
 .fcitx-keyboard-candidates::-webkit-scrollbar { 

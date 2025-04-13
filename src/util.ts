@@ -72,7 +72,7 @@ export function renderToolbarButton(svg: string) {
 }
 
 export function getCandidateBar() {
-  return document.querySelector('.fcitx-keyboard-candidates') as HTMLElement
+  return document.querySelector('.fcitx-keyboard-candidate-bar') as HTMLElement
 }
 
 export function getStatusArea() {

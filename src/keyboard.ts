@@ -2,7 +2,7 @@ import type { SystemEvent } from './api'
 import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../fcitx5-keyboard-layouts/layout/qwerty.json'
-import { setCandidateActions, setCandidates } from './candidates'
+import { renderCandidateBar, setCandidateActions, setCandidates, setPreedit } from './candidates'
 import { renderContextmenu } from './contextmenu'
 import { removeCandidatesFromStack, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
@@ -23,7 +23,7 @@ export function setLayout(id: string, layout: Layout) {
   style.textContent = presetCss
 
   const toolbar = renderToolbar()
-  const candidateBar = div('fcitx-keyboard-candidates')
+  const candidateBar = renderCandidateBar()
   const returnBar = renderReturnBar()
 
   const keyboard = div('fcitx-keyboard')
@@ -100,6 +100,9 @@ export function onMessage(message: string) {
     // fall through
     case 'CLEAR':
       removeCandidatesFromStack()
+      break
+    case 'PREEDIT':
+      setPreedit(event.data.auxUp, event.data.preedit)
       break
     case 'CANDIDATES':
       setCandidates(event.data.candidates, event.data.highlighted)

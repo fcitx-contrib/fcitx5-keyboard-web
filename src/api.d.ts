@@ -32,6 +32,12 @@ export type SystemEvent = {
   type: 'UNDO' | 'REDO'
   data: boolean
 } | {
+  type: 'PREEDIT'
+  data: {
+    auxUp: string
+    preedit: string
+  }
+} | {
   type: 'CANDIDATES'
   data: {
     candidates: Candidate[]
