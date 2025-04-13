@@ -105,7 +105,7 @@ export function onMessage(message: string) {
       setPreedit(event.data.auxUp, event.data.preedit)
       break
     case 'CANDIDATES':
-      setCandidates(event.data.candidates, event.data.highlighted)
+      setCandidates(event.data.candidates, event.data.highlighted, event.data.scrollState, event.data.scrollStart, event.data.scrollEnd)
       break
     case 'CANDIDATE_ACTIONS':
       setCandidateActions(event.data.index, event.data.actions)

@@ -1,4 +1,5 @@
-import type { Candidate, CandidateAction } from './api'
+import type { Candidate, CandidateAction, ScrollState } from './api.d'
+import { SCROLL_NONE, SCROLLING } from './api.d'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { div, getCandidateBar } from './util'
@@ -8,6 +9,9 @@ let touchId: number | null = null
 let longPressId: number | null = null
 let startX = 0
 let startY = 0
+let scrollState_: ScrollState = SCROLL_NONE
+let scrollEnd_ = true
+let fetching = false
 
 const LONG_PRESS_THRESHOLD = 500
 const DRAG_THRESHOLD = 10
@@ -42,13 +46,21 @@ export function setPreedit(auxUp: string, preedit: string) {
   }
 }
 
-export function setCandidates(cands: Candidate[], highlighted: number) {
+export function setCandidates(cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean) {
   setDisplayMode('candidates')
+  scrollState_ = scrollState
   touchId = null
   longPressId = null
   const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates')!
-  container.scroll({ left: 0 })
-  container.innerHTML = ''
+  if (scrollState !== SCROLLING || scrollStart) {
+    container.scroll({ left: 0 })
+    container.innerHTML = ''
+  }
+  else {
+    fetching = false
+  }
+  scrollEnd_ = scrollEnd
+  const offset = container.childElementCount
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')
     candidate.innerHTML = cands[i].text
@@ -59,7 +71,7 @@ export function setCandidates(cands: Candidate[], highlighted: number) {
       cancelLongPress()
       longPressId = window.setTimeout(() => {
         longPressId = null
-        sendEvent({ type: 'ASK_CANDIDATE_ACTIONS', data: i })
+        sendEvent({ type: 'ASK_CANDIDATE_ACTIONS', data: offset + i })
       }, LONG_PRESS_THRESHOLD)
       touchId = event.changedTouches[0].identifier
     })
@@ -74,7 +86,7 @@ export function setCandidates(cands: Candidate[], highlighted: number) {
       const touch = event.changedTouches[0]
       if (touchId === touch.identifier) {
         if (longPressId && !dragged(touch)) {
-          selectCandidate(i)
+          selectCandidate(offset + i)
         }
         cancelLongPress()
       }
@@ -102,6 +114,16 @@ export function setCandidateActions(index: number, actions: CandidateAction[]) {
 
 export function renderCandidateBar() {
   const container = div('fcitx-keyboard-candidates')
+  container.addEventListener('scroll', () => {
+    if (scrollState_ !== SCROLLING || scrollEnd_ || fetching) {
+      return
+    }
+    const { left } = container.lastElementChild!.getBoundingClientRect()
+    if (left < container.getBoundingClientRect().right * 1.5) {
+      fetching = true
+      sendEvent({ type: 'SCROLL', data: { start: container.childElementCount, count: 20 } })
+    }
+  })
   const bar = div('fcitx-keyboard-candidate-bar')
   bar.appendChild(container)
   return bar

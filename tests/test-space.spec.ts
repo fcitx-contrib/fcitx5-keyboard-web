@@ -1,6 +1,7 @@
 import type { Locator } from '@playwright/test'
 import type { VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
+import { SCROLL_NONE } from '../src/api.d'
 import { getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
 
 async function getFontSize(locator: Locator) {
@@ -97,7 +98,7 @@ test('Continuous slide shouldn\'t be interrupted by setCandidates', async ({ pag
     text: '一',
     label: '1',
     comment: '',
-  }] } })
+  }], scrollState: SCROLL_NONE, scrollStart: false, scrollEnd: false } })
   await expect(space).toHaveCSS('background-color', GRAY)
 
   await touchUp(space, touchId)

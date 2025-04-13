@@ -23,6 +23,11 @@ export interface CandidateAction {
   text: string
 }
 
+export const SCROLL_NONE = 0
+export const SCROLL_READY = 1
+export const SCROLLING = 2
+export type ScrollState = typeof SCROLL_NONE | typeof SCROLL_READY | typeof SCROLLING
+
 export type SystemEvent = {
   type: 'ENTER_KEY_TYPE'
   data: string
@@ -42,6 +47,9 @@ export type SystemEvent = {
   data: {
     candidates: Candidate[]
     highlighted: number
+    scrollState: ScrollState
+    scrollStart: boolean
+    scrollEnd: boolean
   }
 } | {
   type: 'CANDIDATE_ACTIONS'
@@ -84,6 +92,12 @@ export type VirtualKeyboardEvent = {
 } | {
   type: 'BACKSPACE_SLIDE'
   data: 'LEFT' | 'RIGHT' | 'RELEASE'
+} | {
+  type: 'SCROLL'
+  data: {
+    start: number
+    count: number
+  }
 }
 
 export interface VirtualKeyboardClient {

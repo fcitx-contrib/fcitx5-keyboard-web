@@ -1,10 +1,19 @@
 import type { Page } from '@playwright/test'
 import type { SystemEvent, VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
-import { getSentEvents, init, longPress, sendSystemEvent } from './util'
+import { SCROLL_NONE, SCROLLING } from '../src/api.d'
+import { getSentEvents, init, longPress, sendSystemEvent, tap } from './util'
 
 function getCandidateBar(page: Page) {
   return page.locator('.fcitx-keyboard-candidates')
+}
+
+function generateCandidates(start: number, count: number) {
+  const candidates = []
+  for (let i = 0; i < count; ++i) {
+    candidates.push({ text: `词${(start + i).toString()}`, label: '', comment: '' })
+  }
+  return candidates
 }
 
 test('Show and clear', async ({ page }) => {
@@ -18,6 +27,9 @@ test('Show and clear', async ({ page }) => {
       { text: '1️⃣', label: '2', comment: '' },
     ],
     highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
   } })
   await expect(candidateBar.locator('.fcitx-keyboard-candidate')).toHaveCount(2)
   await expect(toolbar).not.toBeVisible()
@@ -37,6 +49,9 @@ test('Select', async ({ page }) => {
       { text: '1️⃣', label: '2', comment: '' },
     ],
     highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
   } })
 
   const firstCandidate = candidateBar.locator('.fcitx-keyboard-candidate').first()
@@ -53,6 +68,9 @@ test('Overflow', async ({ page }) => {
   const event: SystemEvent = { type: 'CANDIDATES', data: {
     candidates: [{ text: '长长长长长长长长长长长长长长长长长长长长长长长长长长长长', label: '', comment: '' }],
     highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
   } }
   const candidate = getCandidateBar(page).locator('.fcitx-keyboard-candidate')
   await sendSystemEvent(page, event)
@@ -74,6 +92,9 @@ test('Actions', async ({ page }) => {
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
     candidates: [{ text: '一', label: '1', comment: '' }],
     highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
   } })
   const candidate = page.locator('.fcitx-keyboard-candidate')
   await longPress(candidate)
@@ -106,7 +127,51 @@ test('Preedit', async ({ page }) => {
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
     candidates: [{ text: '一', label: '1', comment: '' }],
     highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
   } })
   const newBox = (await preedit.boundingBox())!
   expect(newBox, 'No layout shift').toEqual(box)
+})
+
+test('Horizontal scroll', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: generateCandidates(0, 20),
+    highlighted: 0,
+    scrollState: SCROLLING,
+    scrollStart: true,
+    scrollEnd: false,
+  } })
+  const candidates = page.locator('.fcitx-keyboard-candidates')
+  await candidates.evaluate(element => element.scrollBy(element.lastElementChild!.getBoundingClientRect().right, 0))
+  // There is a maybe more than 100ms delay before event is emitted.
+  while (true) {
+    const sentEvents = await getSentEvents(page)
+    if (JSON.stringify(sentEvents) === JSON.stringify([{ type: 'SCROLL', data: { start: 20, count: 20 } }])) {
+      break
+    }
+  }
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: generateCandidates(20, 10),
+    highlighted: -1,
+    scrollState: SCROLLING,
+    scrollStart: false,
+    scrollEnd: true,
+  } })
+  const candidate = candidates.locator('.fcitx-keyboard-candidate')
+  await expect(candidate).toHaveCount(30)
+
+  await candidates.evaluate(element => element.scrollBy(element.lastElementChild!.getBoundingClientRect().right, 0))
+  const lastCandidate = candidate.last()
+  await longPress(lastCandidate)
+  await tap(lastCandidate)
+  expect(await getSentEvents(page), 'Only one scroll event').toEqual([
+    { type: 'SCROLL', data: { start: 20, count: 20 } },
+    { type: 'ASK_CANDIDATE_ACTIONS', data: 29 },
+    { type: 'SELECT_CANDIDATE', data: 29 },
+  ])
 })
