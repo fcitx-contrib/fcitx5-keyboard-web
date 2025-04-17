@@ -1,4 +1,4 @@
-import type { Key, Layout } from '../src/layout'
+import type { Action, Key, Layout } from '../src/layout'
 import type { InputMethod, VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
@@ -28,7 +28,9 @@ const touches: { [key: string]: {
   state: TouchState
   timer: number | null
   type: Key['type'] | undefined
+  swipeUp?: Action[]
   startX: number
+  startY: number
   lastX: number
   completedSteps: number
 } } = {}
@@ -36,7 +38,8 @@ const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 const LONG_PRESS_THRESHOLD = 500
-const DRAG_THRESHOLD = 10
+const DRAG_THRESHOLD = 10 // radius^2
+const SWIPE_THRESHOLD = 10
 
 function dragged(touch: Touch) {
   const { clientX: startX, clientY: startY } = touches[touch.identifier].touch
@@ -86,6 +89,16 @@ export function backspace() {
 
 export function selectCandidate(index: number) {
   sendEvent({ type: 'SELECT_CANDIDATE', data: index })
+}
+
+function executeActions(actions: Action[]) {
+  for (const action of actions) {
+    switch(action.type) {
+    case 'key':
+      sendKeyDown(action.key ?? '', action.code ?? '')
+      break
+    }
+  }
 }
 
 function touchDown(touch: Touch) {
@@ -202,6 +215,13 @@ function swipe(touch: Touch) {
   touches[touch.identifier].lastX = clientX
 }
 
+function swipeRelease(touch: Touch) {
+  const { startY, swipeUp } = touches[touch.identifier]
+  if (touch.clientY <= startY - SWIPE_THRESHOLD && swipeUp) {
+    executeActions(swipeUp)
+  }
+}
+
 function longPress(touchId: number, container: HTMLElement) {
   touches[touchId].timer = null
   touches[touchId].state = 'PRESSING'
@@ -216,6 +236,7 @@ export function onTouchStart(event: TouchEvent) {
   interrupt(touch.identifier)
   let container = getContainer(touch)
   const key = getKey(container)
+  let swipeUp: Action[] | undefined = undefined
   let timer: number | null = null
   let state: TouchState = 'HIT'
   if (key) {
@@ -226,6 +247,9 @@ export function onTouchStart(event: TouchEvent) {
     if (key.type === 'globe') {
       timer = window.setTimeout(longPress, LONG_PRESS_THRESHOLD, touch.identifier, container)
     }
+    if (key.type === 'key') {
+      swipeUp = key.swipeUp
+    }
   }
   // Must recalculate container as layer may have been changed.
   container = getContainer(touch)
@@ -235,7 +259,9 @@ export function onTouchStart(event: TouchEvent) {
     state,
     timer,
     type: key?.type,
+    swipeUp,
     startX: touch.clientX,
+    startY: touch.clientY,
     lastX: touch.clientX,
     completedSteps: 0,
   }
@@ -264,7 +290,6 @@ export function onTouchEnd(event: TouchEvent) {
   interrupt(touchId)
   cancelLongPress(touchId)
   const { touch, state, type } = touches[touchId]
-  delete touches[touchId]
   const container = getContainer(touch)
   container && release(container)
 
@@ -276,11 +301,17 @@ export function onTouchEnd(event: TouchEvent) {
       touchUp(touch)
       break
     case 'SWIPING':
-      if (type === 'backspace') {
+      switch (type) {
+      case 'backspace':
         sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
+        break
+      case 'key':
+        swipeRelease(event.changedTouches[0])
+        break
       }
       break
   }
+  delete touches[touchId]
 }
 
 export function setLayer(id: string, locked: boolean) {

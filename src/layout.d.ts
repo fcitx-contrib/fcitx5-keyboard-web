@@ -1,10 +1,20 @@
 export interface Style { [key: string]: string | undefined }
 
+export type Action = {
+  type: 'key'
+  key?: string
+  code?: string
+}
+
 export interface NormalKey {
   type: 'key'
   label: string
   key?: string
   code?: string
+  subLabel?: {
+    topRight: string
+  }
+  swipeUp: Action[]
 }
 
 export interface ShiftKey {

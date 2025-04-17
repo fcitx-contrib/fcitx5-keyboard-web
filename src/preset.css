@@ -198,13 +198,13 @@
 
 .fcitx-keyboard-key {
   position: absolute;
-  inset: 4px 3px;
-  border-radius: 4px;
+  inset: 8cqh 6cqh;
+  border-radius: 7cqh;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: white;
-  box-shadow: 0 1px rgb(0 0 0 / 30%);
+  box-shadow: 0 2cqh rgb(0 0 0 / 30%);
   font-size: 40cqh;
 }
 
@@ -230,6 +230,20 @@
 
 .fcitx-keyboard-key.fcitx-keyboard-enter svg {
   height: 60cqh;
+}
+
+.fcitx-keyboard-sub-label {
+  position: absolute;
+  font-size: 25cqh;
+  color: #7f7f7f;
+}
+
+.fcitx-keyboard-key-top {
+  top: 1cqh;
+}
+
+.fcitx-keyboard-key-right {
+  right: 1cqh;
 }
 
 .fcitx-keyboard-symbol-selector {
