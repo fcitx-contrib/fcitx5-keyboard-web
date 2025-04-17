@@ -1,4 +1,4 @@
-import type { Action, Key, Layout } from '../src/layout'
+import type { Action, Key, Layout, Swipe } from '../src/layout'
 import type { InputMethod, VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
@@ -28,7 +28,7 @@ const touches: { [key: string]: {
   state: TouchState
   timer: number | null
   type: Key['type'] | undefined
-  swipeUp?: Action[]
+  swipeUp?: Swipe
   startX: number
   startY: number
   lastX: number
@@ -93,10 +93,10 @@ export function selectCandidate(index: number) {
 
 function executeActions(actions: Action[]) {
   for (const action of actions) {
-    switch(action.type) {
-    case 'key':
-      sendKeyDown(action.key ?? '', action.code ?? '')
-      break
+    switch (action.type) {
+      case 'key':
+        sendKeyDown(action.key ?? '', action.code ?? '')
+        break
     }
   }
 }
@@ -189,7 +189,15 @@ function interrupt(touchId: number) {
   }
 }
 
-function swipe(touch: Touch) {
+function getSwipe(touch: Touch) {
+  const { startY, swipeUp } = touches[touch.identifier]
+  if (touch.clientY <= startY - SWIPE_THRESHOLD) {
+    return swipeUp
+  }
+  return undefined
+}
+
+function doSwipe(touch: Touch) {
   const { type } = touches[touch.identifier]
   const { clientX } = touch
   if (['space', 'backspace'].includes(type ?? '')) {
@@ -212,14 +220,16 @@ function swipe(touch: Touch) {
       ++touches[touch.identifier].completedSteps
     }
   }
+  else {
+    const swipe = getSwipe(touch)
+    console.log(swipe?.label)
+  }
   touches[touch.identifier].lastX = clientX
 }
 
 function swipeRelease(touch: Touch) {
-  const { startY, swipeUp } = touches[touch.identifier]
-  if (touch.clientY <= startY - SWIPE_THRESHOLD && swipeUp) {
-    executeActions(swipeUp)
-  }
+  const swipeUp = getSwipe(touch)
+  swipeUp && executeActions(swipeUp.actions)
 }
 
 function longPress(touchId: number, container: HTMLElement) {
@@ -236,7 +246,7 @@ export function onTouchStart(event: TouchEvent) {
   interrupt(touch.identifier)
   let container = getContainer(touch)
   const key = getKey(container)
-  let swipeUp: Action[] | undefined = undefined
+  let swipeUp: Swipe | undefined
   let timer: number | null = null
   let state: TouchState = 'HIT'
   if (key) {
@@ -276,11 +286,11 @@ export function onTouchMove(event: TouchEvent) {
       if (dragged(touch)) {
         cancelLongPress(touch.identifier)
         touches[touch.identifier].state = 'SWIPING'
-        swipe(touch)
+        doSwipe(touch)
       }
       break
     case 'SWIPING':
-      swipe(touch)
+      doSwipe(touch)
       break
   }
 }
@@ -302,12 +312,12 @@ export function onTouchEnd(event: TouchEvent) {
       break
     case 'SWIPING':
       switch (type) {
-      case 'backspace':
-        sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
-        break
-      case 'key':
-        swipeRelease(event.changedTouches[0])
-        break
+        case 'backspace':
+          sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
+          break
+        case 'key':
+          swipeRelease(event.changedTouches[0])
+          break
       }
       break
   }
