@@ -11,6 +11,8 @@ import { setDisplayMode } from './display'
 import { renderRow } from './key'
 import { getContainer, getKey, press, release } from './util'
 
+type TouchState = 'HIT' | 'PRESSING' | 'MOVING' /* highlight in popover */ | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
+
 let layout_: Layout
 let currentLayer = 'default'
 let layerLocked = false
@@ -21,16 +23,15 @@ let keyPressedWithShiftPressed = false
 let enterKeyType = ''
 let spaceKeyLabel = ''
 let inputMethods_: InputMethod[] = []
-let pendingTouch: Touch | null = null
-const touches: { [key: number]: Touch } = {}
-let startX = 0
-let startY = 0
-let longPressId: number | null = null
-let lastX = 0
-// We assume only one key can slide at a time, and another touch suspends it.
-let slidingKey: Key | null = null
-let slid = false
-let completedSteps = 0
+const touches: { [key: string]: {
+  touch: Touch
+  state: TouchState
+  timer: number | null
+  type: Key['type'] | undefined
+  startX: number
+  lastX: number
+  completedSteps: number
+} } = {}
 const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
@@ -38,27 +39,23 @@ const LONG_PRESS_THRESHOLD = 500
 const DRAG_THRESHOLD = 10
 
 function dragged(touch: Touch) {
+  const { clientX: startX, clientY: startY } = touches[touch.identifier].touch
   const { clientX, clientY } = touch
   const dX = clientX - startX
   const dY = clientY - startY
   return dX * dX + dY * dY > DRAG_THRESHOLD
 }
 
-function cancelLongPress() {
-  if (longPressId) {
-    clearTimeout(longPressId)
-    longPressId = null
+function cancelLongPress(touchId: number) {
+  const { timer } = touches[touchId]
+  if (timer) {
+    clearTimeout(timer)
+    touches[touchId].timer = null
   }
 }
 
 export function setLayout(layout: Layout) {
   layout_ = layout
-}
-
-function resetSlide() {
-  slidingKey = null
-  slid = false
-  completedSteps = 0
 }
 
 let client_: VirtualKeyboardClient
@@ -160,95 +157,130 @@ function touchUp(touch: Touch) {
   }
 }
 
-export function onTouchStart(event: TouchEvent) {
-  const touch = event.changedTouches[0]
-  startX = touch.clientX
-  startY = touch.clientY
-  lastX = startX
-  resetSlide()
-  let container = getContainer(touch)
-  const key = getKey(container)
-  if (key) {
-    slidingKey = key
-    if (pendingTouch) {
-      touchDown(pendingTouch)
+function interrupt(touchId: number) {
+  for (const [id, { touch, state, timer }] of Object.entries(touches)) {
+    if (Number(id) === touchId) {
+      continue
     }
-    if (key.type === 'shift') {
-      touchDown(touch)
-      pendingTouch = null
+    switch (state) {
+      case 'HIT':
+        timer && cancelLongPress(timer)
+        touchDown(touch)
+        touches[id].state = 'DOWN'
+        break
+      case 'DOWN':
+        break
+      default:
+        touches[id].state = 'INTERRUPTED'
+    }
+  }
+}
+
+function swipe(touch: Touch) {
+  const { type } = touches[touch.identifier]
+  const { clientX } = touch
+  if (['space', 'backspace'].includes(type ?? '')) {
+    if ((clientX - touches[touch.identifier].lastX) * (clientX - touches[touch.identifier].startX) < 0) { // turn around
+      touches[touch.identifier].completedSteps = 0
+      touches[touch.identifier].startX = touches[touch.identifier].lastX
+    }
+    const totalSteps = Math.floor(Math.abs((clientX - touches[touch.identifier].startX) / slideStep))
+    let action: () => void
+    if (type === 'space') {
+      const code = clientX > touches[touch.identifier].startX ? 'ArrowRight' : 'ArrowLeft'
+      action = () => sendKeyDown('', code)
     }
     else {
-      pendingTouch = touch
+      const data = clientX > touches[touch.identifier].startX ? 'RIGHT' : 'LEFT'
+      action = () => sendEvent({ type: 'BACKSPACE_SLIDE', data })
+    }
+    while (touches[touch.identifier].completedSteps < totalSteps) {
+      action()
+      ++touches[touch.identifier].completedSteps
+    }
+  }
+  touches[touch.identifier].lastX = clientX
+}
+
+function longPress(touchId: number, container: HTMLElement) {
+  touches[touchId].timer = null
+  touches[touchId].state = 'PRESSING'
+  showContextmenu(container, inputMethods_.map(inputMethod => ({
+    text: inputMethod.displayName,
+    callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
+  })))
+}
+
+export function onTouchStart(event: TouchEvent) {
+  const touch = event.changedTouches[0]
+  interrupt(touch.identifier)
+  let container = getContainer(touch)
+  const key = getKey(container)
+  let timer: number | null = null
+  let state: TouchState = 'HIT'
+  if (key) {
+    if (key.type === 'shift') {
+      touchDown(touch)
+      state = 'DOWN'
     }
     if (key.type === 'globe') {
-      longPressId = window.setTimeout(() => {
-        longPressId = null
-        pendingTouch = null
-        showContextmenu(container!, inputMethods_.map(inputMethod => ({
-          text: inputMethod.displayName,
-          callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
-        })))
-      }, LONG_PRESS_THRESHOLD)
+      timer = window.setTimeout(longPress, LONG_PRESS_THRESHOLD, touch.identifier, container)
     }
   }
   // Must recalculate container as layer may have been changed.
   container = getContainer(touch)
   container && press(container)
-  touches[touch.identifier] = touch
+  touches[touch.identifier] = {
+    touch,
+    state,
+    timer,
+    type: key?.type,
+    startX: touch.clientX,
+    lastX: touch.clientX,
+    completedSteps: 0,
+  }
 }
 
 export function onTouchMove(event: TouchEvent) {
   const touch = event.changedTouches[0]
-  // If same touch of startX/Y, great.
-  // If comparing with a more recent touch, we don't care if it's cancelled or not.
-  if (dragged(touch)) {
-    cancelLongPress()
+  interrupt(touch.identifier)
+  const { state } = touches[touch.identifier]
+  switch (state) {
+    case 'HIT':
+      if (dragged(touch)) {
+        cancelLongPress(touch.identifier)
+        touches[touch.identifier].state = 'SWIPING'
+        swipe(touch)
+      }
+      break
+    case 'SWIPING':
+      swipe(touch)
+      break
   }
-  const { clientX } = touch
-  if (['space', 'backspace'].includes(slidingKey?.type ?? '')) {
-    if ((clientX - lastX) * (clientX - startX) < 0) { // turn around
-      completedSteps = 0
-      startX = lastX
-    }
-    const totalSteps = Math.floor(Math.abs((clientX - startX) / slideStep))
-    let action: () => void
-    if (slidingKey?.type === 'space') {
-      const code = clientX > startX ? 'ArrowRight' : 'ArrowLeft'
-      action = () => sendKeyDown('', code)
-    }
-    else {
-      const data = clientX > startX ? 'RIGHT' : 'LEFT'
-      action = () => sendEvent({ type: 'BACKSPACE_SLIDE', data })
-    }
-    while (completedSteps < totalSteps) {
-      slid = true
-      pendingTouch = null // Disable sending space on release.
-      action()
-      ++completedSteps
-    }
-  }
-  lastX = clientX
 }
 
 export function onTouchEnd(event: TouchEvent) {
-  cancelLongPress()
-  if (slidingKey) {
-    if (slidingKey.type === 'backspace' && slid) {
-      sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
-    }
-    resetSlide()
-  }
   const touchId = event.changedTouches[0].identifier
-  const touch: Touch = touches[touchId]
+  interrupt(touchId)
+  cancelLongPress(touchId)
+  const { touch, state, type } = touches[touchId]
   delete touches[touchId]
   const container = getContainer(touch)
   container && release(container)
 
-  if (pendingTouch?.identifier === touch.identifier) {
-    touchDown(touch)
-    pendingTouch = null
+  switch (state) {
+    case 'HIT':
+      touchDown(touch)
+      // fall through
+    case 'DOWN':
+      touchUp(touch)
+      break
+    case 'SWIPING':
+      if (type === 'backspace') {
+        sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
+      }
+      break
   }
-  touchUp(touch)
 }
 
 export function setLayer(id: string, locked: boolean) {
