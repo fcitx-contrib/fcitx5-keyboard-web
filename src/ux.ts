@@ -9,6 +9,7 @@ import Send from 'bundle-text:../svg/send.svg'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
+import { hidePopover, showPopover } from './popover'
 import { getContainer, getKey, press, release } from './util'
 
 type TouchState = 'HIT' | 'PRESSING' | 'MOVING' /* highlight in popover */ | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
@@ -171,6 +172,7 @@ function touchUp(touch: Touch) {
 }
 
 function interrupt(touchId: number) {
+  hidePopover()
   for (const [id, { touch, state, timer }] of Object.entries(touches)) {
     if (Number(id) === touchId) {
       continue
@@ -222,7 +224,12 @@ function doSwipe(touch: Touch) {
   }
   else {
     const swipe = getSwipe(touch)
-    console.log(swipe?.label)
+    if (swipe) {
+      showPopover(getContainer(touches[touch.identifier].touch)!, swipe.label)
+    }
+    else {
+      hidePopover()
+    }
   }
   touches[touch.identifier].lastX = clientX
 }

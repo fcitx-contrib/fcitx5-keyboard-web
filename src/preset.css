@@ -308,6 +308,22 @@
   background-color: #bcc0c7;
 }
 
+.fcitx-keyboard-popover-container {
+  position: fixed;
+  container-type: size;
+}
+
+.fcitx-keyboard-popover {
+  height: 100%;
+  font-size: 40cqh;
+  background-color: white;
+  border-radius: 7cqh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 8px rgb(0 0 0 / 30%);
+}
+
 .fcitx-keyboard-invisible {
   position: absolute;
   color: transparent;
