@@ -7,6 +7,7 @@ import { renderContextmenu } from './contextmenu'
 import { removeCandidatesFromStack, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
 import { renderRow } from './key'
+import { renderPopover } from './popover'
 import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
@@ -60,6 +61,9 @@ export function setLayout(id: string, layout: Layout) {
   const contextmenu = renderContextmenu()
   hide(contextmenu)
 
+  const popover = renderPopover()
+  hide(popover)
+
   const invisible = div('fcitx-keyboard-invisible')
 
   const container = div('fcitx-keyboard-container')
@@ -74,6 +78,7 @@ export function setLayout(id: string, layout: Layout) {
     statusArea,
     symbol,
     contextmenu,
+    popover,
     invisible,
   ]) {
     container.appendChild(element)

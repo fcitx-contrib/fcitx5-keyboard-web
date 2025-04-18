@@ -1,4 +1,4 @@
-import type { Key, Layout } from '../src/layout'
+import type { Action, Key, Layout, Swipe } from '../src/layout'
 import type { InputMethod, VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
@@ -9,6 +9,7 @@ import Send from 'bundle-text:../svg/send.svg'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
+import { hidePopover, showPopover } from './popover'
 import { getContainer, getKey, press, release } from './util'
 
 type TouchState = 'HIT' | 'PRESSING' | 'MOVING' /* highlight in popover */ | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
@@ -28,7 +29,9 @@ const touches: { [key: string]: {
   state: TouchState
   timer: number | null
   type: Key['type'] | undefined
+  swipeUp?: Swipe
   startX: number
+  startY: number
   lastX: number
   completedSteps: number
 } } = {}
@@ -36,7 +39,8 @@ const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 const LONG_PRESS_THRESHOLD = 500
-const DRAG_THRESHOLD = 10
+const DRAG_THRESHOLD = 10 // radius^2
+const SWIPE_THRESHOLD = 10
 
 function dragged(touch: Touch) {
   const { clientX: startX, clientY: startY } = touches[touch.identifier].touch
@@ -86,6 +90,16 @@ export function backspace() {
 
 export function selectCandidate(index: number) {
   sendEvent({ type: 'SELECT_CANDIDATE', data: index })
+}
+
+function executeActions(actions: Action[]) {
+  for (const action of actions) {
+    switch (action.type) {
+      case 'key':
+        sendKeyDown(action.key ?? '', action.code ?? '')
+        break
+    }
+  }
 }
 
 function touchDown(touch: Touch) {
@@ -158,6 +172,7 @@ function touchUp(touch: Touch) {
 }
 
 function interrupt(touchId: number) {
+  hidePopover()
   for (const [id, { touch, state, timer }] of Object.entries(touches)) {
     if (Number(id) === touchId) {
       continue
@@ -176,7 +191,15 @@ function interrupt(touchId: number) {
   }
 }
 
-function swipe(touch: Touch) {
+function getSwipe(touch: Touch) {
+  const { startY, swipeUp } = touches[touch.identifier]
+  if (touch.clientY <= startY - SWIPE_THRESHOLD) {
+    return swipeUp
+  }
+  return undefined
+}
+
+function doSwipe(touch: Touch) {
   const { type } = touches[touch.identifier]
   const { clientX } = touch
   if (['space', 'backspace'].includes(type ?? '')) {
@@ -199,7 +222,21 @@ function swipe(touch: Touch) {
       ++touches[touch.identifier].completedSteps
     }
   }
+  else {
+    const swipe = getSwipe(touch)
+    if (swipe) {
+      showPopover(getContainer(touches[touch.identifier].touch)!, swipe.label)
+    }
+    else {
+      hidePopover()
+    }
+  }
   touches[touch.identifier].lastX = clientX
+}
+
+function swipeRelease(touch: Touch) {
+  const swipeUp = getSwipe(touch)
+  swipeUp && executeActions(swipeUp.actions)
 }
 
 function longPress(touchId: number, container: HTMLElement) {
@@ -216,6 +253,7 @@ export function onTouchStart(event: TouchEvent) {
   interrupt(touch.identifier)
   let container = getContainer(touch)
   const key = getKey(container)
+  let swipeUp: Swipe | undefined
   let timer: number | null = null
   let state: TouchState = 'HIT'
   if (key) {
@@ -226,6 +264,9 @@ export function onTouchStart(event: TouchEvent) {
     if (key.type === 'globe') {
       timer = window.setTimeout(longPress, LONG_PRESS_THRESHOLD, touch.identifier, container)
     }
+    if (key.type === 'key') {
+      swipeUp = key.swipeUp
+    }
   }
   // Must recalculate container as layer may have been changed.
   container = getContainer(touch)
@@ -235,7 +276,9 @@ export function onTouchStart(event: TouchEvent) {
     state,
     timer,
     type: key?.type,
+    swipeUp,
     startX: touch.clientX,
+    startY: touch.clientY,
     lastX: touch.clientX,
     completedSteps: 0,
   }
@@ -250,11 +293,11 @@ export function onTouchMove(event: TouchEvent) {
       if (dragged(touch)) {
         cancelLongPress(touch.identifier)
         touches[touch.identifier].state = 'SWIPING'
-        swipe(touch)
+        doSwipe(touch)
       }
       break
     case 'SWIPING':
-      swipe(touch)
+      doSwipe(touch)
       break
   }
 }
@@ -264,7 +307,6 @@ export function onTouchEnd(event: TouchEvent) {
   interrupt(touchId)
   cancelLongPress(touchId)
   const { touch, state, type } = touches[touchId]
-  delete touches[touchId]
   const container = getContainer(touch)
   container && release(container)
 
@@ -276,11 +318,17 @@ export function onTouchEnd(event: TouchEvent) {
       touchUp(touch)
       break
     case 'SWIPING':
-      if (type === 'backspace') {
-        sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
+      switch (type) {
+        case 'backspace':
+          sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
+          break
+        case 'key':
+          swipeRelease(event.changedTouches[0])
+          break
       }
       break
   }
+  delete touches[touchId]
 }
 
 export function setLayer(id: string, locked: boolean) {

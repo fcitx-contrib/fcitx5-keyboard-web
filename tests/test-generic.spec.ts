@@ -81,11 +81,11 @@ test('Preserve press order', async ({ page }) => {
 test('HIDE event', async ({ page }) => {
   await init(page)
 
-  const q = getKey(page, 'q')
+  const q = getKey(page, 'q1')
   const shift = page.locator('.fcitx-keyboard-shift')
   await tap(shift)
-  await expect(q).toHaveText('Q')
+  await expect(q).toHaveText('Q1')
 
   await sendSystemEvent(page, { type: 'HIDE' })
-  await expect(q).toHaveText('q')
+  await expect(q).toHaveText('q1')
 })
