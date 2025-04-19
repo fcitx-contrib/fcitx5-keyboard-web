@@ -1,4 +1,4 @@
-import type { Action, Key, Layout, Swipe } from '../src/layout'
+import type { Action, Key, Layout, LongPress, Swipe } from '../src/layout'
 import type { InputMethod, VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
@@ -9,10 +9,10 @@ import Send from 'bundle-text:../svg/send.svg'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
-import { hidePopover, showPopover } from './popover'
+import { hidePopover, showPopover, updateHighlight } from './popover'
 import { getContainer, getKey, press, release } from './util'
 
-type TouchState = 'HIT' | 'PRESSING' | 'MOVING' /* highlight in popover */ | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
+type TouchState = 'HIT' | 'PRESSING' | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
 
 let layout_: Layout
 let currentLayer = 'default'
@@ -28,6 +28,8 @@ const touches: { [key: string]: {
   touch: Touch
   state: TouchState
   timer: number | null
+  longPress?: LongPress
+  index: number
   type: Key['type'] | undefined
   swipeUp?: Swipe
   startX: number
@@ -38,8 +40,8 @@ const touches: { [key: string]: {
 const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
-const LONG_PRESS_THRESHOLD = 500
-const DRAG_THRESHOLD = 10 // radius^2
+export const LONG_PRESS_THRESHOLD = 300
+export const DRAG_THRESHOLD = 10 // radius^2
 const SWIPE_THRESHOLD = 10
 
 function dragged(touch: Touch) {
@@ -172,14 +174,13 @@ function touchUp(touch: Touch) {
 }
 
 function interrupt(touchId: number) {
-  hidePopover()
-  for (const [id, { touch, state, timer }] of Object.entries(touches)) {
+  for (const [id, { touch, state }] of Object.entries(touches)) {
     if (Number(id) === touchId) {
       continue
     }
     switch (state) {
       case 'HIT':
-        timer && cancelLongPress(timer)
+        cancelLongPress(Number(id))
         touchDown(touch)
         touches[id].state = 'DOWN'
         break
@@ -187,6 +188,7 @@ function interrupt(touchId: number) {
         break
       default:
         touches[id].state = 'INTERRUPTED'
+        hidePopover()
     }
   }
 }
@@ -199,28 +201,35 @@ function getSwipe(touch: Touch) {
   return undefined
 }
 
+function horizontallyMove(touch: Touch, step: number, leftAction: () => void, rightAction: () => void) {
+  const { clientX } = touch
+  if ((clientX - touches[touch.identifier].lastX) * (clientX - touches[touch.identifier].startX) < 0) { // turn around
+    touches[touch.identifier].completedSteps = 0
+    touches[touch.identifier].startX = touches[touch.identifier].lastX
+  }
+  const action = touch.clientX > touches[touch.identifier].startX ? rightAction : leftAction
+  const totalSteps = Math.floor(Math.abs((clientX - touches[touch.identifier].startX) / step))
+  while (touches[touch.identifier].completedSteps < totalSteps) {
+    action()
+    ++touches[touch.identifier].completedSteps
+  }
+  touches[touch.identifier].lastX = clientX
+}
+
 function doSwipe(touch: Touch) {
   const { type } = touches[touch.identifier]
-  const { clientX } = touch
   if (['space', 'backspace'].includes(type ?? '')) {
-    if ((clientX - touches[touch.identifier].lastX) * (clientX - touches[touch.identifier].startX) < 0) { // turn around
-      touches[touch.identifier].completedSteps = 0
-      touches[touch.identifier].startX = touches[touch.identifier].lastX
-    }
-    const totalSteps = Math.floor(Math.abs((clientX - touches[touch.identifier].startX) / slideStep))
-    let action: () => void
+    let leftAction: () => void
+    let rightAction: () => void
     if (type === 'space') {
-      const code = clientX > touches[touch.identifier].startX ? 'ArrowRight' : 'ArrowLeft'
-      action = () => sendKeyDown('', code)
+      leftAction = () => sendKeyDown('', 'ArrowLeft')
+      rightAction = () => sendKeyDown('', 'ArrowRight')
     }
     else {
-      const data = clientX > touches[touch.identifier].startX ? 'RIGHT' : 'LEFT'
-      action = () => sendEvent({ type: 'BACKSPACE_SLIDE', data })
+      leftAction = () => sendEvent({ type: 'BACKSPACE_SLIDE', data: 'LEFT' })
+      rightAction = () => sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RIGHT' })
     }
-    while (touches[touch.identifier].completedSteps < totalSteps) {
-      action()
-      ++touches[touch.identifier].completedSteps
-    }
+    horizontallyMove(touch, slideStep, leftAction, rightAction)
   }
   else {
     const swipe = getSwipe(touch)
@@ -231,7 +240,6 @@ function doSwipe(touch: Touch) {
       hidePopover()
     }
   }
-  touches[touch.identifier].lastX = clientX
 }
 
 function swipeRelease(touch: Touch) {
@@ -239,13 +247,33 @@ function swipeRelease(touch: Touch) {
   swipeUp && executeActions(swipeUp.actions)
 }
 
-function longPress(touchId: number, container: HTMLElement) {
+function longPressHandler(touchId: number, container: HTMLElement) {
   touches[touchId].timer = null
   touches[touchId].state = 'PRESSING'
-  showContextmenu(container, inputMethods_.map(inputMethod => ({
-    text: inputMethod.displayName,
-    callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
-  })))
+  if (touches[touchId].type === 'globe') {
+    showContextmenu(container, inputMethods_.map(inputMethod => ({
+      text: inputMethod.displayName,
+      callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
+    })))
+  }
+  else {
+    const { touch, longPress } = touches[touchId]
+    showPopover(getContainer(touch)!, longPress!)
+  }
+}
+
+function moveHighlight(touch: Touch) {
+  const action = (direction: 'LEFT' | 'RIGHT') => {
+    const newIndex = updateHighlight(touches[touch.identifier].index, direction)
+    touches[touch.identifier].index = newIndex
+  }
+  horizontallyMove(touch, getContainer(touches[touch.identifier].touch)!.getBoundingClientRect().width, () => action('LEFT'), () => action('RIGHT'))
+}
+
+function longPressRelease(touchId: number) {
+  const { longPress, index } = touches[touchId]
+  const actions = longPress?.cells[index].actions
+  actions && executeActions(actions)
 }
 
 export function onTouchStart(event: TouchEvent) {
@@ -255,17 +283,24 @@ export function onTouchStart(event: TouchEvent) {
   const key = getKey(container)
   let swipeUp: Swipe | undefined
   let timer: number | null = null
+  let longPress: LongPress | undefined
   let state: TouchState = 'HIT'
   if (key) {
-    if (key.type === 'shift') {
-      touchDown(touch)
-      state = 'DOWN'
-    }
-    if (key.type === 'globe') {
-      timer = window.setTimeout(longPress, LONG_PRESS_THRESHOLD, touch.identifier, container)
-    }
-    if (key.type === 'key') {
-      swipeUp = key.swipeUp
+    switch (key.type) {
+      case 'shift':
+        touchDown(touch)
+        state = 'DOWN'
+        break
+      case 'globe':
+        timer = window.setTimeout(longPressHandler, LONG_PRESS_THRESHOLD, touch.identifier, container)
+        break
+      case 'key':
+        swipeUp = key.swipeUp
+        if (key.longPress) {
+          timer = window.setTimeout(longPressHandler, LONG_PRESS_THRESHOLD, touch.identifier, container)
+          longPress = key.longPress
+        }
+        break
     }
   }
   // Must recalculate container as layer may have been changed.
@@ -277,6 +312,8 @@ export function onTouchStart(event: TouchEvent) {
     timer,
     type: key?.type,
     swipeUp,
+    longPress,
+    index: longPress?.index ?? 0,
     startX: touch.clientX,
     startY: touch.clientY,
     lastX: touch.clientX,
@@ -299,6 +336,9 @@ export function onTouchMove(event: TouchEvent) {
     case 'SWIPING':
       doSwipe(touch)
       break
+    case 'PRESSING':
+      moveHighlight(touch)
+      break
   }
 }
 
@@ -318,6 +358,7 @@ export function onTouchEnd(event: TouchEvent) {
       touchUp(touch)
       break
     case 'SWIPING':
+      hidePopover()
       switch (type) {
         case 'backspace':
           sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
@@ -326,6 +367,10 @@ export function onTouchEnd(event: TouchEvent) {
           swipeRelease(event.changedTouches[0])
           break
       }
+      break
+    case 'PRESSING':
+      hidePopover()
+      longPressRelease(touchId)
       break
   }
   delete touches[touchId]

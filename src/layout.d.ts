@@ -11,6 +11,11 @@ export interface Swipe {
   actions: Action[]
 }
 
+export interface LongPress {
+  cells: Swipe[]
+  index: number
+}
+
 export interface NormalKey {
   type: 'key'
   label: string
@@ -19,7 +24,8 @@ export interface NormalKey {
   subLabel?: {
     topRight: string
   }
-  swipeUp: Swipe
+  swipeUp?: Swipe
+  longPress?: LongPress
 }
 
 export interface ShiftKey {
