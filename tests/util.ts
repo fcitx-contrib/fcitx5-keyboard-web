@@ -90,9 +90,10 @@ export async function tap(locator: Locator) {
   return touchUp(locator, touchId)
 }
 
-export async function longPress(locator: Locator) {
+export async function longPress(locator: Locator, action?: (touchId: number) => Promise<any>) {
   const touchId = await touchDown(locator)
-  await locator.page().waitForTimeout(500)
+  await locator.page().waitForTimeout(300)
+  action && await action(touchId)
   return touchUp(locator, touchId)
 }
 

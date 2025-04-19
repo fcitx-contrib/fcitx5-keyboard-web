@@ -309,19 +309,29 @@
 }
 
 .fcitx-keyboard-popover-container {
+  background-color: white;
+  display: flex;
   position: fixed;
+  box-shadow: 0 0 8px rgb(0 0 0 / 30%);
+}
+
+.fcitx-keyboard-popover-cell {
+  position: relative;
   container-type: size;
 }
 
 .fcitx-keyboard-popover {
-  height: 100%;
-  font-size: 40cqh;
-  background-color: white;
+  position: absolute;
+  inset: 8cqh 6cqh;
   border-radius: 7cqh;
+  font-size: 40cqh;
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 0 8px rgb(0 0 0 / 30%);
+}
+
+.fcitx-keyboard-highlighted .fcitx-keyboard-popover {
+  background-color: #bcc0c7;
 }
 
 .fcitx-keyboard-invisible {

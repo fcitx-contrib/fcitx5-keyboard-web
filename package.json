@@ -4,8 +4,8 @@
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "lint": "eslint && stylelint src/*.css harmony/*.css preview/*.css",
-    "lint:fix": "eslint --fix && stylelint --fix src/*.css harmony/*.css preview/*.css",
+    "lint": "eslint harmony preview src tests && stylelint src/*.css harmony/*.css preview/*.css",
+    "lint:fix": "eslint --fix harmony preview src tests && stylelint --fix src/*.css harmony/*.css preview/*.css",
     "check": "tsc --noEmit",
     "dev": "rimraf .parcel-cache && parcel preview/index.html",
     "build:harmony": "rimraf .parcel-cache && parcel build harmony/index.html",

@@ -3,7 +3,7 @@ import { SCROLL_NONE, SCROLLING } from './api.d'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { div, getCandidateBar } from './util'
-import { selectCandidate, sendEvent } from './ux'
+import { DRAG_THRESHOLD, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent } from './ux'
 
 let touchId: number | null = null
 let longPressId: number | null = null
@@ -12,9 +12,6 @@ let startY = 0
 let scrollState_: ScrollState = SCROLL_NONE
 let scrollEnd_ = true
 let fetching = false
-
-const LONG_PRESS_THRESHOLD = 500
-const DRAG_THRESHOLD = 10
 
 function dragged(touch: Touch) {
   const { clientX, clientY } = touch
