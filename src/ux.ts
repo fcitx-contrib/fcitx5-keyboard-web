@@ -245,6 +245,9 @@ function doSwipe(touch: Touch) {
 function swipeRelease(touch: Touch) {
   const swipeUp = getSwipe(touch)
   swipeUp && executeActions(swipeUp.actions)
+  if (currentLayer === 'shift' && !layerLocked) {
+    setLayer('default', false)
+  }
 }
 
 function longPressHandler(touchId: number, container: HTMLElement) {
@@ -274,6 +277,9 @@ function longPressRelease(touchId: number) {
   const { longPress, index } = touches[touchId]
   const actions = longPress?.cells[index].actions
   actions && executeActions(actions)
+  if (currentLayer === 'shift' && !layerLocked) {
+    setLayer('default', false)
+  }
 }
 
 export function onTouchStart(event: TouchEvent) {

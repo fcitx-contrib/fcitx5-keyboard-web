@@ -42,3 +42,28 @@ test('Slide left after shift', async ({ page }) => {
     { type: 'KEY_DOWN', data: { key: 'l', code: 'KeyL' } },
   ])
 })
+
+test('Reset layer', async ({ page }) => {
+  await init(page)
+
+  const shift = page.locator('.fcitx-keyboard-shift')
+  await tap(shift)
+  const g = page.getByText('g^')
+  await expect(g).toHaveText('G^')
+  await longPress(g)
+  await expect(g).toHaveText('g^')
+})
+
+test('Interrupted', async ({ page }) => {
+  await init(page)
+
+  const f = page.getByText('f-')
+  const m = page.getByText('m"')
+  await longPress(f, async () => {
+    await tap(m)
+    return expect(page.locator('.fcitx-keyboard-popover-container')).not.toBeVisible()
+  })
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'KEY_DOWN', data: { key: 'm', code: 'KeyM' } },
+  ])
+})

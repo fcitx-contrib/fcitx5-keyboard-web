@@ -31,3 +31,20 @@ test('Long press', async ({ page }) => {
   await expect(contextmenu).not.toBeVisible()
   expect(await getSentEvents(page)).toEqual([{ type: 'SET_INPUT_METHOD', data: 'keyboard-us' }])
 })
+
+test('Interrupted', async ({ page }) => {
+  await init(page)
+
+  const contextmenu = page.locator('.fcitx-keyboard-contextmenu')
+  await sendSystemEvent(page, { type: 'INPUT_METHODS', data: {
+    currentInputMethod: 'pinyin',
+    inputMethods: [
+      { name: 'keyboard-us', displayName: 'English' },
+    ],
+  } })
+  const globe = page.locator('.fcitx-keyboard-globe')
+  await longPress(globe)
+  await expect(contextmenu.getByText('English')).toBeVisible()
+  await page.locator('.fcitx-keyboard-contextmenu-container').tap()
+  await expect(contextmenu).not.toBeVisible()
+})
