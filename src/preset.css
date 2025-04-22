@@ -105,7 +105,8 @@
   padding-left: 15%;
   display: flex;
   align-items: center;
-  gap: 5%;
+  justify-content: space-between;
+  container-type: size;
 }
 
 .fcitx-keyboard-toolbar-button {
@@ -136,10 +137,8 @@
 
 .fcitx-keyboard-candidate-bar {
   height: 20%;
-  padding: 0 3px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
   container-type: size;
 }
 
@@ -148,12 +147,42 @@
   font-size: 24cqh;
 }
 
+.fcitx-keyboard-candidates-container {
+  padding-left: 6cqh;
+  box-sizing: border-box; /* include padding-left */
+  width: calc(100% - 80cqh);
+  height: 100cqh;
+}
+
+.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
+  transform: rotate(270deg);
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
+  transform: rotate(90deg);
+}
+
 .fcitx-keyboard-candidates {
   height: 68cqh;
   display: flex;
-  gap: 1%;
+  column-gap: 1cqw;
   overflow-x: scroll;
   scrollbar-width: none;
+}
+
+.fcitx-keyboard-candidates-container .fcitx-keyboard-candidates:nth-child(1) {
+  margin-top: 16cqh;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidates {
+  flex-wrap: wrap;
+  overflow-y: scroll;
+  height: auto;
+  row-gap: 16cqh;
+}
+
+.fcitx-keyboard-expanded :is(.fcitx-keyboard,.fcitx-keyboard-mask) {
+  display: none;
 }
 
 .fcitx-keyboard-candidates::-webkit-scrollbar { 
@@ -165,6 +194,11 @@
   padding: 7.5cqh 15cqh;
   border-radius: 10cqh;
   flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidate {
+  min-width: 16cqw;
 }
 
 .fcitx-keyboard-candidate.fcitx-keyboard-highlighted {

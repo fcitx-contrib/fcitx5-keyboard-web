@@ -1,8 +1,9 @@
 import type { Candidate, CandidateAction, ScrollState } from './api.d'
+import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import { SCROLL_NONE, SCROLLING } from './api.d'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
-import { div, getCandidateBar } from './util'
+import { div, getCandidateBar, renderToolbarButton } from './util'
 import { DRAG_THRESHOLD, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent } from './ux'
 
 let touchId: number | null = null
@@ -28,23 +29,22 @@ function cancelLongPress() {
 }
 
 export function setPreedit(auxUp: string, preedit: string) {
-  setDisplayMode('candidates')
-  const bar = getCandidateBar()
-  let container = bar.querySelector('.fcitx-keyboard-preedit')
+  const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates-container')!
+  let element = container.querySelector('.fcitx-keyboard-preedit')
   if (auxUp || preedit) {
-    if (!container) {
-      container = div('fcitx-keyboard-preedit')
-      bar.prepend(container)
+    if (!element) {
+      element = div('fcitx-keyboard-preedit')
+      container.prepend(element)
     }
-    container.innerHTML = auxUp + preedit
+    element.innerHTML = auxUp + preedit
   }
   else {
-    container?.remove()
+    element?.remove()
   }
+  setDisplayMode('candidates')
 }
 
 export function setCandidates(cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean) {
-  setDisplayMode('candidates')
   scrollState_ = scrollState
   touchId = null
   longPressId = null
@@ -93,6 +93,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
     }
     container.appendChild(candidate)
   }
+  setDisplayMode('candidates')
 }
 
 export function setCandidateActions(index: number, actions: CandidateAction[]) {
@@ -110,18 +111,24 @@ export function setCandidateActions(index: number, actions: CandidateAction[]) {
 }
 
 export function renderCandidateBar() {
-  const container = div('fcitx-keyboard-candidates')
-  container.addEventListener('scroll', () => {
+  const bar = div('fcitx-keyboard-candidate-bar')
+  const container = div('fcitx-keyboard-candidates-container')
+  const list = div('fcitx-keyboard-candidates')
+  list.addEventListener('scroll', () => {
     if (scrollState_ !== SCROLLING || scrollEnd_ || fetching) {
       return
     }
-    const { left } = container.lastElementChild!.getBoundingClientRect()
-    if (left < container.getBoundingClientRect().right * 1.5) {
+    const { left } = list.lastElementChild!.getBoundingClientRect()
+    if (left < list.getBoundingClientRect().right * 1.5) {
       fetching = true
-      sendEvent({ type: 'SCROLL', data: { start: container.childElementCount, count: 20 } })
+      sendEvent({ type: 'SCROLL', data: { start: list.childElementCount, count: 20 } })
     }
   })
-  const bar = div('fcitx-keyboard-candidate-bar')
-  bar.appendChild(container)
+  const button = renderToolbarButton(ChevronLeft)
+  button.addEventListener('click', () => {
+    bar.parentElement!.classList.add('fcitx-keyboard-expanded')
+  })
+  container.append(list)
+  bar.append(container, button)
   return bar
 }
