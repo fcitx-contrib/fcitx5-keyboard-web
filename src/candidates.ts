@@ -13,6 +13,7 @@ let startY = 0
 let scrollState_: ScrollState = SCROLL_NONE
 let scrollEnd_ = true
 let fetching = false
+let scrollDirection: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL'
 
 function dragged(touch: Touch) {
   const { clientX, clientY } = touch
@@ -52,6 +53,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
   if (scrollState !== SCROLLING || scrollStart) {
     container.scroll({ left: 0 })
     container.innerHTML = ''
+    scrollDirection = 'HORIZONTAL'
   }
   else {
     fetching = false
@@ -60,7 +62,10 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
   const offset = container.childElementCount
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')
-    candidate.innerHTML = cands[i].text
+    // candidate.innerHTML = cands[i].text
+    const candidateInner = div('fcitx-keyboard-candidate-inner')
+    candidateInner.innerHTML = cands[i].text
+    candidate.appendChild(candidateInner)
     candidate.addEventListener('touchstart', (event) => {
       const touch = event.changedTouches[0]
       startX = touch.clientX
@@ -118,15 +123,31 @@ export function renderCandidateBar() {
     if (scrollState_ !== SCROLLING || scrollEnd_ || fetching) {
       return
     }
-    const { left } = list.lastElementChild!.getBoundingClientRect()
-    if (left < list.getBoundingClientRect().right * 1.5) {
+    const { left, top } = list.lastElementChild!.getBoundingClientRect()
+    const box = list.getBoundingClientRect()
+    if (scrollDirection === 'HORIZONTAL' && left < box.right * 1.5) {
       fetching = true
       sendEvent({ type: 'SCROLL', data: { start: list.childElementCount, count: 20 } })
+    }
+    else if (scrollDirection === 'VERTICAL' && top - box.bottom < box.height * 0.5) {
+      fetching = true
+      sendEvent({ type: 'SCROLL', data: { start: list.childElementCount, count: 30 } })
     }
   })
   const button = renderToolbarButton(ChevronLeft)
   button.addEventListener('click', () => {
-    bar.parentElement!.classList.add('fcitx-keyboard-expanded')
+    const parent = bar.parentElement!
+    if (scrollDirection === 'HORIZONTAL') {
+      parent.classList.add('fcitx-keyboard-expanded')
+      // TODO: not rotate friendly on real device
+      list.style.height = `calc(${parent.getBoundingClientRect().height}px - 16cqh)`
+      scrollDirection = 'VERTICAL'
+    }
+    else {
+      parent.classList.remove('fcitx-keyboard-expanded')
+      list.style.height = 'auto'
+      scrollDirection = 'HORIZONTAL'
+    }
   })
   container.append(list)
   bar.append(container, button)

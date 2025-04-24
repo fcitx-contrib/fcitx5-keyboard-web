@@ -154,31 +154,22 @@
   height: 100cqh;
 }
 
-.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
-  transform: rotate(270deg);
-}
-
-.fcitx-keyboard-expanded .fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
-  transform: rotate(90deg);
-}
-
 .fcitx-keyboard-candidates {
-  height: 68cqh;
   display: flex;
   column-gap: 1cqw;
   overflow-x: scroll;
   scrollbar-width: none;
 }
 
-.fcitx-keyboard-candidates-container .fcitx-keyboard-candidates:nth-child(1) {
-  margin-top: 16cqh;
-}
-
 .fcitx-keyboard-expanded .fcitx-keyboard-candidates {
   flex-wrap: wrap;
   overflow-y: scroll;
-  height: auto;
-  row-gap: 16cqh;
+  gap: 16cqh 0;
+  width: 80cqw;
+}
+
+.fcitx-keyboard-candidates-container .fcitx-keyboard-candidates:nth-child(1) {
+  margin-top: 16cqh;
 }
 
 .fcitx-keyboard-expanded :is(.fcitx-keyboard,.fcitx-keyboard-mask) {
@@ -190,18 +181,25 @@
 }
 
 .fcitx-keyboard-candidate {
+  height: 68cqh;
   font-size: 40cqh;
-  padding: 7.5cqh 15cqh;
-  border-radius: 10cqh;
+  flex-grow: 1;
   flex-shrink: 0;
   box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.fcitx-keyboard-candidate-inner {
+  padding: 7.5cqh 15cqh;
+  border-radius: 10cqh;
 }
 
 .fcitx-keyboard-expanded .fcitx-keyboard-candidate {
   min-width: 16cqw;
 }
 
-.fcitx-keyboard-candidate.fcitx-keyboard-highlighted {
+.fcitx-keyboard-highlighted .fcitx-keyboard-candidate-inner {
   background-color: white;
   color: #0a59f7;
 }
@@ -372,4 +370,12 @@
   position: absolute;
   color: transparent;
   font-size: 16px;
+}
+
+.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
+  transform: rotate(270deg);
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
+  transform: rotate(90deg);
 }
