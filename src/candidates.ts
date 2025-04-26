@@ -51,7 +51,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
   longPressId = null
   const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates')!
   if (scrollState !== SCROLLING || scrollStart) {
-    container.scroll({ left: 0 })
+    container.scroll({ left: 0, top: 0 })
     container.innerHTML = ''
     scrollDirection = 'HORIZONTAL'
   }
@@ -115,6 +115,28 @@ export function setCandidateActions(index: number, actions: CandidateAction[]) {
   })))
 }
 
+function expand() {
+  const bar = getCandidateBar()
+  const parent = bar.parentElement!
+  const list = bar.querySelector('.fcitx-keyboard-candidates') as HTMLElement
+  const side = bar.querySelector('.fcitx-keyboard-candidates-side') as HTMLElement
+  parent.classList.add('fcitx-keyboard-expanded')
+  // TODO: not rotate friendly on real device
+  const { height } = parent.getBoundingClientRect()
+  list.style.height = `calc(${height}px - 16cqh)`
+  side.style.height = `calc(${height}px - 100cqh)`
+  scrollDirection = 'VERTICAL'
+}
+
+export function collapse() {
+  const bar = getCandidateBar()
+  const parent = bar.parentElement!
+  const list = bar.querySelector('.fcitx-keyboard-candidates') as HTMLElement
+  parent.classList.remove('fcitx-keyboard-expanded')
+  list.style.height = 'auto'
+  scrollDirection = 'HORIZONTAL'
+}
+
 export function renderCandidateBar() {
   const bar = div('fcitx-keyboard-candidate-bar')
   const container = div('fcitx-keyboard-candidates-container')
@@ -136,20 +158,24 @@ export function renderCandidateBar() {
   })
   const button = renderToolbarButton(ChevronLeft)
   button.addEventListener('click', () => {
-    const parent = bar.parentElement!
     if (scrollDirection === 'HORIZONTAL') {
-      parent.classList.add('fcitx-keyboard-expanded')
-      // TODO: not rotate friendly on real device
-      list.style.height = `calc(${parent.getBoundingClientRect().height}px - 16cqh)`
-      scrollDirection = 'VERTICAL'
+      expand()
     }
     else {
-      parent.classList.remove('fcitx-keyboard-expanded')
-      list.style.height = 'auto'
-      scrollDirection = 'HORIZONTAL'
+      collapse()
     }
   })
   container.append(list)
-  bar.append(container, button)
+  const side = div('fcitx-keyboard-candidates-side')
+  const pageUp = div('fcitx-keyboard-side-button')
+  pageUp.innerHTML = 'up'
+  const pageDown = div('fcitx-keyboard-side-button')
+  pageDown.innerHTML = 'down'
+  const backspace = div('fcitx-keyboard-side-button')
+  backspace.innerHTML = 'bs'
+  const enter = div('fcitx-keyboard-side-button')
+  enter.innerHTML = 'enter'
+  side.append(pageUp, pageDown, backspace, enter)
+  bar.append(container, button, side)
   return bar
 }

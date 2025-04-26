@@ -379,3 +379,24 @@
 .fcitx-keyboard-expanded .fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
   transform: rotate(90deg);
 }
+
+.fcitx-keyboard-candidates-side {
+  display: none;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidates-side {
+  width: 20cqw;
+  position: absolute;
+  right: 0;
+  top: 100cqh;
+  display: flex;
+  flex-direction: column;
+}
+
+.fcitx-keyboard-side-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 25%;
+  width: 100%;
+}
