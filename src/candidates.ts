@@ -237,11 +237,11 @@ export function renderCandidateBar() {
       const { top: candidateTop, bottom: candidateBottom } = candidate.getBoundingClientRect()
       firstTop = firstTop ?? candidateTop
       if ((candidateTop + candidateBottom) / 2 > bottom) {
-        list.scroll({ top: previousTop - firstTop, behavior: 'smooth' })
-        return
+        break
       }
       previousTop = candidateTop
     }
+    list.scroll({ top: previousTop - firstTop!, behavior: 'smooth' })
   })
 
   const bs = renderSideButton(Backspace)
