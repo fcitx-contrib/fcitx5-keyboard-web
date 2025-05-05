@@ -1,11 +1,15 @@
 import { div, hide, press, release, show } from './util'
 
+export function hideContextMenu() {
+  hide(document.querySelector('.fcitx-keyboard-contextmenu-container')!)
+}
+
 export function renderContextmenu() {
   const container = div('fcitx-keyboard-contextmenu-container')
   const contextmenu = div('fcitx-keyboard-contextmenu')
   container.appendChild(contextmenu)
   container.addEventListener('touchstart', () => {
-    hide(container)
+    hideContextMenu()
   })
   return container
 }
@@ -32,7 +36,7 @@ export function showContextmenu(element: Element, items: {
     const element = renderItem(item.text)
     element.addEventListener('click', () => {
       item.callback()
-      hide(contextmenu.parentElement!)
+      hideContextMenu()
     })
     contextmenu.appendChild(element)
   }

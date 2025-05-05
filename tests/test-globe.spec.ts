@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { getSentEvents, init, longPress, sendSystemEvent, tap } from './util'
 
@@ -32,7 +33,7 @@ test('Long press', async ({ page }) => {
   expect(await getSentEvents(page)).toEqual([{ type: 'SET_INPUT_METHOD', data: 'keyboard-us' }])
 })
 
-test('Interrupted', async ({ page }) => {
+async function prepareContextmenu(page: Page) {
   await init(page)
 
   const contextmenu = page.locator('.fcitx-keyboard-contextmenu')
@@ -45,6 +46,17 @@ test('Interrupted', async ({ page }) => {
   const globe = page.locator('.fcitx-keyboard-globe')
   await longPress(globe)
   await expect(contextmenu.getByText('English')).toBeVisible()
+  return contextmenu
+}
+
+test('Interrupted', async ({ page }) => {
+  const contextmenu = await prepareContextmenu(page)
   await page.locator('.fcitx-keyboard-contextmenu-container').tap()
+  await expect(contextmenu).not.toBeVisible()
+})
+
+test('Hide contextmenu on clear', async ({ page }) => {
+  const contextmenu = await prepareContextmenu(page)
+  await sendSystemEvent(page, { type: 'CLEAR' })
   await expect(contextmenu).not.toBeVisible()
 })
