@@ -3,7 +3,7 @@ import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../fcitx5-keyboard-layouts/layout/qwerty.json'
 import { renderCandidateBar, setCandidateActions, setCandidates, setPreedit } from './candidates'
-import { renderContextmenu } from './contextmenu'
+import { hideContextMenu, renderContextmenu } from './contextmenu'
 import { removeCandidatesFromStack, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
 import { renderRow } from './key'
@@ -104,6 +104,7 @@ export function onMessage(message: string) {
       setLayer('default', false)
     // fall through
     case 'CLEAR':
+      hideContextMenu()
       removeCandidatesFromStack()
       break
     case 'PREEDIT':
