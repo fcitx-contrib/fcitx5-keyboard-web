@@ -112,6 +112,27 @@ test('Actions', async ({ page }) => {
   expect(await getSentEvents(page)).toEqual(sentEvents)
 })
 
+test('Actions disappear on clear', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: [{ text: '一', label: '1', comment: '' }],
+    highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
+  } })
+  await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
+    index: 0,
+    actions: [{ id: 1, text: '置顶' }],
+  } })
+  const pinButton = page.getByText('置顶')
+  await expect(pinButton).toBeVisible()
+
+  await sendSystemEvent(page, { type: 'CLEAR' })
+  await expect(pinButton).not.toBeVisible()
+})
+
 test('Preedit', async ({ page }) => {
   await init(page)
 
