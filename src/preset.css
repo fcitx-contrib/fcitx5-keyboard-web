@@ -196,7 +196,7 @@
 }
 
 .fcitx-keyboard-expanded .fcitx-keyboard-candidate {
-  min-width: 16cqw;
+  min-width: 15cqw; /* At most 5 in a row. Not exact 80/5 to tolerate rounding issue. */
 }
 
 .fcitx-keyboard-highlighted .fcitx-keyboard-candidate-inner {
@@ -372,14 +372,6 @@
   font-size: 16px;
 }
 
-.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
-  transform: rotate(270deg);
-}
-
-.fcitx-keyboard-expanded .fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
-  transform: rotate(90deg);
-}
-
 .fcitx-keyboard-candidates-side {
   display: none;
 }
@@ -393,10 +385,36 @@
   flex-direction: column;
 }
 
+.fcitx-keyboard-side-button-container {
+  position: relative;
+  container-type: size;
+  height: 25%;
+  width: 100%;
+}
+
 .fcitx-keyboard-side-button {
+  position: absolute;
+  inset: 4px;
+  border-radius: 10cqh;
+  background-color: #bcc0c7;
+  box-shadow: 0 2cqh rgb(0 0 0 / 30%);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 25%;
-  width: 100%;
+}
+
+.fcitx-keyboard-pressed:not(.fcitx-keyboard-disabled) .fcitx-keyboard-side-button {
+  background-color: white;
+}
+
+.fcitx-keyboard-side-button-container.fcitx-keyboard-disabled svg {
+  color: #7f7f7f;
+}
+
+.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
+  transform: rotate(270deg);
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
+  transform: rotate(90deg);
 }

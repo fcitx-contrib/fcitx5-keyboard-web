@@ -1,10 +1,13 @@
 import type { Candidate, CandidateAction, ScrollState } from './api.d'
+import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
+import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
+import Enter from 'bundle-text:../svg/enter.svg'
 import { SCROLL_NONE, SCROLLING } from './api.d'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
-import { div, getCandidateBar, renderToolbarButton } from './util'
-import { DRAG_THRESHOLD, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent } from './ux'
+import { disable, div, enable, getCandidateBar, press, release, renderToolbarButton, setSvgStyle } from './util'
+import { backspace, DRAG_THRESHOLD, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
 let touchId: number | null = null
 let longPressId: number | null = null
@@ -53,7 +56,6 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
   if (scrollState !== SCROLLING || scrollStart) {
     container.scroll({ left: 0, top: 0 })
     container.innerHTML = ''
-    scrollDirection = 'HORIZONTAL'
   }
   else {
     fetching = false
@@ -62,7 +64,6 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
   const offset = container.childElementCount
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')
-    // candidate.innerHTML = cands[i].text
     const candidateInner = div('fcitx-keyboard-candidate-inner')
     candidateInner.innerHTML = cands[i].text
     candidate.appendChild(candidateInner)
@@ -98,6 +99,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
     }
     container.appendChild(candidate)
   }
+  setPagingButtons(container)
   setDisplayMode('candidates')
 }
 
@@ -115,6 +117,23 @@ export function setCandidateActions(index: number, actions: CandidateAction[]) {
   })))
 }
 
+function setPagingButtons(list: Element) {
+  const pageUp = document.querySelector('.fcitx-keyboard-side-button-container:nth-child(1)')!
+  const pageDown = document.querySelector('.fcitx-keyboard-side-button-container:nth-child(2)')!
+  if (list.scrollTop === 0) {
+    disable(pageUp)
+  }
+  else {
+    enable(pageUp)
+  }
+  if (list.scrollTop + list.clientHeight > list.scrollHeight - 1) { // Tolerate rounding issue.
+    disable(pageDown)
+  }
+  else {
+    enable(pageDown)
+  }
+}
+
 function expand() {
   const bar = getCandidateBar()
   const parent = bar.parentElement!
@@ -123,9 +142,10 @@ function expand() {
   parent.classList.add('fcitx-keyboard-expanded')
   // TODO: not rotate friendly on real device
   const { height } = parent.getBoundingClientRect()
-  list.style.height = `calc(${height}px - 16cqh)`
+  list.style.maxHeight = `calc(${height}px - 16cqh)`
   side.style.height = `calc(${height}px - 100cqh)`
   scrollDirection = 'VERTICAL'
+  setPagingButtons(list)
 }
 
 export function collapse() {
@@ -137,12 +157,29 @@ export function collapse() {
   scrollDirection = 'HORIZONTAL'
 }
 
+function renderSideButton(label: string) {
+  const container = div('fcitx-keyboard-side-button-container')
+  const button = div('fcitx-keyboard-side-button')
+  button.innerHTML = label
+  container.appendChild(button)
+  container.addEventListener('touchstart', () => press(container))
+  container.addEventListener('touchend', () => release(container))
+  container.addEventListener('touchcancel', () => release(container))
+  return container
+}
+
 export function renderCandidateBar() {
   const bar = div('fcitx-keyboard-candidate-bar')
   const container = div('fcitx-keyboard-candidates-container')
   const list = div('fcitx-keyboard-candidates')
   list.addEventListener('scroll', () => {
-    if (scrollState_ !== SCROLLING || scrollEnd_ || fetching) {
+    if (scrollState_ !== SCROLLING) {
+      return
+    }
+    if (scrollDirection === 'VERTICAL') {
+      setPagingButtons(list)
+    }
+    if (scrollEnd_ || fetching) {
       return
     }
     const { left, top } = list.lastElementChild!.getBoundingClientRect()
@@ -151,9 +188,9 @@ export function renderCandidateBar() {
       fetching = true
       sendEvent({ type: 'SCROLL', data: { start: list.childElementCount, count: 20 } })
     }
-    else if (scrollDirection === 'VERTICAL' && top - box.bottom < box.height * 0.5) {
+    else if (scrollDirection === 'VERTICAL' && top - box.bottom < box.height) {
       fetching = true
-      sendEvent({ type: 'SCROLL', data: { start: list.childElementCount, count: 30 } })
+      sendEvent({ type: 'SCROLL', data: { start: list.childElementCount, count: 25 } })
     }
   })
   const button = renderToolbarButton(ChevronLeft)
@@ -166,16 +203,57 @@ export function renderCandidateBar() {
     }
   })
   container.append(list)
+
+  const pageUp = renderSideButton(ArrowLeft)
+  setSvgStyle(pageUp, { height: '50cqh', transform: 'rotate(90deg)' })
+  pageUp.addEventListener('click', () => {
+    const tops: number[] = []
+    const { top, bottom } = list.getBoundingClientRect()
+    for (const candidate of document.querySelectorAll('.fcitx-keyboard-candidate')) {
+      const { top: candidateTop, bottom: candidateBottom } = candidate.getBoundingClientRect()
+      if (tops[tops.length - 1] === candidateTop) {
+        continue
+      }
+      if (candidateTop > top - 1) {
+        const maxOffset = bottom - (candidateTop + candidateBottom) / 2
+        for (let j = 0; j < tops.length; ++j) {
+          if (top - tops[j] <= maxOffset) {
+            list.scroll({ top: tops[j] - tops[0], behavior: 'smooth' })
+            return
+          }
+        }
+      }
+      tops.push(candidateTop)
+    }
+  })
+
+  const pageDown = renderSideButton(ArrowLeft)
+  setSvgStyle(pageDown, { height: '50cqh', transform: 'rotate(270deg)' })
+  pageDown.addEventListener('click', () => {
+    const { bottom } = list.getBoundingClientRect()
+    let previousTop = 0
+    let firstTop: number | null = null
+    for (const candidate of document.querySelectorAll('.fcitx-keyboard-candidate')) {
+      const { top: candidateTop, bottom: candidateBottom } = candidate.getBoundingClientRect()
+      firstTop = firstTop ?? candidateTop
+      if ((candidateTop + candidateBottom) / 2 > bottom) {
+        list.scroll({ top: previousTop - firstTop, behavior: 'smooth' })
+        return
+      }
+      previousTop = candidateTop
+    }
+  })
+
+  const bs = renderSideButton(Backspace)
+  setSvgStyle(bs, { height: '60cqh' })
+  bs.addEventListener('click', backspace)
+
+  const enter = renderSideButton(Enter)
+  setSvgStyle(enter, { height: '60cqh' })
+  enter.addEventListener('click', () => sendKeyDown('\r', 'Enter'))
+
   const side = div('fcitx-keyboard-candidates-side')
-  const pageUp = div('fcitx-keyboard-side-button')
-  pageUp.innerHTML = 'up'
-  const pageDown = div('fcitx-keyboard-side-button')
-  pageDown.innerHTML = 'down'
-  const backspace = div('fcitx-keyboard-side-button')
-  backspace.innerHTML = 'bs'
-  const enter = div('fcitx-keyboard-side-button')
-  enter.innerHTML = 'enter'
-  side.append(pageUp, pageDown, backspace, enter)
+  side.append(pageUp, pageDown, bs, enter)
   bar.append(container, button, side)
   return bar
 }
