@@ -105,7 +105,8 @@
   padding-left: 15%;
   display: flex;
   align-items: center;
-  gap: 5%;
+  justify-content: space-between;
+  container-type: size;
 }
 
 .fcitx-keyboard-toolbar-button {
@@ -136,10 +137,8 @@
 
 .fcitx-keyboard-candidate-bar {
   height: 20%;
-  padding: 0 3px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
   container-type: size;
 }
 
@@ -148,12 +147,33 @@
   font-size: 24cqh;
 }
 
+.fcitx-keyboard-candidates-container {
+  padding-left: 6cqh;
+  box-sizing: border-box; /* include padding-left */
+  width: calc(100% - 80cqh);
+  height: 100cqh;
+}
+
 .fcitx-keyboard-candidates {
-  height: 68cqh;
   display: flex;
-  gap: 1%;
+  column-gap: 1cqw;
   overflow-x: scroll;
   scrollbar-width: none;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidates {
+  flex-wrap: wrap;
+  overflow-y: scroll;
+  gap: 16cqh 0;
+  width: 80cqw;
+}
+
+.fcitx-keyboard-candidates-container .fcitx-keyboard-candidates:nth-child(1) {
+  margin-top: 16cqh;
+}
+
+.fcitx-keyboard-expanded :is(.fcitx-keyboard,.fcitx-keyboard-mask) {
+  display: none;
 }
 
 .fcitx-keyboard-candidates::-webkit-scrollbar { 
@@ -161,13 +181,25 @@
 }
 
 .fcitx-keyboard-candidate {
+  height: 68cqh;
   font-size: 40cqh;
-  padding: 7.5cqh 15cqh;
-  border-radius: 10cqh;
+  flex-grow: 1;
   flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
 }
 
-.fcitx-keyboard-candidate.fcitx-keyboard-highlighted {
+.fcitx-keyboard-candidate-inner {
+  padding: 7.5cqh 15cqh;
+  border-radius: 10cqh;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidate {
+  min-width: 15cqw; /* At most 5 in a row. Not exact 80/5 to tolerate rounding issue. */
+}
+
+.fcitx-keyboard-highlighted .fcitx-keyboard-candidate-inner {
   background-color: white;
   color: #0a59f7;
 }
@@ -338,4 +370,51 @@
   position: absolute;
   color: transparent;
   font-size: 16px;
+}
+
+.fcitx-keyboard-candidates-side {
+  display: none;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidates-side {
+  width: 20cqw;
+  position: absolute;
+  right: 0;
+  top: 100cqh;
+  display: flex;
+  flex-direction: column;
+}
+
+.fcitx-keyboard-side-button-container {
+  position: relative;
+  container-type: size;
+  height: 25%;
+  width: 100%;
+}
+
+.fcitx-keyboard-side-button {
+  position: absolute;
+  inset: 4px;
+  border-radius: 10cqh;
+  background-color: #bcc0c7;
+  box-shadow: 0 2cqh rgb(0 0 0 / 30%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fcitx-keyboard-pressed:not(.fcitx-keyboard-disabled) .fcitx-keyboard-side-button {
+  background-color: white;
+}
+
+.fcitx-keyboard-side-button-container.fcitx-keyboard-disabled svg {
+  color: #7f7f7f;
+}
+
+.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
+  transform: rotate(270deg);
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
+  transform: rotate(90deg);
 }

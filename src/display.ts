@@ -1,3 +1,4 @@
+import { collapse } from './candidates'
 import { selectCategory } from './symbol'
 import { getCandidateBar, getStatusArea, getSymbolSelector, hide, release, show } from './util'
 
@@ -100,4 +101,5 @@ export function removeCandidatesFromStack() {
   else if (index > 0) {
     displayModeStack.splice(index, 1)
   }
+  collapse()
 }
