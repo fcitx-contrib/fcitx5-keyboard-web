@@ -126,7 +126,7 @@ function setPagingButtons(list: Element) {
   else {
     enable(pageUp)
   }
-  if (list.scrollTop + list.clientHeight > list.scrollHeight - 1) { // Tolerate rounding issue.
+  if (list.scrollTop + list.clientHeight >= list.scrollHeight - 1) { // Tolerate rounding issue.
     disable(pageDown)
   }
   else {

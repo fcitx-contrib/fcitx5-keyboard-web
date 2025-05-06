@@ -196,3 +196,109 @@ test('Horizontal scroll', async ({ page }) => {
     { type: 'SELECT_CANDIDATE', data: 29 },
   ])
 })
+
+function expandOrCollapse(page: Page) {
+  return page.locator('.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button').click()
+}
+
+test('Expand/collapse', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: generateCandidates(0, 60),
+    highlighted: 0,
+    scrollState: SCROLLING,
+    scrollStart: true,
+    scrollEnd: false,
+  } })
+  const c29 = page.getByText('词29')
+  await expect(c29).not.toBeInViewport()
+
+  await expandOrCollapse(page)
+  await expect(c29).toBeInViewport()
+
+  await page.locator('.fcitx-keyboard-side-button-container:nth-child(3)').click()
+  await page.locator('.fcitx-keyboard-side-button-container:nth-child(4)').click()
+
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } },
+    { type: 'KEY_DOWN', data: { key: '\r', code: 'Enter' } },
+  ])
+
+  await expandOrCollapse(page)
+  await expect(c29).not.toBeInViewport()
+})
+
+test('Vertical scroll', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: generateCandidates(0, 60),
+    highlighted: 0,
+    scrollState: SCROLLING,
+    scrollStart: true,
+    scrollEnd: false,
+  } })
+  await expandOrCollapse(page)
+
+  await page.evaluate(() => document.querySelector('.fcitx-keyboard-candidates')?.scrollBy({ top: 240 }))
+  // There is a maybe more than 100ms delay before event is emitted.
+  while (true) {
+    const sentEvents = await getSentEvents(page)
+    if (JSON.stringify(sentEvents) === JSON.stringify([{ type: 'SCROLL', data: { start: 60, count: 25 } }])) {
+      break
+    }
+  }
+})
+
+test('Paging button', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: generateCandidates(0, 85),
+    highlighted: 0,
+    scrollState: SCROLLING,
+    scrollStart: true,
+    scrollEnd: true,
+  } })
+  await expandOrCollapse(page)
+  const top = (await page.getByText('词0').boundingBox())!.y
+
+  const pageUp = page.locator('.fcitx-keyboard-side-button-container:nth-child(1)')
+  const pageDown = page.locator('.fcitx-keyboard-side-button-container:nth-child(2)')
+  await expect(pageUp).toContainClass('fcitx-keyboard-disabled')
+  await expect(pageDown).not.toContainClass('fcitx-keyboard-disabled')
+
+  const candidates = page.locator('.fcitx-keyboard-candidates')
+  await candidates.evaluate(element => element.scrollBy({ top: 1 }))
+  expect(await candidates.evaluate(element => element.scrollTop)).toEqual(1)
+  await expect(pageUp, 'Slight scroll down counts').not.toContainClass('fcitx-keyboard-disabled')
+
+  await pageUp.click()
+  await expect(pageUp).toContainClass('fcitx-keyboard-disabled')
+
+  await pageDown.click()
+  while (Math.abs((await page.getByText('词25').boundingBox())!.y - top) >= 0.5);
+  await expect(pageDown).not.toContainClass('fcitx-keyboard-disabled')
+
+  await pageDown.click()
+  while (Math.abs((await page.getByText('词50').boundingBox())!.y - top) >= 0.5);
+
+  await pageUp.click()
+  while (Math.abs((await page.getByText('词25').boundingBox())!.y - top) >= 0.5);
+
+  await pageDown.click()
+  // Already asserted but still needed to make sure next pageDown has effect.
+  while (Math.abs((await page.getByText('词50').boundingBox())!.y - top) >= 0.5);
+
+  await pageDown.click()
+  await expect(pageDown).toContainClass('fcitx-keyboard-disabled')
+  const c59Box = (await page.getByText('词84').boundingBox())!
+  expect(Math.abs(c59Box.y + c59Box.height - 240)).toBeLessThan(0.5)
+
+  await candidates.evaluate(element => element.scrollBy({ top: -2 })) // Not sure why -1 doesn't work in headless mode.
+  await expect(pageDown, 'Slight scroll up counts').not.toContainClass('fcitx-keyboard-disabled')
+
+  await pageDown.click()
+  await expect(pageDown).toContainClass('fcitx-keyboard-disabled')
+})
