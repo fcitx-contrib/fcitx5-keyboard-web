@@ -28,6 +28,7 @@ export function setLayout(id: string, layout: Layout) {
   const returnBar = renderReturnBar()
 
   const keyboard = div('fcitx-keyboard')
+  keyboard.classList.add('fcitx-keyboard-frame')
   for (const layer of layout.layers) {
     if (layer.id === 'default') {
       for (const row of layer.rows) {
