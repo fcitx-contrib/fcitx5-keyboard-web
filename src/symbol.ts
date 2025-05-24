@@ -1,4 +1,4 @@
-import { div, press, release } from './util'
+import { div, enableScroll, handleClick, press, release } from './util'
 import { sendEvent } from './ux'
 
 /* eslint-disable antfu/consistent-list-newline */
@@ -31,7 +31,7 @@ export function selectCategory(index: number) {
       for (const symbol of category.symbols) {
         const symbolItem = div('fcitx-keyboard-symbol-item')
         symbolItem.innerHTML = symbol
-        symbolItem.addEventListener('click', () => sendEvent({ type: 'COMMIT', data: symbol }))
+        handleClick(symbolItem, () => sendEvent({ type: 'COMMIT', data: symbol }))
         panel.appendChild(symbolItem)
       }
       press(symbolCategories[i])
@@ -45,12 +45,13 @@ export function selectCategory(index: number) {
 export function renderSymbolSelector() {
   const symbolSelector = div('fcitx-keyboard-symbol-selector')
   const panel = div('fcitx-keyboard-symbol-panel')
+  enableScroll(panel)
 
   const symbolCategories = div('fcitx-keyboard-symbol-categories')
   builtinCategories.forEach((category, i) => {
     const symbolCategory = div('fcitx-keyboard-symbol-category')
     symbolCategory.innerHTML = category.key
-    symbolCategory.addEventListener('click', () => {
+    handleClick(symbolCategory, () => {
       selectCategory(i)
     })
     symbolCategories.appendChild(symbolCategory)

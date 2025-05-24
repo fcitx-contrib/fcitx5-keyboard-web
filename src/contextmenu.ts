@@ -1,4 +1,4 @@
-import { div, hide, press, release, show } from './util'
+import { div, handleClick, hide, press, release, show } from './util'
 
 export function hideContextMenu() {
   hide(document.querySelector('.fcitx-keyboard-contextmenu-container')!)
@@ -34,7 +34,7 @@ export function showContextmenu(element: Element, items: {
   contextmenu.innerHTML = ''
   for (const item of items) {
     const element = renderItem(item.text)
-    element.addEventListener('click', () => {
+    handleClick(element, () => {
       item.callback()
       hideContextMenu()
     })

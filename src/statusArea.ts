@@ -5,7 +5,7 @@ import HalfPunc from 'bundle-text:../svg/half-punc.svg'
 import HalfWidth from 'bundle-text:../svg/half-width.svg'
 import LightbulbOutline from 'bundle-text:../svg/lightbulb-outline.svg'
 import Lightbulb from 'bundle-text:../svg/lightbulb.svg'
-import { div, getStatusArea } from './util'
+import { div, getStatusArea, handleClick } from './util'
 import { sendEvent } from './ux'
 
 export function renderStatusArea() {
@@ -42,7 +42,7 @@ export function setStatusArea(actions: StatusAreaAction[]) {
     const button = div('fcitx-keyboard-status-area-container')
     const circle = div('fcitx-keyboard-status-area-circle')
     circle.innerHTML = getLabel(action.icon)
-    circle.addEventListener('click', () => {
+    handleClick(circle, () => {
       if (action.children) {
         // TODO: implement it for rime
       }

@@ -4,7 +4,7 @@ import CursorMove from 'bundle-text:../svg/cursor-move.svg'
 import Ellipsis from 'bundle-text:../svg/ellipsis.svg'
 import Undo from 'bundle-text:../svg/undo.svg'
 import { setDisplayMode } from './display'
-import { disable, div, enable, press, release, renderToolbarButton, setSvgStyle } from './util'
+import { disable, div, enable, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
 import { redo, sendEvent, undo } from './ux'
 
 let isUndoEnabled: boolean = true
@@ -39,23 +39,22 @@ export function renderToolbar() {
   const toolbar = div('fcitx-keyboard-toolbar')
 
   undoButton = renderDisableButton(Undo, () => isUndoEnabled)
-  // No fancy gesture so just use click.
-  undoButton.addEventListener('click', () => isUndoEnabled && undo())
+  handleClick(undoButton, () => isUndoEnabled && undo())
 
   redoButton = renderDisableButton(Undo, () => isRedoEnabled)
   redoButton.style.transform = 'scaleX(-1)'
-  redoButton.addEventListener('click', () => isRedoEnabled && redo())
+  handleClick(redoButton, () => isRedoEnabled && redo())
 
   const editButton = renderToolbarButton(CursorMove)
-  editButton.addEventListener('click', () => setDisplayMode('edit'))
+  handleClick(editButton, () => setDisplayMode('edit'))
 
   const clipboardButton = renderToolbarButton(Clipboard)
 
   const statusAreaButton = renderToolbarButton(Ellipsis)
-  statusAreaButton.addEventListener('click', () => setDisplayMode('statusArea'))
+  handleClick(statusAreaButton, () => setDisplayMode('statusArea'))
 
   const collapseButton = renderToolbarButton(ChevronLeft)
-  collapseButton.addEventListener('click', () => sendEvent({ type: 'COLLAPSE' }))
+  handleClick(collapseButton, () => sendEvent({ type: 'COLLAPSE' }))
   setSvgStyle(collapseButton, { transform: 'rotate(270deg)' })
 
   for (const button of [undoButton, redoButton, editButton, clipboardButton, statusAreaButton, collapseButton]) {
