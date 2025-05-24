@@ -12,7 +12,7 @@ import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
-import { div, hide } from './util'
+import { div, hide, isIOS } from './util'
 import { onTouchEnd, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
@@ -28,6 +28,7 @@ export function setLayout(id: string, layout: Layout) {
   const returnBar = renderReturnBar()
 
   const keyboard = div('fcitx-keyboard')
+  keyboard.classList.add('fcitx-keyboard-frame')
   for (const layer of layout.layers) {
     if (layer.id === 'default') {
       for (const row of layer.rows) {
@@ -82,6 +83,10 @@ export function setLayout(id: string, layout: Layout) {
     invisible,
   ]) {
     container.appendChild(element)
+  }
+  if (isIOS()) {
+    // Disable iOS Safari select text.
+    container.addEventListener('touchstart', e => e.preventDefault())
   }
 
   const app = document.getElementById(id)!

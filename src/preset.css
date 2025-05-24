@@ -4,8 +4,6 @@
 
 .fcitx-keyboard-container {
   height: 100%;
-  display: flex;
-  flex-direction: column;
   user-select: none; /* disable text select */
   font-family: sans-serif;
   container-type: size; /* for mask */
@@ -211,7 +209,7 @@
 }
 
 .fcitx-keyboard-frame {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   height: 80cqh;
   width: 100%;

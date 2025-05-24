@@ -1,11 +1,11 @@
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import { popDisplayModeStack } from './display'
-import { div, renderToolbarButton } from './util'
+import { div, handleClick, renderToolbarButton } from './util'
 
 export function renderReturnBar() {
   const returnBar = div('fcitx-keyboard-return-bar')
   const returnButton = renderToolbarButton(ArrowLeft)
-  returnButton.addEventListener('click', () => {
+  handleClick(returnButton, () => {
     popDisplayModeStack()
   })
   returnBar.appendChild(returnButton)

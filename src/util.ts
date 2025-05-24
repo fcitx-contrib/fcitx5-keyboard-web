@@ -90,3 +90,43 @@ export function setSvgStyle(container: HTMLElement, style: { [key: string]: stri
     svg.style[k] = v
   }
 }
+
+export function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+}
+
+export function handleClick(element: HTMLElement, handler: () => void) {
+  if (isIOS()) {
+    // touchstart's default behavior is disabled so no click event will be triggered.
+    element.addEventListener('touchend', (event) => {
+      const touch = event.changedTouches[0]
+      const box = element.getBoundingClientRect()
+      if (box.left <= touch.clientX && touch.clientX <= box.right && box.top <= touch.clientY && touch.clientY <= box.bottom) {
+        handler()
+      }
+    })
+  }
+  else {
+    element.addEventListener('click', handler)
+  }
+}
+
+export function enableScroll(element: HTMLElement) {
+  if (!isIOS()) {
+    return
+  }
+  // touchstart's default behavior is disabled so no scroll event will be triggered.
+  let x: number
+  let y: number
+  element.addEventListener('touchstart', (event) => {
+    const touch = event.changedTouches[0]
+    x = touch.clientX
+    y = touch.clientY
+  })
+  element.addEventListener('touchmove', (event) => {
+    const touch = event.changedTouches[0]
+    element.scrollBy(x - touch.clientX, y - touch.clientY)
+    x = touch.clientX
+    y = touch.clientY
+  })
+}

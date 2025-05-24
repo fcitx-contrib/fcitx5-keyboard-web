@@ -6,7 +6,7 @@ import Enter from 'bundle-text:../svg/enter.svg'
 import { SCROLL_NONE, SCROLLING } from './api.d'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
-import { disable, div, enable, getCandidateBar, press, release, renderToolbarButton, setSvgStyle } from './util'
+import { disable, div, enable, enableScroll, getCandidateBar, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
 import { backspace, DRAG_THRESHOLD, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
 let touchId: number | null = null
@@ -172,6 +172,7 @@ export function renderCandidateBar() {
   const bar = div('fcitx-keyboard-candidate-bar')
   const container = div('fcitx-keyboard-candidates-container')
   const list = div('fcitx-keyboard-candidates')
+  enableScroll(list)
   list.addEventListener('scroll', () => {
     if (scrollState_ !== SCROLLING) {
       return
@@ -194,7 +195,7 @@ export function renderCandidateBar() {
     }
   })
   const button = renderToolbarButton(ChevronLeft)
-  button.addEventListener('click', () => {
+  handleClick(button, () => {
     if (scrollDirection === 'HORIZONTAL') {
       expand()
     }
@@ -206,7 +207,7 @@ export function renderCandidateBar() {
 
   const pageUp = renderSideButton(ArrowLeft)
   setSvgStyle(pageUp, { height: '50cqh', transform: 'rotate(90deg)' })
-  pageUp.addEventListener('click', () => {
+  handleClick(pageUp, () => {
     const tops: number[] = []
     const { top, bottom } = list.getBoundingClientRect()
     for (const candidate of document.querySelectorAll('.fcitx-keyboard-candidate')) {
@@ -229,7 +230,7 @@ export function renderCandidateBar() {
 
   const pageDown = renderSideButton(ArrowLeft)
   setSvgStyle(pageDown, { height: '50cqh', transform: 'rotate(270deg)' })
-  pageDown.addEventListener('click', () => {
+  handleClick(pageDown, () => {
     const { bottom } = list.getBoundingClientRect()
     let previousTop = 0
     let firstTop: number | null = null
@@ -246,11 +247,11 @@ export function renderCandidateBar() {
 
   const bs = renderSideButton(Backspace)
   setSvgStyle(bs, { height: '60cqh' })
-  bs.addEventListener('click', backspace)
+  handleClick(bs, backspace)
 
   const enter = renderSideButton(Enter)
   setSvgStyle(enter, { height: '60cqh' })
-  enter.addEventListener('click', () => sendKeyDown('\r', 'Enter'))
+  handleClick(enter, () => sendKeyDown('\r', 'Enter'))
 
   const side = div('fcitx-keyboard-candidates-side')
   side.append(pageUp, pageDown, bs, enter)
