@@ -143,7 +143,8 @@ test('Preedit', async ({ page }) => {
   const preedit = page.locator('.fcitx-keyboard-preedit')
   await expect(preedit).toHaveText('Quick Phrase: vah')
   const box = (await preedit.boundingBox())!
-  expect(box.y).toEqual(0)
+  const { y } = (await page.locator('#fcitx-app').boundingBox())!
+  expect(box.y).toEqual(y)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
     candidates: [{ text: '一', label: '1', comment: '' }],
@@ -294,7 +295,8 @@ test('Paging button', async ({ page }) => {
   await pageDown.click()
   await expect(pageDown).toContainClass('fcitx-keyboard-disabled')
   const c59Box = (await page.getByText('词84').boundingBox())!
-  expect(Math.abs(c59Box.y + c59Box.height - 240)).toBeLessThan(0.5)
+  const { height } = page.viewportSize()!
+  expect(Math.abs(c59Box.y + c59Box.height - height)).toBeLessThan(0.5)
 
   await candidates.evaluate(element => element.scrollBy({ top: -2 })) // Not sure why -1 doesn't work in headless mode.
   await expect(pageDown, 'Slight scroll up counts').not.toContainClass('fcitx-keyboard-disabled')
