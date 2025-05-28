@@ -1,3 +1,4 @@
+import { popDisplayModeStack } from './display'
 import { div, enableScroll, handleClick, press, release } from './util'
 import { sendEvent } from './ux'
 
@@ -31,7 +32,11 @@ export function selectCategory(index: number) {
       for (const symbol of category.symbols) {
         const symbolItem = div('fcitx-keyboard-symbol-item')
         symbolItem.innerHTML = symbol
-        handleClick(symbolItem, () => sendEvent({ type: 'COMMIT', data: symbol }))
+        handleClick(symbolItem, () => {
+          // TODO: make it configurable to stay in symbol, in which case candidate is not on top but should still be removed from stack.
+          popDisplayModeStack()
+          sendEvent({ type: 'COMMIT', data: symbol })
+        })
         panel.appendChild(symbolItem)
       }
       press(symbolCategories[i])

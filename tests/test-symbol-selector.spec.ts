@@ -59,7 +59,7 @@ test('Reset category', async ({ page }) => {
   await expect(greek).not.toHaveClass(/fcitx-keyboard-pressed/)
 })
 
-test('Return doesn\'t clear candidates', async ({ page }) => {
+async function renderCandidateAndClickSymbol(page: Page) {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
@@ -77,6 +77,20 @@ test('Return doesn\'t clear candidates', async ({ page }) => {
   const symbolButton = getSymbolButton(page)
   await tap(symbolButton)
   await expect(candidate).not.toBeVisible()
+  return candidate
+}
+
+test('Commit and clear candidates', async ({ page }) => {
+  const candidate = await renderCandidateAndClickSymbol(page)
+
+  await page.getByText('ā').tap()
+  await sendSystemEvent(page, { type: 'CLEAR' })
+  await expect(getKey(page, 'q'), 'Should return to keyboard on clear').toBeVisible()
+  await expect(candidate).not.toBeVisible()
+})
+
+test('Return doesn\'t clear candidates', async ({ page }) => {
+  const candidate = await renderCandidateAndClickSymbol(page)
 
   await tapReturn(page)
   await expect(candidate).toBeVisible()
