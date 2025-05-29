@@ -8,7 +8,11 @@ export function renderContextmenu() {
   const container = div('fcitx-keyboard-contextmenu-container')
   const contextmenu = div('fcitx-keyboard-contextmenu')
   container.appendChild(contextmenu)
-  container.addEventListener('touchstart', () => {
+  container.addEventListener('touchstart', (event) => {
+    // Don't hide if touching menu instead of outside.
+    if (event.target && document.querySelector('.fcitx-keyboard-contextmenu')?.contains(event.target as Element)) {
+      return
+    }
     hideContextMenu()
   })
   return container
@@ -17,10 +21,7 @@ export function renderContextmenu() {
 function renderItem(text: string) {
   const element = div('fcitx-keyboard-contextmenu-item')
   element.innerHTML = text
-  element.addEventListener('touchstart', (e) => {
-    e.stopPropagation() // Stop mask's handler from hiding it.
-    press(element)
-  })
+  element.addEventListener('touchstart', () => press(element))
   element.addEventListener('touchend', () => release(element))
   element.addEventListener('touchcancel', () => release(element))
   return element

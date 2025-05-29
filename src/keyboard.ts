@@ -87,6 +87,8 @@ export function setLayout(id: string, layout: Layout) {
   if (isIOS()) {
     // Disable iOS Safari select text.
     container.addEventListener('touchstart', e => e.preventDefault())
+    // Don't let context menu click trigger blur event.
+    container.addEventListener('touchend', e => e.preventDefault())
   }
 
   const app = document.getElementById(id)!
