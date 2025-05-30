@@ -12,7 +12,7 @@ import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
-import { div, hide, isIOS } from './util'
+import { div, hide, isAndroidOrIOS } from './util'
 import { onTouchEnd, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
@@ -84,8 +84,10 @@ export function setLayout(id: string, layout: Layout) {
   ]) {
     container.appendChild(element)
   }
-  if (isIOS()) {
+  if (isAndroidOrIOS) {
     // Disable iOS Safari select text.
+    // Ideally Android doesn't need this, but default behavior of touchstart will cause input blur.
+    // Can't be solved by refocus on blur, as it must be async, which may be after another touchstart.
     container.addEventListener('touchstart', e => e.preventDefault())
     // Don't let context menu click trigger blur event.
     container.addEventListener('touchend', e => e.preventDefault())

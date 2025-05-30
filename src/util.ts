@@ -91,12 +91,10 @@ export function setSvgStyle(container: HTMLElement, style: { [key: string]: stri
   }
 }
 
-export function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent)
-}
+export const isAndroidOrIOS = /Android|iPhone|iPad|iPod/.test(navigator.userAgent)
 
 export function handleClick(element: HTMLElement, handler: () => void) {
-  if (isIOS()) {
+  if (isAndroidOrIOS) {
     // touchstart's default behavior is disabled so no click event will be triggered.
     element.addEventListener('touchend', (event) => {
       const touch = event.changedTouches[0]
@@ -112,7 +110,7 @@ export function handleClick(element: HTMLElement, handler: () => void) {
 }
 
 export function enableScroll(element: HTMLElement) {
-  if (!isIOS()) {
+  if (!isAndroidOrIOS) {
     return
   }
   // touchstart's default behavior is disabled so no scroll event will be triggered.
