@@ -5,6 +5,7 @@ import HalfPunc from 'bundle-text:../svg/half-punc.svg'
 import HalfWidth from 'bundle-text:../svg/half-width.svg'
 import LightbulbOutline from 'bundle-text:../svg/lightbulb-outline.svg'
 import Lightbulb from 'bundle-text:../svg/lightbulb.svg'
+import { showContextmenu } from './contextmenu'
 import { div, getStatusArea, handleClick } from './util'
 import { sendEvent } from './ux'
 
@@ -12,7 +13,9 @@ export function renderStatusArea() {
   return div('fcitx-keyboard-status-area')
 }
 
-function getLabel(icon: string) {
+const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+
+function getLabel(icon: string, desc: string) {
   switch (icon) {
     case 'fcitx-chttrans-active':
       return '繁'
@@ -30,8 +33,10 @@ function getLabel(icon: string) {
       return Lightbulb
     case 'fcitx-remind-inactive':
       return LightbulbOutline
-    default:
-      return ''
+    default: {
+      const segmentData = Array.from(segmenter.segment(desc))
+      return segmentData.length ? segmentData[0].segment : ''
+    }
   }
 }
 
@@ -41,10 +46,16 @@ export function setStatusArea(actions: StatusAreaAction[]) {
   for (const action of actions) {
     const button = div('fcitx-keyboard-status-area-container')
     const circle = div('fcitx-keyboard-status-area-circle')
-    circle.innerHTML = getLabel(action.icon)
+    circle.innerHTML = getLabel(action.icon, action.desc)
     handleClick(circle, () => {
       if (action.children) {
-        // TODO: implement it for rime
+        showContextmenu(circle, action.children.map(child => ({
+          text: child.desc,
+          separator: child.separator,
+          callback: () => {
+            sendEvent({ type: 'STATUS_AREA_ACTION', data: child.id })
+          },
+        })))
       }
       else {
         sendEvent({ type: 'STATUS_AREA_ACTION', data: action.id })

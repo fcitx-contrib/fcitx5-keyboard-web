@@ -17,13 +17,17 @@ export async function init(page: Page) {
   await page.goto(url)
 }
 
+export async function getBox(locator: Locator) {
+  return (await locator.boundingBox())!
+}
+
 async function center(locator: Locator) {
-  const box = (await locator.boundingBox())!
+  const box = await getBox(locator)
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 }
 }
 
 async function isInside(point: { x: number, y: number }, locator: Locator) {
-  const box = (await locator.boundingBox())!
+  const box = await getBox(locator)
   return box.x <= point.x && point.x <= box.x + box.width && box.y <= point.y && point.y <= box.y + box.height
 }
 

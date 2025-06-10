@@ -54,13 +54,13 @@ export interface GlobeKey {
 
 export type Key = {
   flex?: string
-} & (NormalKey |
-  EnterKey |
-  BackspaceKey |
-  ShiftKey |
-  SpaceKey |
-  GlobeKey |
-  SymbolKey | {
+} & (NormalKey
+  | EnterKey
+  | BackspaceKey
+  | ShiftKey
+  | SpaceKey
+  | GlobeKey
+  | SymbolKey | {
     type: 'placeholder'
   })
 
