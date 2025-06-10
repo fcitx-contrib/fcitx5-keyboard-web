@@ -329,6 +329,15 @@
   background-color: white;
   box-shadow: 0 0 8px rgb(0 0 0 / 30%);
   position: fixed;
+  max-height: 100cqh;
+  overflow: scroll;
+}
+
+.fcitx-keyboard-contextmenu hr {
+  margin: 0;
+  border: none;
+  height: 1px;
+  background-color: #7f7f7f;
 }
 
 .fcitx-keyboard-contextmenu-item {
