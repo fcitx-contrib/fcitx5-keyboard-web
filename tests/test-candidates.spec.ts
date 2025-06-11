@@ -139,6 +139,7 @@ test('Preedit', async ({ page }) => {
   await sendSystemEvent(page, { type: 'PREEDIT', data: {
     auxUp: 'Quick Phrase: ',
     preedit: 'vah',
+    caret: -1,
   } })
   const preedit = page.locator('.fcitx-keyboard-preedit')
   await expect(preedit).toHaveText('Quick Phrase: vah')
@@ -155,6 +156,22 @@ test('Preedit', async ({ page }) => {
   } })
   const newBox = (await preedit.boundingBox())!
   expect(newBox, 'No layout shift').toEqual(box)
+})
+
+test('Caret blink', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'PREEDIT', data: {
+    auxUp: '',
+    preedit: '🐦‍🔥she',
+    caret: 13,
+  } })
+  await expect(page.locator('.fcitx-keyboard-pre-caret')).toHaveText('🐦‍🔥sh')
+  await expect(page.locator('.fcitx-keyboard-post-caret')).toHaveText('e')
+  const caret = page.locator('.fcitx-keyboard-caret')
+  await expect(caret).toHaveCSS('opacity', '1')
+  await expect(caret).toHaveCSS('opacity', '0')
+  await expect(caret).toHaveCSS('opacity', '1')
 })
 
 test('Horizontal scroll', async ({ page }) => {
