@@ -143,6 +143,15 @@
 .fcitx-keyboard-preedit {
   height: 32cqh;
   font-size: 24cqh;
+  line-height: 24cqh;
+  display: flex;
+  align-items: center;
+}
+
+.fcitx-keyboard-caret {
+  width: 1px;
+  height: 24cqh;
+  background-color: black;
 }
 
 .fcitx-keyboard-candidates-container {

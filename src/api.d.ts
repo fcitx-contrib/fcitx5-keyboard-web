@@ -41,6 +41,7 @@ export type SystemEvent = {
   data: {
     auxUp: string
     preedit: string
+    caret: number
   }
 } | {
   type: 'CANDIDATES'

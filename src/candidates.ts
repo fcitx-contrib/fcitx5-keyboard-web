@@ -32,7 +32,16 @@ function cancelLongPress() {
   }
 }
 
-export function setPreedit(auxUp: string, preedit: string) {
+const textEncoder = new TextEncoder()
+const textDecoder = new TextDecoder()
+let timer: number | null = null
+let show = false
+
+export function setPreedit(auxUp: string, preedit: string, caret: number) {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
   const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates-container')!
   let element = container.querySelector('.fcitx-keyboard-preedit')
   if (auxUp || preedit) {
@@ -40,7 +49,37 @@ export function setPreedit(auxUp: string, preedit: string) {
       element = div('fcitx-keyboard-preedit')
       container.prepend(element)
     }
-    element.innerHTML = auxUp + preedit
+    element.innerHTML = ''
+    if (auxUp) {
+      const auxUpElement = div('fcitx-keyboard-aux-up')
+      auxUpElement.innerHTML = auxUp
+      element.appendChild(auxUpElement)
+    }
+    if (preedit) {
+      const preCaretElement = div('fcitx-keyboard-pre-caret')
+      if (caret >= 0) {
+        const preeditBytes = textEncoder.encode(preedit)
+        const preCaret = textDecoder.decode(preeditBytes.subarray(0, caret))
+        const postCaret = textDecoder.decode(preeditBytes.subarray(caret, preeditBytes.length))
+        preCaretElement.innerHTML = preCaret
+        const caretElement = div('fcitx-keyboard-caret')
+        element.append(preCaretElement, caretElement)
+        show = true
+        timer = window.setInterval(() => {
+          show = !show
+          caretElement.style.opacity = show ? '1' : '0'
+        }, 500)
+        if (postCaret) {
+          const postCaretElement = div('fcitx-keyboard-post-caret')
+          postCaretElement.innerHTML = postCaret
+          element.appendChild(postCaretElement)
+        }
+      }
+      else {
+        preCaretElement.innerHTML = preedit
+        element.appendChild(preCaretElement)
+      }
+    }
   }
   else {
     element?.remove()
