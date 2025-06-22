@@ -158,6 +158,36 @@ test('Preedit', async ({ page }) => {
   expect(newBox, 'No layout shift').toEqual(box)
 })
 
+test('Long preedit', async ({ page }) => {
+  await init(page)
+  const text = '长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长'
+  const caret = page.locator('.fcitx-keyboard-caret')
+  const auxUp = page.locator('.fcitx-keyboard-aux-up')
+  const preCaret = page.locator('.fcitx-keyboard-pre-caret')
+  const postCaret = page.locator('.fcitx-keyboard-post-caret')
+
+  // long post-caret
+  await sendSystemEvent(page, { type: 'PREEDIT', data: {
+    auxUp: '阿',
+    preedit: text,
+    caret: 3,
+  } })
+  expect(await caret.boundingBox()).toHaveProperty('width', 1)
+  const { height } = (await auxUp.boundingBox())!
+  expect(await preCaret.boundingBox()).toHaveProperty('height', height)
+  expect(await postCaret.boundingBox()).toHaveProperty('height', height)
+
+  // long pre-caret
+  await sendSystemEvent(page, { type: 'PREEDIT', data: {
+    auxUp: '阿',
+    preedit: text,
+    caret: (text.length - 1) * 3,
+  } })
+  await expect(caret).not.toBeInViewport()
+  expect(await preCaret.boundingBox()).toHaveProperty('height', height)
+  expect(await postCaret.boundingBox()).toHaveProperty('height', height)
+})
+
 test('Caret blink', async ({ page }) => {
   await init(page)
 
