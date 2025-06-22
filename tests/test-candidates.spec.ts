@@ -160,7 +160,7 @@ test('Preedit', async ({ page }) => {
 
 test('Long preedit', async ({ page }) => {
   await init(page)
-  const text = '长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长'
+  const text = '长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长'
   const caret = page.locator('.fcitx-keyboard-caret')
   const auxUp = page.locator('.fcitx-keyboard-aux-up')
   const preCaret = page.locator('.fcitx-keyboard-pre-caret')
