@@ -63,7 +63,7 @@
   flex-wrap: wrap;
   align-content: flex-start;
   row-gap: 5cqw;
-  overflow-y: auto;
+  overflow: hidden auto;
 }
 
 .fcitx-keyboard-status-area-container {
@@ -164,13 +164,13 @@
 .fcitx-keyboard-candidates {
   display: flex;
   column-gap: 1cqw;
-  overflow-x: scroll;
+  overflow: scroll hidden;
   scrollbar-width: none;
 }
 
 .fcitx-keyboard-expanded .fcitx-keyboard-candidates {
   flex-wrap: wrap;
-  overflow-y: scroll;
+  overflow: hidden scroll;
   gap: 16cqh 0;
   width: 80cqw;
 }
@@ -309,7 +309,7 @@
   flex: 1;
   display: flex;
   flex-wrap: wrap;
-  overflow-y: auto;
+  overflow: hidden auto;
 }
 
 .fcitx-keyboard-symbol-item {
@@ -339,7 +339,7 @@
   box-shadow: 0 0 8px rgb(0 0 0 / 30%);
   position: fixed;
   max-height: 100cqh;
-  overflow: scroll;
+  overflow: hidden scroll;
 }
 
 .fcitx-keyboard-contextmenu hr {
