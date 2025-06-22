@@ -146,12 +146,18 @@
   line-height: 24cqh;
   display: flex;
   align-items: center;
+  overflow: hidden;
+}
+
+.fcitx-keyboard-pre-caret,.fcitx-keyboard-post-caret {
+  text-wrap: nowrap;
 }
 
 .fcitx-keyboard-caret {
   width: 1px;
   height: 24cqh;
   background-color: black;
+  flex-shrink: 0;
 }
 
 .fcitx-keyboard-candidates-container {
