@@ -95,10 +95,32 @@ export const isAndroidOrIOS = /Android|iPhone|iPad|iPod/.test(navigator.userAgen
 
 export function handleClick(element: HTMLElement, handler: () => void) {
   if (isAndroidOrIOS) {
+    element.addEventListener('touchstart', (event) => {
+      const touch = event.changedTouches[0]
+      element.setAttribute('data-touch-x', touch.clientX.toString())
+      element.setAttribute('data-touch-y', touch.clientY.toString())
+      element.removeAttribute('data-dragged')
+    })
+
+    element.addEventListener('touchmove', (event) => {
+      const touch = event.changedTouches[0]
+      const x = Number.parseFloat(element.getAttribute('data-touch-x') ?? '0')
+      const y = Number.parseFloat(element.getAttribute('data-touch-y') ?? '0')
+      // If the touch is moved more than half of the element's width or height, we consider it a drag.
+      const box = element.getBoundingClientRect()
+      if (Math.abs(touch.clientX - x) > box.width / 2
+        || Math.abs(touch.clientY - y) > box.height / 2) {
+        element.setAttribute('data-dragged', 'true')
+      }
+    })
+
     // touchstart's default behavior is disabled so no click event will be triggered.
     element.addEventListener('touchend', (event) => {
       const touch = event.changedTouches[0]
       const box = element.getBoundingClientRect()
+      if (element.getAttribute('data-dragged') === 'true') {
+        return
+      }
       if (box.left <= touch.clientX && touch.clientX <= box.right && box.top <= touch.clientY && touch.clientY <= box.bottom) {
         handler()
       }
