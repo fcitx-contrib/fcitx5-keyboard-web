@@ -92,6 +92,7 @@ export function setSvgStyle(container: HTMLElement, style: { [key: string]: stri
 }
 
 export const isAndroidOrIOS = /Android|iPhone|iPad|iPod/.test(navigator.userAgent)
+export const isFirefox = navigator.userAgent.includes('Firefox')
 
 export function handleClick(element: HTMLElement, handler: () => void) {
   if (isAndroidOrIOS) {

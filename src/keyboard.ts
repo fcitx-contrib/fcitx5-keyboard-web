@@ -6,13 +6,12 @@ import { renderCandidateBar, setCandidateActions, setCandidates, setPreedit } fr
 import { hideContextMenu, renderContextmenu } from './contextmenu'
 import { removeCandidatesFromStack, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
-import { renderRow } from './key'
 import { renderPopover } from './popover'
 import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
-import { div, hide, isAndroidOrIOS } from './util'
+import { div, hide, isAndroidOrIOS, isFirefox } from './util'
 import { onTouchEnd, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
@@ -29,17 +28,6 @@ export function setLayout(id: string, layout: Layout) {
 
   const keyboard = div('fcitx-keyboard')
   keyboard.classList.add('fcitx-keyboard-frame')
-  for (const layer of layout.layers) {
-    if (layer.id === 'default') {
-      for (const row of layer.rows) {
-        keyboard.appendChild(renderRow(row, {
-          layer: layer.id,
-          locked: false,
-        }))
-      }
-      break
-    }
-  }
 
   // Use a mask layer above the keyboard to handle all events, otherwise
   // layer change will destroy event target thus make touchend not fired.
@@ -97,6 +85,15 @@ export function setLayout(id: string, layout: Layout) {
   app.innerHTML = ''
   app.appendChild(container)
   setDisplayMode('initial')
+  if (isFirefox) {
+    // Firefox is buggy if render synchronously.
+    setTimeout(() => {
+      setLayer('default', false)
+    }, 0)
+  }
+  else {
+    setLayer('default', false)
+  }
 }
 
 export function setBuiltInLayout(id: string, name: BUILTIN_LAYOUT) {
