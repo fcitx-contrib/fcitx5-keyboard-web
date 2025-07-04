@@ -1,7 +1,6 @@
 import { collapse } from './candidates'
 import { selectCategory } from './symbol'
 import { getCandidateBar, getStatusArea, getSymbolSelector, hide, release, show } from './util'
-import { getSpaceKeyLabel, setSpaceKeyLabel } from './ux'
 
 export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea' | 'symbol'
 
@@ -21,13 +20,6 @@ export function setDisplayMode(mode: DisplayMode) {
     selectCategory(0)
   }
 
-  function showKeyboard() {
-    show(keyboard)
-    // If setInputMethods is called when keyboard is hidden, it has width 0,
-    // thus font size is calculated to 0. Test is in f5j.
-    setSpaceKeyLabel(getSpaceKeyLabel())
-  }
-
   function hideKeyboard() {
     // Clicking symbol when other keys are pressed.
     for (const container of keyboard.querySelectorAll('.fcitx-keyboard-key-container.fcitx-keyboard-pressed')) {
@@ -41,7 +33,7 @@ export function setDisplayMode(mode: DisplayMode) {
       show(toolbar)
       hide(candidateBar)
       hide(returnBar)
-      showKeyboard()
+      show(keyboard)
       hide(editor)
       hide(statusArea)
       hide(symbolSelector)
@@ -50,7 +42,7 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(toolbar)
       show(candidateBar)
       hide(returnBar)
-      showKeyboard()
+      show(keyboard)
       hide(editor)
       hide(statusArea)
       hide(symbolSelector)

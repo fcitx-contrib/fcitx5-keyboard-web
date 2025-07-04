@@ -52,9 +52,7 @@ export function renderKey(key: Key, context: Context) {
     case 'space': {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-space')
-      requestAnimationFrame(() => { // Space key not rendered yet, so no way to calculate width and adjust font size.
-        setSpaceKeyLabel(getSpaceKeyLabel())
-      })
+      setSpaceKeyLabel(el, getSpaceKeyLabel())
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
       break

@@ -422,16 +422,18 @@ export function getSpaceKeyLabel() {
   return spaceKeyLabel
 }
 
-export function setSpaceKeyLabel(label: string) {
+export function setSpaceKeyLabel(space: HTMLElement | null, label: string) {
   spaceKeyLabel = label
-  const space = document.querySelector('.fcitx-keyboard-space') as HTMLElement | null
+  if (!space) {
+    space = document.querySelector('.fcitx-keyboard-space') as HTMLElement | null
+  }
   if (space) {
     const invisible = document.querySelector('.fcitx-keyboard-invisible')!
     invisible.innerHTML = label
     const { width: invisibleWidth } = invisible.getBoundingClientRect() // This is achievable synchronously!
     invisible.innerHTML = ''
-    const fontSize = space.getBoundingClientRect().width * 0.95 / invisibleWidth * 16
-    space.style.fontSize = `min(${fontSize}px,40cqh)`
+    const fontSize = 95 * 16 / invisibleWidth
+    space.style.fontSize = `min(${fontSize}cqw,40cqh)`
     space.innerHTML = spaceKeyLabel
   }
 }
@@ -440,7 +442,7 @@ export function setInputMethods(inputMethods: InputMethod[], currentInputMethod:
   inputMethods_ = inputMethods
   for (const inputMethod of inputMethods) {
     if (inputMethod.name === currentInputMethod) {
-      setSpaceKeyLabel(inputMethod.displayName)
+      setSpaceKeyLabel(null, inputMethod.displayName)
       break
     }
   }
