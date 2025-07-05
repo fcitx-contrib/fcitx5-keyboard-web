@@ -7,6 +7,7 @@
   user-select: none; /* disable text select */
   font-family: sans-serif;
   container-type: size; /* for mask */
+  color: black; /* not to be affected by host page color */
 }
 
 .fcitx-keyboard-return-bar {
