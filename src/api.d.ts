@@ -51,6 +51,7 @@ export type SystemEvent = {
     scrollState: ScrollState
     scrollStart: boolean
     scrollEnd: boolean
+    hasClientPreedit: boolean
   }
 } | {
   type: 'CANDIDATE_ACTIONS'

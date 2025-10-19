@@ -30,6 +30,7 @@ test('Show and clear', async ({ page }) => {
     scrollState: SCROLL_NONE,
     scrollStart: false,
     scrollEnd: false,
+    hasClientPreedit: true,
   } })
   await expect(candidateBar.locator('.fcitx-keyboard-candidate')).toHaveCount(2)
   await expect(toolbar).not.toBeVisible()
@@ -52,6 +53,7 @@ test('Select', async ({ page }) => {
     scrollState: SCROLL_NONE,
     scrollStart: false,
     scrollEnd: false,
+    hasClientPreedit: true,
   } })
 
   const firstCandidate = candidateBar.locator('.fcitx-keyboard-candidate').first()
@@ -71,6 +73,7 @@ test('Overflow', async ({ page }) => {
     scrollState: SCROLL_NONE,
     scrollStart: false,
     scrollEnd: false,
+    hasClientPreedit: true,
   } }
   const candidate = getCandidateBar(page).locator('.fcitx-keyboard-candidate')
   await sendSystemEvent(page, event)
@@ -95,6 +98,7 @@ test('Actions', async ({ page }) => {
     scrollState: SCROLL_NONE,
     scrollStart: false,
     scrollEnd: false,
+    hasClientPreedit: true,
   } })
   const candidate = page.locator('.fcitx-keyboard-candidate')
   await longPress(candidate)
@@ -121,6 +125,7 @@ test('Actions disappear on clear', async ({ page }) => {
     scrollState: SCROLL_NONE,
     scrollStart: false,
     scrollEnd: false,
+    hasClientPreedit: true,
   } })
   await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
     index: 0,
@@ -153,6 +158,7 @@ test('Preedit', async ({ page }) => {
     scrollState: SCROLL_NONE,
     scrollStart: false,
     scrollEnd: false,
+    hasClientPreedit: true,
   } })
   const newBox = (await preedit.boundingBox())!
   expect(newBox, 'No layout shift').toEqual(box)
@@ -213,6 +219,7 @@ test('Horizontal scroll', async ({ page }) => {
     scrollState: SCROLLING,
     scrollStart: true,
     scrollEnd: false,
+    hasClientPreedit: true,
   } })
   const candidates = page.locator('.fcitx-keyboard-candidates')
   await candidates.evaluate(element => element.scrollBy(element.lastElementChild!.getBoundingClientRect().right, 0))
@@ -230,6 +237,7 @@ test('Horizontal scroll', async ({ page }) => {
     scrollState: SCROLLING,
     scrollStart: false,
     scrollEnd: true,
+    hasClientPreedit: true,
   } })
   const candidate = candidates.locator('.fcitx-keyboard-candidate')
   await expect(candidate).toHaveCount(30)
@@ -258,6 +266,7 @@ test('Expand/collapse', async ({ page }) => {
     scrollState: SCROLLING,
     scrollStart: true,
     scrollEnd: false,
+    hasClientPreedit: true,
   } })
   const c29 = page.getByText('词29')
   await expect(c29).not.toBeInViewport()
@@ -277,6 +286,32 @@ test('Expand/collapse', async ({ page }) => {
   await expect(c29).not.toBeInViewport()
 })
 
+test('Auto collapse if no preedit', async ({ page }) => {
+  await init(page)
+  const container = page.locator('.fcitx-keyboard-container')
+
+  function setCandidates(hasClientPreedit: boolean) {
+    return sendSystemEvent(page, { type: 'CANDIDATES', data: {
+      candidates: generateCandidates(0, 10),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: false,
+      hasClientPreedit,
+    } })
+  }
+
+  await setCandidates(true)
+  await expandOrCollapse(page)
+  await expect(container).toContainClass('fcitx-keyboard-expanded')
+
+  await setCandidates(true)
+  await expect(container).toContainClass('fcitx-keyboard-expanded')
+
+  await setCandidates(false)
+  await expect(container).not.toContainClass('fcitx-keyboard-expanded')
+})
+
 test('Vertical scroll', async ({ page }) => {
   await init(page)
 
@@ -286,6 +321,7 @@ test('Vertical scroll', async ({ page }) => {
     scrollState: SCROLLING,
     scrollStart: true,
     scrollEnd: false,
+    hasClientPreedit: true,
   } })
   await expandOrCollapse(page)
 
@@ -308,6 +344,7 @@ test('Paging button', async ({ page }) => {
     scrollState: SCROLLING,
     scrollStart: true,
     scrollEnd: true,
+    hasClientPreedit: true,
   } })
   await expandOrCollapse(page)
   const top = (await page.getByText('词0').boundingBox())!.y

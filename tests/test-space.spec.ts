@@ -98,7 +98,7 @@ test('Continuous slide shouldn\'t be interrupted by setCandidates', async ({ pag
     text: '一',
     label: '1',
     comment: '',
-  }], scrollState: SCROLL_NONE, scrollStart: false, scrollEnd: false } })
+  }], scrollState: SCROLL_NONE, scrollStart: false, scrollEnd: false, hasClientPreedit: true } })
   await expect(space).toHaveCSS('background-color', GRAY)
 
   await touchUp(space, touchId)

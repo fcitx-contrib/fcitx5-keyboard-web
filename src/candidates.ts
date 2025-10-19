@@ -36,12 +36,14 @@ const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
 let timer: number | null = null
 let show = false
+let hasPanelPreedit = false
 
 export function setPreedit(auxUp: string, preedit: string, caret: number) {
   if (timer) {
     clearInterval(timer)
     timer = null
   }
+  hasPanelPreedit = !!preedit
   const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates-container')!
   let element = container.querySelector('.fcitx-keyboard-preedit')
   if (auxUp || preedit) {
@@ -87,7 +89,7 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
   setDisplayMode('candidates')
 }
 
-export function setCandidates(cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean) {
+export function setCandidates(cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasClientPreedit: boolean) {
   scrollState_ = scrollState
   touchId = null
   longPressId = null
@@ -139,6 +141,9 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
     container.appendChild(candidate)
   }
   setPagingButtons(container)
+  if (!hasPanelPreedit && !hasClientPreedit) {
+    collapse()
+  }
   setDisplayMode('candidates')
 }
 
