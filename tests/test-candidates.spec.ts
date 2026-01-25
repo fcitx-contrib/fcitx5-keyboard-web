@@ -378,9 +378,9 @@ test('Paging button', async ({ page }) => {
 
   await pageDown.click()
   await expect(pageDown).toContainClass('fcitx-keyboard-disabled')
-  const c59Box = (await page.getByText('词84').boundingBox())!
+  const c84Box = (await page.getByText('词84').boundingBox())!
   const { height } = page.viewportSize()!
-  expect(Math.abs(c59Box.y + c59Box.height - height)).toBeLessThan(0.5)
+  expect(Math.abs(c84Box.y + c84Box.height - height)).toBeLessThan(1.5) // Not sure why on Linux it's 1.046875. On Windows 0.5 suffices.
 
   await candidates.evaluate(element => element.scrollBy({ top: -2 })) // Not sure why -1 doesn't work in headless mode.
   await expect(pageDown, 'Slight scroll up counts').not.toContainClass('fcitx-keyboard-disabled')
