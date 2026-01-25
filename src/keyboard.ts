@@ -3,6 +3,7 @@ import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../fcitx5-keyboard-layouts/layout/qwerty.json'
 import { renderCandidateBar, setCandidateActions, setCandidates, setPreedit } from './candidates'
+import { SYSTEM } from './constant'
 import { hideContextMenu, renderContextmenu } from './contextmenu'
 import { removeCandidatesFromStack, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
@@ -10,6 +11,7 @@ import { renderPopover } from './popover'
 import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
+import { setTheme } from './theme'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
 import { div, hide, isAndroidOrIOS, isFirefox } from './util'
 import { onTouchEnd, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
@@ -85,6 +87,7 @@ export function setLayout(id: string, layout: Layout) {
   app.innerHTML = ''
   app.appendChild(container)
   setDisplayMode('initial')
+  setTheme(SYSTEM)
   if (isFirefox) {
     // Firefox is buggy if render synchronously.
     setTimeout(() => {

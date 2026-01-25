@@ -13,10 +13,12 @@ export function showPopover(element: Element, display: string | LongPress) {
   let labels: string[]
   if (typeof display === 'string') {
     labels = [display]
+    container.classList.add('fcitx-keyboard-swipe')
   }
   else {
     labels = display.cells.map(cell => cell.label)
     index = display.index
+    container.classList.remove('fcitx-keyboard-swipe')
   }
   for (let i = 0; i < labels.length; ++i) {
     const cell = div('fcitx-keyboard-popover-cell')

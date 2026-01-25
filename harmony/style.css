@@ -3,7 +3,6 @@ body {
 }
 
 #fcitx-app {
-  background-color: #e3e4e6; /* Harmony default */
   width: 100vw;
   height: 100vh;
   position: fixed;

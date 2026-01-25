@@ -2,12 +2,57 @@
   display: none!important;
 }
 
+/* Harmony default */
+.fcitx-keyboard-container.fcitx-light {
+  --background-color: #e3e4e6;
+  --highlight-color: #0a59f7;
+  --toolbar-button-color: #595a5c;
+  --pressed-toolbar-button-color: #505153;
+  --pressed-toolbar-button-background-color: #c8cacf;
+  --key-color: white;
+  --pressed-key-color: #bcc0c7;
+  --key-label-color: black;
+  --key-sub-label-color: #7f7f7f;
+  --popover-container-color: white;
+  --highlight-candidate-color: #fefefe;
+  --text-color: #171717;
+  --status-area-circle-color: #595a5c;
+  --status-area-text-color: black;
+}
+
+.fcitx-keyboard-container.fcitx-dark {
+  --background-color: #242424;
+  --highlight-color: #5291ff;
+  --toolbar-button-color: #a7a7a7;
+  --pressed-toolbar-button-color: #b5b5b5;
+  --pressed-toolbar-button-background-color: #454545;
+  --key-color: #666;
+  --pressed-key-color: #3d3d3d;
+  --key-label-color: white;
+  --key-sub-label-color: #aaa;
+  --popover-container-color: #3d3d3d;
+  --highlight-candidate-color: #3a3a3a;
+  --text-color: #e0e0e0;
+  --status-area-circle-color: #666;
+  --status-area-text-color: white;
+}
+
 .fcitx-keyboard-container {
   height: 100%;
   user-select: none; /* disable text select */
   font-family: sans-serif;
   container-type: size; /* for mask */
-  color: black; /* not to be affected by host page color */
+  background-color: var(--background-color);
+
+  --disabled-color: #7f7f7f;
+  --function-key-color: var(--pressed-key-color);
+  --pressed-function-key-color: var(--key-color);
+  --popover-label-color: var(--key-label-color);
+  --popover-highlight-label-color: white;
+  --popover-highlight-color: var(--highlight-color);
+  --highlight-text-color: var(--highlight-color);
+  --preedit-color: var(--text-color);
+  --status-area-circle-content-color: white;
 }
 
 .fcitx-keyboard-return-bar {
@@ -44,19 +89,21 @@
 }
 
 .fcitx-keyboard-editor-cursor {
-  background-color: white;
+  background-color: var(--key-color);
+  color: var(--key-label-color);
 }
 
 .fcitx-keyboard-pressed .fcitx-keyboard-editor-cursor {
-  background-color: #bcc0c7;
+  background-color: var(--pressed-key-color);
 }
 
 .fcitx-keyboard-editor-function {
-  background-color: #bcc0c7;
+  background-color: var(--function-key-color);
+  color: var(--key-label-color);
 }
 
 .fcitx-keyboard-pressed .fcitx-keyboard-editor-function {
-  background-color: white;
+  background-color: var(--pressed-function-key-color);
 }
 
 .fcitx-keyboard-status-area {
@@ -79,12 +126,12 @@
   width: min(12.5cqw, 100px);
   aspect-ratio: 1 / 1;
   border-radius: 7cqw;
-  background-color: #595a5c;
+  background-color: var(--status-area-circle-color);
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 6cqw;
-  color: white;
+  color: var(--status-area-circle-content-color);
 }
 
 .fcitx-keyboard-status-area-circle svg {
@@ -93,6 +140,7 @@
 
 .fcitx-keyboard-status-area-text {
   text-align: center;
+  color: var(--status-area-text-color);
 }
 
 .fcitx-keyboard-globe svg {
@@ -118,20 +166,20 @@
 }
 
 .fcitx-keyboard-toolbar-button.fcitx-keyboard-pressed {
-  background-color: #c8cacf;
+  background-color: var(--pressed-toolbar-button-background-color); 
 }
 
 .fcitx-keyboard-toolbar-button svg {
   height: 70%;
-  color: #595a5c;
+  color: var(--toolbar-button-color);
 }
 
 .fcitx-keyboard-toolbar-button.fcitx-keyboard-pressed svg {
-  color: #505153;
+  color: var(--pressed-toolbar-button-color);
 }
 
 .fcitx-keyboard-toolbar-button.fcitx-keyboard-disabled svg {
-  color: #7f7f7f;
+  color: var(--disabled-color);
 }
 
 .fcitx-keyboard-candidate-bar {
@@ -148,6 +196,7 @@
   display: flex;
   align-items: center;
   overflow: hidden;
+  color: var(--preedit-color);
 }
 
 .fcitx-keyboard-pre-caret,.fcitx-keyboard-post-caret {
@@ -157,7 +206,7 @@
 .fcitx-keyboard-caret {
   width: 1px;
   height: 24cqh;
-  background-color: black;
+  background-color: var(--preedit-color);
   flex-shrink: 0;
 }
 
@@ -214,8 +263,12 @@
 }
 
 .fcitx-keyboard-highlighted .fcitx-keyboard-candidate-inner {
-  background-color: white;
-  color: #0a59f7;
+  background-color: var(--highlight-candidate-color);
+  color: var(--highlight-text-color);
+}
+
+.fcitx-keyboard-candidate-inner {
+  color: var(--text-color);
 }
 
 .fcitx-keyboard {
@@ -249,13 +302,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: white;
+  background-color: var(--key-color);
+  color: var(--key-label-color);
   box-shadow: 0 2cqh rgb(0 0 0 / 30%);
   font-size: 40cqh;
 }
 
 .fcitx-keyboard-pressed .fcitx-keyboard-key {
-  background-color: #bcc0c7;
+  background-color: var(--pressed-key-color);
 }
 
 .fcitx-keyboard-key.fcitx-keyboard-shift svg {
@@ -263,11 +317,11 @@
 }
 
 .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol) {
-  background-color: #bcc0c7;
+  background-color: var(--function-key-color);
 }
 
 .fcitx-keyboard-pressed .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol) {
-  background-color: white;
+  background-color: var(--pressed-function-key-color);
 }
 
 .fcitx-keyboard-key.fcitx-keyboard-backspace svg {
@@ -281,7 +335,7 @@
 .fcitx-keyboard-sub-label {
   position: absolute;
   font-size: 25cqh;
-  color: #7f7f7f;
+  color: var(--key-sub-label-color);
 }
 
 .fcitx-keyboard-key-top {
@@ -306,10 +360,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  color: var(--key-label-color);
 }
 
 .fcitx-keyboard-symbol-category.fcitx-keyboard-pressed {
-  background-color: #bcc0c7;
+  background-color: var(--pressed-key-color);
 }
 
 .fcitx-keyboard-symbol-panel {
@@ -325,10 +380,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  color: var(--key-label-color);
 }
 
 .fcitx-keyboard-symbol-item:active {
-  background-color: #bcc0c7;
+  background-color: var(--pressed-key-color);
 }
 
 .fcitx-keyboard-contextmenu-container {
@@ -342,18 +398,19 @@
   width: fit-content;
   font-size: 8cqh;
   border-radius: 4px;
-  background-color: white;
+  background-color: var(--popover-container-color);
+  color: var(--popover-label-color); 
   box-shadow: 0 0 8px rgb(0 0 0 / 30%);
   position: fixed;
   max-height: 100cqh;
-  overflow: hidden scroll;
+  overflow: hidden auto;
 }
 
 .fcitx-keyboard-contextmenu hr {
   margin: 0;
   border: none;
   height: 1px;
-  background-color: #7f7f7f;
+  background-color: var(--disabled-color);
 }
 
 .fcitx-keyboard-contextmenu-item {
@@ -365,7 +422,7 @@
 }
 
 .fcitx-keyboard-popover-container {
-  background-color: white;
+  background-color: var(--popover-container-color);
   display: flex;
   position: fixed;
   box-shadow: 0 0 8px rgb(0 0 0 / 30%);
@@ -384,10 +441,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  color: var(--popover-label-color);
+}
+
+.fcitx-keyboard-swipe .fcitx-keyboard-popover {
+  color: var(--popover-highlight-color);
 }
 
 .fcitx-keyboard-highlighted .fcitx-keyboard-popover {
-  background-color: #bcc0c7;
+  background-color: var(--popover-highlight-color);
+  color: var(--popover-highlight-label-color);
 }
 
 .fcitx-keyboard-invisible {
@@ -420,7 +483,7 @@
   position: absolute;
   inset: 4px;
   border-radius: 10cqh;
-  background-color: #bcc0c7;
+  background-color: var(--function-key-color);
   box-shadow: 0 2cqh rgb(0 0 0 / 30%);
   display: flex;
   justify-content: center;
@@ -428,11 +491,15 @@
 }
 
 .fcitx-keyboard-pressed:not(.fcitx-keyboard-disabled) .fcitx-keyboard-side-button {
-  background-color: white;
+  background-color: var(--pressed-function-key-color);
 }
 
 .fcitx-keyboard-side-button-container.fcitx-keyboard-disabled svg {
-  color: #7f7f7f;
+  color: var(--disabled-color);
+}
+
+.fcitx-keyboard-side-button-container svg {
+  color: var(--key-label-color);
 }
 
 .fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button svg {
