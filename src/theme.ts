@@ -1,8 +1,7 @@
 import { DARK, LIGHT, SYSTEM } from './constant'
 import { getKeyboardContainer } from './selector'
 
-const darkMQL = window.matchMedia('(prefers-color-scheme: dark)')
-let isSystemDark = darkMQL.matches
+let isSystemDark = false
 let followSystemTheme = true
 
 function setLightTheme() {
@@ -26,12 +25,21 @@ function systemThemeHandler() {
   }
 }
 
-darkMQL.addEventListener('change', (event) => {
-  isSystemDark = event.matches
-  if (followSystemTheme) {
-    systemThemeHandler()
+(() => {
+  if (typeof window === 'undefined') { // worker
+    return
   }
-})
+
+  const darkMQL = window.matchMedia('(prefers-color-scheme: dark)')
+  isSystemDark = darkMQL.matches
+
+  darkMQL.addEventListener('change', (event) => {
+    isSystemDark = event.matches
+    if (followSystemTheme) {
+      systemThemeHandler()
+    }
+  })
+})()
 
 export function setTheme(theme: typeof SYSTEM | typeof LIGHT | typeof DARK) {
   switch (theme) {
