@@ -21,7 +21,7 @@ export function renderContextmenu() {
 
 function renderItem(text: string) {
   const element = div('fcitx-keyboard-contextmenu-item')
-  element.innerHTML = text
+  element.textContent = text
   element.addEventListener('touchstart', () => press(element))
   element.addEventListener('touchend', () => release(element))
   element.addEventListener('touchcancel', () => release(element))

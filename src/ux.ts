@@ -429,12 +429,12 @@ export function setSpaceKeyLabel(space: HTMLElement | null, label: string) {
   }
   if (space) {
     const invisible = document.querySelector('.fcitx-keyboard-invisible')!
-    invisible.innerHTML = label
+    invisible.textContent = label
     const { width: invisibleWidth } = invisible.getBoundingClientRect() // This is achievable synchronously!
     invisible.innerHTML = ''
     const fontSize = 95 * 16 / invisibleWidth
     space.style.fontSize = `min(${fontSize}cqw,40cqh)`
-    space.innerHTML = spaceKeyLabel
+    space.textContent = spaceKeyLabel
   }
 }
 

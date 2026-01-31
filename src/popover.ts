@@ -26,7 +26,7 @@ export function showPopover(element: Element, display: string | LongPress) {
     if (i === index) {
       cell.classList.add('fcitx-keyboard-highlighted')
     }
-    popover.innerHTML = labels[i]
+    popover.textContent = labels[i]
     cell.appendChild(popover)
     cell.style.width = `${box.width}px`
     cell.style.height = `${box.height}px`

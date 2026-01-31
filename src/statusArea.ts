@@ -15,27 +15,27 @@ export function renderStatusArea() {
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 
-function getLabel(icon: string, desc: string) {
+function getLabel(icon: string, desc: string): [string, boolean /* isText */] {
   switch (icon) {
     case 'fcitx-chttrans-active':
-      return '繁'
+      return ['繁', true]
     case 'fcitx-chttrans-inactive':
-      return '简'
+      return ['简', true]
     case 'fcitx-fullwidth-active':
-      return FullWidth
+      return [FullWidth, false]
     case 'fcitx-fullwidth-inactive':
-      return HalfWidth
+      return [HalfWidth, false]
     case 'fcitx-punc-active':
-      return FullPunc
+      return [FullPunc, false]
     case 'fcitx-punc-inactive':
-      return HalfPunc
+      return [HalfPunc, false]
     case 'fcitx-remind-active':
-      return Lightbulb
+      return [Lightbulb, false]
     case 'fcitx-remind-inactive':
-      return LightbulbOutline
+      return [LightbulbOutline, false]
     default: {
       const segmentData = Array.from(segmenter.segment(desc))
-      return segmentData.length ? segmentData[0].segment : ''
+      return [segmentData.length ? segmentData[0].segment : '', true]
     }
   }
 }
@@ -46,7 +46,13 @@ export function setStatusArea(actions: StatusAreaAction[]) {
   for (const action of actions) {
     const button = div('fcitx-keyboard-status-area-container')
     const circle = div('fcitx-keyboard-status-area-circle')
-    circle.innerHTML = getLabel(action.icon, action.desc)
+    const [label, isText] = getLabel(action.icon, action.desc)
+    if (isText) {
+      circle.textContent = label
+    }
+    else {
+      circle.innerHTML = label
+    }
     handleClick(circle, () => {
       if (action.children) {
         showContextmenu(circle, action.children.map(child => ({
@@ -62,7 +68,7 @@ export function setStatusArea(actions: StatusAreaAction[]) {
       }
     })
     const text = div('fcitx-keyboard-status-area-text')
-    text.innerHTML = action.desc
+    text.textContent = action.desc
     button.appendChild(circle)
     button.appendChild(text)
     statusArea.appendChild(button)

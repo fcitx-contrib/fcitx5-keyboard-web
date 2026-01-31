@@ -25,7 +25,7 @@ export function renderKey(key: Key, context: Context) {
         if (topRight) {
           const label = div('fcitx-keyboard-sub-label')
           label.classList.add('fcitx-keyboard-key-top', 'fcitx-keyboard-key-right')
-          label.innerHTML = topRight
+          label.textContent = topRight
           el.appendChild(label)
         }
       }
@@ -71,7 +71,7 @@ export function renderKey(key: Key, context: Context) {
     case 'symbol': {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-symbol')
-      el.innerHTML = '#+='
+      el.textContent = '#+='
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
       break

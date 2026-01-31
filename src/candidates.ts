@@ -54,7 +54,7 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
     element.innerHTML = ''
     if (auxUp) {
       const auxUpElement = div('fcitx-keyboard-aux-up')
-      auxUpElement.innerHTML = auxUp
+      auxUpElement.textContent = auxUp
       element.appendChild(auxUpElement)
     }
     if (preedit) {
@@ -63,7 +63,7 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
         const preeditBytes = textEncoder.encode(preedit)
         const preCaret = textDecoder.decode(preeditBytes.subarray(0, caret))
         const postCaret = textDecoder.decode(preeditBytes.subarray(caret, preeditBytes.length))
-        preCaretElement.innerHTML = preCaret
+        preCaretElement.textContent = preCaret
         const caretElement = div('fcitx-keyboard-caret')
         element.append(preCaretElement, caretElement)
         show = true
@@ -73,12 +73,12 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
         }, 500)
         if (postCaret) {
           const postCaretElement = div('fcitx-keyboard-post-caret')
-          postCaretElement.innerHTML = postCaret
+          postCaretElement.textContent = postCaret
           element.appendChild(postCaretElement)
         }
       }
       else {
-        preCaretElement.innerHTML = preedit
+        preCaretElement.textContent = preedit
         element.appendChild(preCaretElement)
       }
     }
@@ -106,7 +106,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')
     const candidateInner = div('fcitx-keyboard-candidate-inner')
-    candidateInner.innerHTML = cands[i].text
+    candidateInner.textContent = cands[i].text
     candidate.appendChild(candidateInner)
     candidate.addEventListener('touchstart', (event) => {
       const touch = event.changedTouches[0]
