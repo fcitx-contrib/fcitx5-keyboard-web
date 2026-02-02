@@ -109,6 +109,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
     candidateInner.textContent = cands[i].text
     candidate.appendChild(candidateInner)
     candidate.addEventListener('touchstart', (event) => {
+      candidate.classList.add('fcitx-keyboard-pressed')
       const touch = event.changedTouches[0]
       startX = touch.clientX
       startY = touch.clientY
@@ -127,6 +128,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
       }
     })
     candidate.addEventListener('touchend', (event) => {
+      candidate.classList.remove('fcitx-keyboard-pressed')
       const touch = event.changedTouches[0]
       if (touchId === touch.identifier) {
         if (longPressId && !dragged(touch)) {

@@ -15,6 +15,7 @@
   --key-sub-label-color: #7f7f7f;
   --popover-container-color: white;
   --highlight-candidate-color: #fefefe;
+  --highlight-candidate-press-color: #ebecf0;
   --text-color: #171717;
   --status-area-circle-color: #595a5c;
   --status-area-text-color: black;
@@ -32,6 +33,7 @@
   --key-sub-label-color: #aaa;
   --popover-container-color: #3d3d3d;
   --highlight-candidate-color: #3a3a3a;
+  --highlight-candidate-press-color: #5b5b5b;
   --text-color: #e0e0e0;
   --status-area-circle-color: #666;
   --status-area-text-color: white;
@@ -262,9 +264,17 @@
   min-width: 15cqw; /* At most 5 in a row. Not exact 80/5 to tolerate rounding issue. */
 }
 
+.fcitx-keyboard-highlighted.fcitx-keyboard-pressed .fcitx-keyboard-candidate-inner {
+  background-color: var(--highlight-candidate-press-color);
+}
+
 .fcitx-keyboard-highlighted .fcitx-keyboard-candidate-inner {
   background-color: var(--highlight-candidate-color);
   color: var(--highlight-text-color);
+}
+
+.fcitx-keyboard-pressed .fcitx-keyboard-candidate-inner {
+  background-color: var(--highlight-candidate-color);
 }
 
 .fcitx-keyboard-candidate-inner {
