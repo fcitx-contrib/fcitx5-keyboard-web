@@ -110,9 +110,7 @@ export function handleClick(element: HTMLElement, handler: () => void) {
       // If the touch is moved more than half of the element's width or height, we consider it a drag.
       const box = element.getBoundingClientRect()
       if (Math.abs(touch.clientX - x) > box.width / 2
-        || Math.abs(touch.clientY - y) > box.height / 2) {
-        element.setAttribute('data-dragged', 'true')
-      }
+        || Math.abs(touch.clientY - y) > box.height / 2) { element.setAttribute('data-dragged', 'true') }
     })
 
     // touchstart's default behavior is disabled so no click event will be triggered.
