@@ -41,11 +41,14 @@
 
 .fcitx-keyboard-container {
   height: 100%;
+  margin-bottom: env(safe-area-inset-bottom);
+  position: relative;
   user-select: none; /* disable text select */
   font-family: sans-serif;
   container-type: size; /* for mask */
   background-color: var(--background-color);
 
+  --bar-height: 20%;
   --disabled-color: #7f7f7f;
   --function-key-color: var(--pressed-key-color);
   --pressed-function-key-color: var(--key-color);
@@ -57,8 +60,19 @@
   --status-area-circle-content-color: white;
 }
 
+/* Elevate bottom (also needs viewport-fit=cover so that env(safe-area-inset-bottom) > 0px), tested on iOS PWA. */
+.fcitx-keyboard-container::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: env(safe-area-inset-bottom);
+  background-color: var(--background-color);
+}
+
 .fcitx-keyboard-return-bar {
-  height: 20%;
+  height: var(--bar-height);
   padding-left: 2%;
   display: flex;
   align-items: center;
@@ -150,7 +164,7 @@
 }
 
 .fcitx-keyboard-toolbar {
-  height: 20%;
+  height: var(--bar-height);
   padding-left: 15%;
   display: flex;
   align-items: center;
@@ -185,7 +199,7 @@
 }
 
 .fcitx-keyboard-candidate-bar {
-  height: 20%;
+  height: var(--bar-height);
   display: flex;
   align-items: center;
   container-type: size;
@@ -289,8 +303,8 @@
 
 .fcitx-keyboard-frame {
   position: absolute;
-  bottom: 0;
-  height: 80cqh;
+  top: var(--bar-height);
+  height: calc(100% - var(--bar-height));
   width: 100%;
 }
 
