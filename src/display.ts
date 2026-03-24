@@ -78,7 +78,7 @@ export function setDisplayMode(mode: DisplayMode) {
   if (mode === 'initial') {
     displayModeStack.splice(0, displayModeStack.length, 'initial')
   }
-  else if (mode !== displayModeStack[displayModeStack.length - 1]) {
+  else if (mode !== displayModeStack.at(-1)) {
     displayModeStack.push(mode)
   }
 }

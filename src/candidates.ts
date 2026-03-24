@@ -258,7 +258,7 @@ export function renderCandidateBar() {
     const { top, bottom } = list.getBoundingClientRect()
     for (const candidate of document.querySelectorAll('.fcitx-keyboard-candidate')) {
       const { top: candidateTop, bottom: candidateBottom } = candidate.getBoundingClientRect()
-      if (tops[tops.length - 1] === candidateTop) {
+      if (tops.at(-1) === candidateTop) {
         continue
       }
       if (candidateTop > top - 1) {
