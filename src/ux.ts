@@ -133,7 +133,7 @@ function touchDown(touch: Touch) {
     case 'shift': {
       shiftPressed = true
       keyPressedWithShiftPressed = false
-      const time = new Date().getTime()
+      const time = Date.now()
       if (currentLayer === 'default') {
         setLayer('shift', false)
       }
