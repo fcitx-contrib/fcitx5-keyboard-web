@@ -3,6 +3,7 @@ import { getKeyboardContainer } from './selector'
 
 let isSystemDark = false
 let followSystemTheme = true
+let darkMQL: MediaQueryList | undefined
 
 function setLightTheme() {
   const container = getKeyboardContainer()
@@ -25,12 +26,11 @@ function systemThemeHandler() {
   }
 }
 
-(() => {
-  if (typeof window === 'undefined') { // worker
+function initTheme() {
+  if (darkMQL) {
     return
   }
-
-  const darkMQL = window.matchMedia('(prefers-color-scheme: dark)')
+  darkMQL = window.matchMedia('(prefers-color-scheme: dark)')
   isSystemDark = darkMQL.matches
 
   darkMQL.addEventListener('change', (event) => {
@@ -39,9 +39,10 @@ function systemThemeHandler() {
       systemThemeHandler()
     }
   })
-})()
+}
 
 export function setTheme(theme: typeof SYSTEM | typeof LIGHT | typeof DARK) {
+  initTheme()
   switch (theme) {
     case SYSTEM:
       followSystemTheme = true
