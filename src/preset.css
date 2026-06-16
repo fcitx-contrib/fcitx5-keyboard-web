@@ -337,7 +337,7 @@
 }
 
 .fcitx-keyboard-key.fcitx-keyboard-shift svg {
-  height: 50%;
+  height: 60cqh;
 }
 
 .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol) {
