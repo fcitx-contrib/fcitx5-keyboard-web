@@ -211,6 +211,7 @@
   line-height: 24cqh;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   overflow: hidden;
   color: var(--preedit-color);
 }
@@ -231,6 +232,8 @@
   box-sizing: border-box; /* include padding-left */
   width: calc(100% - 80cqh);
   height: 100cqh;
+  display: flex;
+  flex-direction: column;
 }
 
 .fcitx-keyboard-candidates {
@@ -247,8 +250,67 @@
   width: 80cqw;
 }
 
-.fcitx-keyboard-candidates-container .fcitx-keyboard-candidates:nth-child(1) {
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidates {
+  width: 64cqw;
+}
+
+.fcitx-keyboard-candidates-container .fcitx-keyboard-row:nth-child(1) {
   margin-top: 16cqh;
+}
+
+.fcitx-keyboard-candidate-tabs {
+  display: none;
+}
+
+.fcitx-keyboard-candidate-tabs-scrollable::-webkit-scrollbar {
+  display: none;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tabs {
+  width: 16cqw;
+  display: flex;
+  flex-direction: column;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tabs-scrollable {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden scroll;
+  scrollbar-width: none;
+  gap: 16cqh 0;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tabs-pinned {
+  flex-shrink: 0;
+}
+
+.fcitx-keyboard-candidate-tab {
+  min-height: 68cqh;
+  display: flex;
+  justify-content: center;
+}
+
+.fcitx-keyboard-candidate-tab-inner {
+  padding: 7.5cqh 10cqh;
+  border-radius: 10cqh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tab {
+  min-width: 15cqw;
+}
+
+.fcitx-keyboard-highlighted .fcitx-keyboard-candidate-tab-inner {
+  background-color: var(--highlight-candidate-color);
+  color: var(--highlight-text-color);
+}
+
+.fcitx-keyboard-pressed .fcitx-keyboard-candidate-tab-inner {
+  background-color: var(--highlight-candidate-color);
 }
 
 .fcitx-keyboard-expanded :is(.fcitx-keyboard,.fcitx-keyboard-mask) {
