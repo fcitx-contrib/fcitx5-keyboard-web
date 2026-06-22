@@ -4,7 +4,7 @@ import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import Enter from 'bundle-text:../svg/enter.svg'
 import { SCROLL_NONE, SCROLLING } from './api.d'
-import { hideContextMenu, showContextmenu } from './contextmenu'
+import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { disable, div, enable, enableScroll, getCandidateBar, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
 import { backspace, DRAG_THRESHOLD, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent, sendKeyDown } from './ux'
@@ -29,10 +29,7 @@ function renderTabAction(action: CandidateAction) {
   tab.addEventListener('touchstart', () => press(tab))
   tab.addEventListener('touchend', () => release(tab))
   tab.addEventListener('touchcancel', () => release(tab))
-  handleClick(tab, () => {
-    hideContextMenu()
-    sendEvent({ type: 'CANDIDATE_TAB_ACTION', data: action.id })
-  })
+  handleClick(tab, () => sendEvent({ type: 'CANDIDATE_TAB_ACTION', data: action.id }))
   return tab
 }
 
