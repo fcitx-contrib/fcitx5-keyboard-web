@@ -6,6 +6,7 @@ import Enter from 'bundle-text:../svg/enter.svg'
 import { SCROLL_NONE, SCROLLING } from './api.d'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
+import { getKeyboardContainer } from './selector'
 import { disable, div, enable, enableScroll, getCandidateBar, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
 import { backspace, DRAG_THRESHOLD, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
@@ -38,53 +39,62 @@ let timer: number | null = null
 let show = false
 let hasPanelPreedit = false
 
+// On HarmonyOS and Android, draw native irregular-shaped preedit outside of webview.
+let nativePreedit = false
+
+export function useNativePreedit() {
+  nativePreedit = true
+}
+
 export function setPreedit(auxUp: string, preedit: string, caret: number) {
   if (timer) {
     clearInterval(timer)
     timer = null
   }
   hasPanelPreedit = !!preedit
-  const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates-container')!
-  let element = container.querySelector('.fcitx-keyboard-preedit')
-  if (auxUp || preedit) {
-    if (!element) {
-      element = div('fcitx-keyboard-preedit')
-      container.prepend(element)
-    }
-    element.innerHTML = ''
-    if (auxUp) {
-      const auxUpElement = div('fcitx-keyboard-aux-up')
-      auxUpElement.textContent = auxUp
-      element.appendChild(auxUpElement)
-    }
-    if (preedit) {
-      const preCaretElement = div('fcitx-keyboard-pre-caret')
-      if (caret >= 0) {
-        const preeditBytes = textEncoder.encode(preedit)
-        const preCaret = textDecoder.decode(preeditBytes.subarray(0, caret))
-        const postCaret = textDecoder.decode(preeditBytes.subarray(caret, preeditBytes.length))
-        preCaretElement.textContent = preCaret
-        const caretElement = div('fcitx-keyboard-caret')
-        element.append(preCaretElement, caretElement)
-        show = true
-        timer = window.setInterval(() => {
-          show = !show
-          caretElement.style.opacity = show ? '1' : '0'
-        }, 500)
-        if (postCaret) {
-          const postCaretElement = div('fcitx-keyboard-post-caret')
-          postCaretElement.textContent = postCaret
-          element.appendChild(postCaretElement)
+  if (!nativePreedit) {
+    const container = getKeyboardContainer()
+    let element = container.querySelector('.fcitx-keyboard-preedit')
+    if (auxUp || preedit) {
+      if (!element) {
+        element = div('fcitx-keyboard-preedit')
+        container.appendChild(element)
+      }
+      element.innerHTML = ''
+      if (auxUp) {
+        const auxUpElement = div('fcitx-keyboard-aux-up')
+        auxUpElement.textContent = auxUp
+        element.appendChild(auxUpElement)
+      }
+      if (preedit) {
+        const preCaretElement = div('fcitx-keyboard-pre-caret')
+        if (caret >= 0) {
+          const preeditBytes = textEncoder.encode(preedit)
+          const preCaret = textDecoder.decode(preeditBytes.subarray(0, caret))
+          const postCaret = textDecoder.decode(preeditBytes.subarray(caret, preeditBytes.length))
+          preCaretElement.textContent = preCaret
+          const caretElement = div('fcitx-keyboard-caret')
+          element.append(preCaretElement, caretElement)
+          show = true
+          timer = window.setInterval(() => {
+            show = !show
+            caretElement.style.opacity = show ? '1' : '0'
+          }, 500)
+          if (postCaret) {
+            const postCaretElement = div('fcitx-keyboard-post-caret')
+            postCaretElement.textContent = postCaret
+            element.appendChild(postCaretElement)
+          }
+        }
+        else {
+          preCaretElement.textContent = preedit
+          element.appendChild(preCaretElement)
         }
       }
-      else {
-        preCaretElement.textContent = preedit
-        element.appendChild(preCaretElement)
-      }
     }
-  }
-  else {
-    element?.remove()
+    else {
+      element?.remove()
+    }
   }
   setDisplayMode('candidates')
 }

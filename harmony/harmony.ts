@@ -1,4 +1,5 @@
 import type { VirtualKeyboardEvent } from '../src/api'
+import { useNativePreedit } from '../src/candidates'
 import { onMessage, setBuiltInLayout } from '../src/keyboard'
 import { setClient } from '../src/ux'
 
@@ -12,6 +13,8 @@ window.addEventListener('message', (event: MessageEvent<string>) => {
     }
   }
 })
+
+useNativePreedit()
 
 setClient({
   sendEvent(event: VirtualKeyboardEvent) {
