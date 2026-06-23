@@ -206,13 +206,17 @@
 }
 
 .fcitx-keyboard-preedit {
-  height: 32cqh;
-  font-size: 24cqh;
-  line-height: 24cqh;
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  padding: 2cqh;
+  height: 7cqh;
+  font-size: 5cqh;
   display: flex;
   align-items: center;
   overflow: hidden;
   color: var(--preedit-color);
+  background-color: var(--background-color);
 }
 
 .fcitx-keyboard-pre-caret,.fcitx-keyboard-post-caret {
@@ -221,7 +225,7 @@
 
 .fcitx-keyboard-caret {
   width: 1px;
-  height: 24cqh;
+  height: 5cqh;
   background-color: var(--preedit-color);
   flex-shrink: 0;
 }
@@ -234,6 +238,7 @@
 }
 
 .fcitx-keyboard-candidates {
+  margin-top: 16cqh;
   display: flex;
   column-gap: 1cqw;
   overflow: scroll hidden;
@@ -245,10 +250,6 @@
   overflow: hidden scroll;
   gap: 16cqh 0;
   width: 80cqw;
-}
-
-.fcitx-keyboard-candidates-container .fcitx-keyboard-candidates:nth-child(1) {
-  margin-top: 16cqh;
 }
 
 .fcitx-keyboard-expanded :is(.fcitx-keyboard,.fcitx-keyboard-mask) {
