@@ -199,7 +199,7 @@ test('Preedit', async ({ page }) => {
   await expect(preedit).toHaveText('Quick Phrase: vah')
   const box = (await preedit.boundingBox())!
   const { y } = (await page.locator('#fcitx-app').boundingBox())!
-  expect(box.y).toEqual(y)
+  expect(box.y + box.height).toEqual(y)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
     candidates: [{ text: '一', label: '1', comment: '' }],

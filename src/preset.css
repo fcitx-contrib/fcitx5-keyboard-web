@@ -206,14 +206,18 @@
 }
 
 .fcitx-keyboard-preedit {
-  height: 32cqh;
-  font-size: 24cqh;
-  line-height: 24cqh;
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  padding: 2cqh;
+  height: 7cqh;
+  font-size: 5cqh;
   display: flex;
   align-items: center;
   flex-shrink: 0;
   overflow: hidden;
   color: var(--preedit-color);
+  background-color: var(--background-color);
 }
 
 .fcitx-keyboard-pre-caret,.fcitx-keyboard-post-caret {
@@ -222,7 +226,7 @@
 
 .fcitx-keyboard-caret {
   width: 1px;
-  height: 24cqh;
+  height: 5cqh;
   background-color: var(--preedit-color);
   flex-shrink: 0;
 }
@@ -232,8 +236,11 @@
   box-sizing: border-box; /* include padding-left */
   width: calc(100% - 80cqh);
   height: 100cqh;
+}
+
+.fcitx-keyboard-candidates-split {
+  margin-top: 16cqh;
   display: flex;
-  flex-direction: column;
 }
 
 .fcitx-keyboard-candidates {
@@ -254,15 +261,7 @@
   width: 64cqw;
 }
 
-.fcitx-keyboard-candidates-container .fcitx-keyboard-row:nth-child(1) {
-  margin-top: 16cqh;
-}
-
 .fcitx-keyboard-candidate-tabs {
-  display: none;
-}
-
-.fcitx-keyboard-candidate-tabs-scrollable::-webkit-scrollbar {
   display: none;
 }
 
