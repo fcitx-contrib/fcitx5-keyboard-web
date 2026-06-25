@@ -282,6 +282,9 @@
 
 .fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tabs-pinned {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16cqh 0;
 }
 
 .fcitx-keyboard-candidate-tab {
@@ -291,7 +294,7 @@
 }
 
 .fcitx-keyboard-candidate-tab-inner {
-  padding: 7.5cqh 10cqh;
+  flex: 1;
   border-radius: 10cqh;
   display: flex;
   align-items: center;
@@ -301,6 +304,7 @@
 
 .fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tab {
   min-width: 15cqw;
+  padding: 0 1cqw;
 }
 
 .fcitx-keyboard-highlighted .fcitx-keyboard-candidate-tab-inner {

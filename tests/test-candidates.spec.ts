@@ -8,10 +8,6 @@ function getCandidateBar(page: Page) {
   return page.locator('.fcitx-keyboard-candidates')
 }
 
-function getCandidateTabs(page: Page) {
-  return page.locator('.fcitx-keyboard-candidate-tabs')
-}
-
 function generateCandidates(start: number, count: number) {
   const candidates = []
   for (let i = 0; i < count; ++i) {
@@ -147,44 +143,41 @@ test('Actions disappear on clear', async ({ page }) => {
   await expect(pinButton).not.toBeVisible()
 })
 
-test('Tab actions only show when expanded', async ({ page }) => {
+test('Tab actions', async ({ page }) => {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    candidates: generateCandidates(0, 20),
+    candidates: generateCandidates(0, 24),
     highlighted: 0,
     scrollState: SCROLLING,
     scrollStart: true,
     scrollEnd: false,
     hasClientPreedit: true,
-    tabActions: [{ id: 1, text: 'xian', checked: true }, { id: 2, text: '笔画' }],
+    tabActions: [
+      { id: 1, text: 'xi', checked: true },
+      { id: 2, text: 'xian' },
+      { id: 3, text: '', separator: true },
+      { id: 4, text: '单字', checked: true },
+      { id: 5, text: '笔画' },
+    ],
   } })
 
-  const tabs = getCandidateTabs(page)
+  const tabs = page.locator('.fcitx-keyboard-candidate-tabs')
   await expect(tabs).not.toBeVisible()
 
-  await page.locator('.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button').click()
+  await expandOrCollapse(page)
   await expect(tabs).toBeVisible()
-  await expect(tabs.locator('.fcitx-keyboard-candidate-tab')).toHaveCount(2)
-  await expect(tabs.locator('.fcitx-keyboard-candidate-tab').first()).toContainClass('fcitx-keyboard-highlighted')
-})
+  const tab = tabs.locator('.fcitx-keyboard-candidate-tab')
+  await expect(tab).toHaveCount(4)
+  for (const i of [0, 2]) {
+    await expect(tab.nth(i)).toContainClass('fcitx-keyboard-highlighted')
+  }
+  for (const i of [1, 3]) {
+    await expect(tab.nth(i)).not.toContainClass('fcitx-keyboard-highlighted')
+  }
 
-test('Tab action sends event', async ({ page }) => {
-  await init(page)
-
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    candidates: generateCandidates(0, 20),
-    highlighted: 0,
-    scrollState: SCROLLING,
-    scrollStart: true,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [{ id: 3, text: '笔画' }, { id: 4, text: '单字' }],
-  } })
-  await page.locator('.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button').click()
-  await getCandidateTabs(page).locator('.fcitx-keyboard-candidate-tab').first().click()
-
-  expect(await getSentEvents(page)).toContainEqual({ type: 'CANDIDATE_TAB_ACTION', data: 3 })
+  await tab.first().click()
+  expect(await getSentEvents(page)).toContainEqual({ type: 'CANDIDATE_TAB_ACTION', data: 1 })
 })
 
 test('Preedit', async ({ page }) => {
