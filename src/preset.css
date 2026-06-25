@@ -214,6 +214,7 @@
   font-size: 5cqh;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   overflow: hidden;
   color: var(--preedit-color);
   background-color: var(--background-color);
@@ -237,8 +238,12 @@
   height: 100cqh;
 }
 
-.fcitx-keyboard-candidates {
+.fcitx-keyboard-candidates-split {
   margin-top: 16cqh;
+  display: flex;
+}
+
+.fcitx-keyboard-candidates {
   display: flex;
   column-gap: 1cqw;
   overflow: scroll hidden;
@@ -250,6 +255,65 @@
   overflow: hidden scroll;
   gap: 16cqh 0;
   width: 80cqw;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidates {
+  width: 64cqw;
+}
+
+.fcitx-keyboard-candidate-tabs {
+  display: none;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tabs {
+  width: 16cqw;
+  display: flex;
+  flex-direction: column;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tabs-scrollable {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden scroll;
+  scrollbar-width: none;
+  gap: 16cqh 0;
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tabs-pinned {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16cqh 0;
+}
+
+.fcitx-keyboard-candidate-tab {
+  min-height: 68cqh;
+  display: flex;
+  justify-content: center;
+}
+
+.fcitx-keyboard-candidate-tab-inner {
+  flex: 1;
+  border-radius: 10cqh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+}
+
+.fcitx-keyboard-expanded .fcitx-keyboard-has-tab-actions .fcitx-keyboard-candidate-tab {
+  min-width: 15cqw;
+  padding: 0 1cqw;
+}
+
+.fcitx-keyboard-highlighted .fcitx-keyboard-candidate-tab-inner {
+  background-color: var(--highlight-candidate-color);
+  color: var(--highlight-text-color);
+}
+
+.fcitx-keyboard-pressed .fcitx-keyboard-candidate-tab-inner {
+  background-color: var(--highlight-candidate-color);
 }
 
 .fcitx-keyboard-expanded :is(.fcitx-keyboard,.fcitx-keyboard-mask) {

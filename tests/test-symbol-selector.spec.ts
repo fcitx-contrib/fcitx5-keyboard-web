@@ -71,6 +71,7 @@ async function renderCandidateAndClickSymbol(page: Page) {
     scrollStart: false,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   const candidate = page.locator('.fcitx-keyboard-candidate')
   await expect(candidate).toBeVisible()

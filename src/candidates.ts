@@ -19,6 +19,40 @@ let scrollEnd_ = true
 let fetching = false
 let scrollDirection: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL'
 
+function renderTabAction(action: CandidateAction) {
+  const tab = div('fcitx-keyboard-candidate-tab')
+  const tabInner = div('fcitx-keyboard-candidate-tab-inner')
+  tabInner.textContent = action.text
+  tab.appendChild(tabInner)
+  if (action.checked) {
+    tab.classList.add('fcitx-keyboard-highlighted')
+  }
+  tab.addEventListener('touchstart', () => press(tab))
+  tab.addEventListener('touchend', () => release(tab))
+  tab.addEventListener('touchcancel', () => release(tab))
+  handleClick(tab, () => sendEvent({ type: 'CANDIDATE_TAB_ACTION', data: action.id }))
+  return tab
+}
+
+function setTabActions(actions: CandidateAction[]) {
+  const bar = getCandidateBar()
+  const tabs = bar.querySelector('.fcitx-keyboard-candidate-tabs') as HTMLElement
+  const scrollableTabs = tabs.querySelector('.fcitx-keyboard-candidate-tabs-scrollable') as HTMLElement
+  const pinnedTabs = tabs.querySelector('.fcitx-keyboard-candidate-tabs-pinned') as HTMLElement
+  scrollableTabs.innerHTML = ''
+  pinnedTabs.innerHTML = ''
+  const index = actions.findIndex(action => action.separator)
+  const scrollableActions = index !== -1 ? actions.slice(0, index) : actions
+  const pinnedActions = index !== -1 ? actions.slice(index + 1).filter(action => !action.separator) : []
+  for (const action of scrollableActions) {
+    scrollableTabs.appendChild(renderTabAction(action))
+  }
+  for (const action of pinnedActions) {
+    pinnedTabs.appendChild(renderTabAction(action))
+  }
+  bar.classList.toggle('fcitx-keyboard-has-tab-actions', actions.length > 0)
+}
+
 function dragged(touch: Touch) {
   const { clientX, clientY } = touch
   const dX = clientX - startX
@@ -99,10 +133,11 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
   setDisplayMode('candidates')
 }
 
-export function setCandidates(cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasClientPreedit: boolean) {
+export function setCandidates(cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasClientPreedit: boolean, tabActions: CandidateAction[]) {
   scrollState_ = scrollState
   touchId = null
   longPressId = null
+  setTabActions(scrollState === SCROLLING ? tabActions : [])
   const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates')!
   if (scrollState !== SCROLLING || scrollStart) {
     container.scroll({ left: 0, top: 0 })
@@ -193,12 +228,14 @@ function setPagingButtons(list: Element) {
 function expand() {
   const bar = getCandidateBar()
   const parent = bar.parentElement!
+  const tabs = bar.querySelector('.fcitx-keyboard-candidate-tabs') as HTMLElement
   const list = bar.querySelector('.fcitx-keyboard-candidates') as HTMLElement
   const side = bar.querySelector('.fcitx-keyboard-candidates-side') as HTMLElement
   parent.classList.add('fcitx-keyboard-expanded')
   // TODO: not rotate friendly on real device
   const { height } = parent.getBoundingClientRect()
   list.style.maxHeight = `calc(${height}px - 16cqh)`
+  tabs.style.maxHeight = list.style.maxHeight
   side.style.height = `calc(${height}px - 100cqh)`
   scrollDirection = 'VERTICAL'
   setPagingButtons(list)
@@ -226,7 +263,14 @@ function renderSideButton(label: string) {
 
 export function renderCandidateBar() {
   const bar = div('fcitx-keyboard-candidate-bar')
+  const tabs = div('fcitx-keyboard-candidate-tabs')
+  const scrollableTabs = div('fcitx-keyboard-candidate-tabs-scrollable')
+  const pinnedTabs = div('fcitx-keyboard-candidate-tabs-pinned')
+  enableScroll(scrollableTabs)
+  tabs.append(scrollableTabs)
+  tabs.append(pinnedTabs)
   const container = div('fcitx-keyboard-candidates-container')
+  const split = div('fcitx-keyboard-candidates-split')
   const list = div('fcitx-keyboard-candidates')
   enableScroll(list)
   list.addEventListener('scroll', () => {
@@ -259,7 +303,8 @@ export function renderCandidateBar() {
       collapse()
     }
   })
-  container.append(list)
+  split.append(tabs, list)
+  container.append(split)
 
   const pageUp = renderSideButton(ArrowLeft)
   setSvgStyle(pageUp, { height: '50cqh', transform: 'rotate(90deg)' })

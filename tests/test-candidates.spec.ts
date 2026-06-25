@@ -31,6 +31,7 @@ test('Show and clear', async ({ page }) => {
     scrollStart: false,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   await expect(candidateBar.locator('.fcitx-keyboard-candidate')).toHaveCount(2)
   await expect(toolbar).not.toBeVisible()
@@ -54,6 +55,7 @@ test('Select', async ({ page }) => {
     scrollStart: false,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
 
   const firstCandidate = candidateBar.locator('.fcitx-keyboard-candidate').first()
@@ -74,6 +76,7 @@ test('Overflow', async ({ page }) => {
     scrollStart: false,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } }
   const candidate = getCandidateBar(page).locator('.fcitx-keyboard-candidate')
   await sendSystemEvent(page, event)
@@ -99,6 +102,7 @@ test('Actions', async ({ page }) => {
     scrollStart: false,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   const candidate = page.locator('.fcitx-keyboard-candidate')
   await longPress(candidate)
@@ -126,6 +130,7 @@ test('Actions disappear on clear', async ({ page }) => {
     scrollStart: false,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
     index: 0,
@@ -136,6 +141,43 @@ test('Actions disappear on clear', async ({ page }) => {
 
   await sendSystemEvent(page, { type: 'CLEAR' })
   await expect(pinButton).not.toBeVisible()
+})
+
+test('Tab actions', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: generateCandidates(0, 24),
+    highlighted: 0,
+    scrollState: SCROLLING,
+    scrollStart: true,
+    scrollEnd: false,
+    hasClientPreedit: true,
+    tabActions: [
+      { id: 1, text: 'xi', checked: true },
+      { id: 2, text: 'xian' },
+      { id: 3, text: '', separator: true },
+      { id: 4, text: '单字', checked: true },
+      { id: 5, text: '笔画' },
+    ],
+  } })
+
+  const tabs = page.locator('.fcitx-keyboard-candidate-tabs')
+  await expect(tabs).not.toBeVisible()
+
+  await expandOrCollapse(page)
+  await expect(tabs).toBeVisible()
+  const tab = tabs.locator('.fcitx-keyboard-candidate-tab')
+  await expect(tab).toHaveCount(4)
+  for (const i of [0, 2]) {
+    await expect(tab.nth(i)).toContainClass('fcitx-keyboard-highlighted')
+  }
+  for (const i of [1, 3]) {
+    await expect(tab.nth(i)).not.toContainClass('fcitx-keyboard-highlighted')
+  }
+
+  await tab.first().click()
+  expect(await getSentEvents(page)).toContainEqual({ type: 'CANDIDATE_TAB_ACTION', data: 1 })
 })
 
 test('Preedit', async ({ page }) => {
@@ -159,6 +201,7 @@ test('Preedit', async ({ page }) => {
     scrollStart: false,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   const newBox = (await preedit.boundingBox())!
   expect(newBox, 'No layout shift').toEqual(box)
@@ -220,6 +263,7 @@ test('Horizontal scroll', async ({ page }) => {
     scrollStart: true,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   const candidates = page.locator('.fcitx-keyboard-candidates')
   await candidates.evaluate(element => element.scrollBy(element.lastElementChild!.getBoundingClientRect().right, 0))
@@ -238,6 +282,7 @@ test('Horizontal scroll', async ({ page }) => {
     scrollStart: false,
     scrollEnd: true,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   const candidate = candidates.locator('.fcitx-keyboard-candidate')
   await expect(candidate).toHaveCount(30)
@@ -267,6 +312,7 @@ test('Expand/collapse', async ({ page }) => {
     scrollStart: true,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   const c29 = page.getByText('词29')
   await expect(c29).not.toBeInViewport()
@@ -298,6 +344,7 @@ test('Auto collapse if no preedit', async ({ page }) => {
       scrollStart: true,
       scrollEnd: false,
       hasClientPreedit,
+      tabActions: [],
     } })
   }
 
@@ -322,6 +369,7 @@ test('Vertical scroll', async ({ page }) => {
     scrollStart: true,
     scrollEnd: false,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   await expandOrCollapse(page)
 
@@ -345,6 +393,7 @@ test('Paging button', async ({ page }) => {
     scrollStart: true,
     scrollEnd: true,
     hasClientPreedit: true,
+    tabActions: [],
   } })
   await expandOrCollapse(page)
   const top = (await page.getByText('词0').boundingBox())!.y
