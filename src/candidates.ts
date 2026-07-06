@@ -235,7 +235,7 @@ function expand() {
   // TODO: not rotate friendly on real device
   const { height } = parent.getBoundingClientRect()
   list.style.maxHeight = `calc(${height}px - 16cqh)`
-  tabs.style.maxHeight = list.style.maxHeight
+  tabs.style.height = list.style.maxHeight
   side.style.height = `calc(${height}px - 100cqh)`
   scrollDirection = 'VERTICAL'
   setPagingButtons(list)
