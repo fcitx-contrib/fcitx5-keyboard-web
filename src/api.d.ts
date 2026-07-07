@@ -21,6 +21,9 @@ export interface InputMethod {
 export interface CandidateAction {
   id: number
   text: string
+  checked?: boolean
+  checkable?: boolean
+  separator?: boolean
 }
 
 export const SCROLL_NONE = 0
@@ -52,6 +55,7 @@ export type SystemEvent = {
     scrollStart: boolean
     scrollEnd: boolean
     hasClientPreedit: boolean
+    tabActions: CandidateAction[]
   }
 } | {
   type: 'CANDIDATE_ACTIONS'
@@ -91,6 +95,9 @@ export type VirtualKeyboardEvent = {
     index: number
     id: number
   }
+} | {
+  type: 'CANDIDATE_TAB_ACTION'
+  data: number
 } | {
   type: 'BACKSPACE_SLIDE'
   data: 'LEFT' | 'RIGHT' | 'RELEASE'

@@ -111,6 +111,10 @@ export function sendSystemEvent(page: Page, event: SystemEvent) {
   }, event)
 }
 
+export function getContainer(page: Page) {
+  return page.locator('.fcitx-keyboard-container')
+}
+
 export function getKey(page: Page, key: string) {
   return page.locator('.fcitx-keyboard').getByText(key)
 }
