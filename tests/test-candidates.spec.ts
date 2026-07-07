@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 import type { SystemEvent, VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
 import { SCROLL_NONE, SCROLLING } from '../src/api.d'
-import { getSentEvents, init, longPress, sendSystemEvent, tap } from './util'
+import { getBox, getContainer, getSentEvents, init, longPress, sendSystemEvent, tap } from './util'
 
 function getCandidateBar(page: Page) {
   return page.locator('.fcitx-keyboard-candidates')
@@ -80,15 +80,15 @@ test('Overflow', async ({ page }) => {
   } }
   const candidate = getCandidateBar(page).locator('.fcitx-keyboard-candidate')
   await sendSystemEvent(page, event)
-  const initialBox = (await candidate.boundingBox())!
+  const initialBox = await getBox(candidate)
   expect(initialBox.width).toBeGreaterThan(page.viewportSize()!.width)
 
   await page.evaluate(() => document.querySelector('.fcitx-keyboard-candidates')?.scrollBy(20, 0))
-  const intermediateBox = (await candidate.boundingBox())!
+  const intermediateBox = await getBox(candidate)
   expect(intermediateBox.x).toEqual(initialBox.x - 20)
 
   await sendSystemEvent(page, event)
-  const finalBox = (await candidate.boundingBox())!
+  const finalBox = await getBox(candidate)
   expect(finalBox.x).toEqual(initialBox.x)
 })
 
@@ -146,7 +146,7 @@ test('Actions disappear on clear', async ({ page }) => {
 test('Tab actions', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+  const event: SystemEvent = { type: 'CANDIDATES', data: {
     candidates: generateCandidates(0, 24),
     highlighted: 0,
     scrollState: SCROLLING,
@@ -160,7 +160,8 @@ test('Tab actions', async ({ page }) => {
       { id: 4, text: '单字', checked: true },
       { id: 5, text: '笔画' },
     ],
-  } })
+  } }
+  await sendSystemEvent(page, event)
 
   const tabs = page.locator('.fcitx-keyboard-candidate-tabs')
   await expect(tabs).not.toBeVisible()
@@ -168,6 +169,12 @@ test('Tab actions', async ({ page }) => {
   await expandOrCollapse(page)
   await expect(tabs).toBeVisible()
   const tab = tabs.locator('.fcitx-keyboard-candidate-tab')
+  const lastTabBox = await getBox(tab.last())
+  const containerBox = await getBox(getContainer(page))
+  expect(
+    Math.abs(lastTabBox.y + lastTabBox.height - (containerBox.y + containerBox.height)),
+    'Last tab should be pinned at the bottom',
+  ).toBeLessThan(1)
   await expect(tab).toHaveCount(4)
   for (const i of [0, 2]) {
     await expect(tab.nth(i)).toContainClass('fcitx-keyboard-highlighted')
@@ -178,6 +185,14 @@ test('Tab actions', async ({ page }) => {
 
   await tab.first().click()
   expect(await getSentEvents(page)).toContainEqual({ type: 'CANDIDATE_TAB_ACTION', data: 1 })
+
+  event.data.candidates = generateCandidates(0, 8)
+  await sendSystemEvent(page, event)
+  const candidate = page.locator('.fcitx-keyboard-candidate')
+  const box0 = await getBox(candidate.nth(0))
+  const box4 = await getBox(candidate.nth(4))
+  expect(box4.x).toEqual(box0.x)
+  expect(box4.y, 'Small number of candidates should not be stretched').toBeLessThan(box0.y + box0.height + 10)
 })
 
 test('Preedit', async ({ page }) => {
@@ -190,8 +205,8 @@ test('Preedit', async ({ page }) => {
   } })
   const preedit = page.locator('.fcitx-keyboard-preedit')
   await expect(preedit).toHaveText('Quick Phrase: vah')
-  const box = (await preedit.boundingBox())!
-  const { y } = (await page.locator('#fcitx-app').boundingBox())!
+  const box = await getBox(preedit)
+  const { y } = await getBox(page.locator('#fcitx-app'))
   expect(box.y + box.height).toEqual(y)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
@@ -203,7 +218,7 @@ test('Preedit', async ({ page }) => {
     hasClientPreedit: true,
     tabActions: [],
   } })
-  const newBox = (await preedit.boundingBox())!
+  const newBox = await getBox(preedit)
   expect(newBox, 'No layout shift').toEqual(box)
 })
 
@@ -221,10 +236,10 @@ test('Long preedit', async ({ page }) => {
     preedit: text,
     caret: 3,
   } })
-  expect(await caret.boundingBox()).toHaveProperty('width', 1)
-  const { height } = (await auxUp.boundingBox())!
-  expect(await preCaret.boundingBox()).toHaveProperty('height', height)
-  expect(await postCaret.boundingBox()).toHaveProperty('height', height)
+  expect(await getBox(caret)).toHaveProperty('width', 1)
+  const { height } = await getBox(auxUp)
+  expect(await getBox(preCaret)).toHaveProperty('height', height)
+  expect(await getBox(postCaret)).toHaveProperty('height', height)
 
   // long pre-caret
   await sendSystemEvent(page, { type: 'PREEDIT', data: {
@@ -233,8 +248,8 @@ test('Long preedit', async ({ page }) => {
     caret: (text.length - 1) * 3,
   } })
   await expect(caret).not.toBeInViewport()
-  expect(await preCaret.boundingBox()).toHaveProperty('height', height)
-  expect(await postCaret.boundingBox()).toHaveProperty('height', height)
+  expect(await getBox(preCaret)).toHaveProperty('height', height)
+  expect(await getBox(postCaret)).toHaveProperty('height', height)
 })
 
 test('Caret blink', async ({ page }) => {
@@ -334,7 +349,7 @@ test('Expand/collapse', async ({ page }) => {
 
 test('Auto collapse if no preedit', async ({ page }) => {
   await init(page)
-  const container = page.locator('.fcitx-keyboard-container')
+  const container = getContainer(page)
 
   function setCandidates(hasClientPreedit: boolean) {
     return sendSystemEvent(page, { type: 'CANDIDATES', data: {
@@ -396,7 +411,7 @@ test('Paging button', async ({ page }) => {
     tabActions: [],
   } })
   await expandOrCollapse(page)
-  const top = (await page.getByText('词0').boundingBox())!.y
+  const top = (await getBox(page.getByText('词0'))).y
 
   const pageUp = page.locator('.fcitx-keyboard-side-button-container:nth-child(1)')
   const pageDown = page.locator('.fcitx-keyboard-side-button-container:nth-child(2)')
@@ -412,22 +427,22 @@ test('Paging button', async ({ page }) => {
   await expect(pageUp).toContainClass('fcitx-keyboard-disabled')
 
   await pageDown.click()
-  while (Math.abs((await page.getByText('词25').boundingBox())!.y - top) >= 0.5);
+  while (Math.abs((await getBox(page.getByText('词25'))).y - top) >= 0.5);
   await expect(pageDown).not.toContainClass('fcitx-keyboard-disabled')
 
   await pageDown.click()
-  while (Math.abs((await page.getByText('词50').boundingBox())!.y - top) >= 0.5);
+  while (Math.abs((await getBox(page.getByText('词50'))).y - top) >= 0.5);
 
   await pageUp.click()
-  while (Math.abs((await page.getByText('词25').boundingBox())!.y - top) >= 0.5);
+  while (Math.abs((await getBox(page.getByText('词25'))).y - top) >= 0.5);
 
   await pageDown.click()
   // Already asserted but still needed to make sure next pageDown has effect.
-  while (Math.abs((await page.getByText('词50').boundingBox())!.y - top) >= 0.5);
+  while (Math.abs((await getBox(page.getByText('词50'))).y - top) >= 0.5);
 
   await pageDown.click()
   await expect(pageDown).toContainClass('fcitx-keyboard-disabled')
-  const c84Box = (await page.getByText('词84').boundingBox())!
+  const c84Box = await getBox(page.getByText('词84'))
   const { height } = page.viewportSize()!
   expect(Math.abs(c84Box.y + c84Box.height - height)).toBeLessThan(1.5) // Not sure why on Linux it's 1.046875. On Windows 0.5 suffices.
 

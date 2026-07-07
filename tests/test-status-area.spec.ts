@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { getBox, getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn } from './util'
+import { getBox, getContainer, getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn } from './util'
 
 function gotoStatusArea(page: Page) {
   return getToolbarButton(page, 5).tap()
@@ -61,7 +61,7 @@ test('Multiple actions: align bottom', async ({ page }) => {
   const contextmenu = page.locator('.fcitx-keyboard-contextmenu')
   await expect(contextmenu).toBeVisible()
   const box = await getBox(contextmenu)
-  const containerBox = await getBox(page.locator('.fcitx-keyboard-container'))
+  const containerBox = await getBox(getContainer(page))
   expect(box.y + box.height).toBeCloseTo(containerBox.y + containerBox.height, 1)
 })
 
@@ -85,7 +85,7 @@ test('Many actions: align top', async ({ page }) => {
   const contextmenu = page.locator('.fcitx-keyboard-contextmenu')
   await expect(contextmenu).toBeVisible()
   const box = await getBox(contextmenu)
-  const containerBox = await getBox(page.locator('.fcitx-keyboard-container'))
+  const containerBox = await getBox(getContainer(page))
   expect(box.y).toBeCloseTo(containerBox.y, 1)
   const lastItem = contextmenu.locator('.fcitx-keyboard-contextmenu-item').last()
   await expect(lastItem).not.toBeInViewport()

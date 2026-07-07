@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { SCROLL_NONE } from '../src/api.d'
-import { getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, tapReturn, touchDown, WHITE } from './util'
+import { getBox, getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, tapReturn, touchDown, WHITE } from './util'
 
 function getSymbolButton(page: Page) {
   return page.getByText('#+=')
@@ -30,10 +30,10 @@ test('Reset scroll state', async ({ page }) => {
   await expect(greek).not.toHaveClass(/fcitx-keyboard-pressed/)
 
   const symbol = page.getByText('ā')
-  const initialBox = (await symbol.boundingBox())!
+  const initialBox = await getBox(symbol)
 
   await page.evaluate(() => document.querySelector('.fcitx-keyboard-symbol-panel')?.scrollBy(0, 20))
-  const intermediateBox = (await symbol.boundingBox())!
+  const intermediateBox = await getBox(symbol)
   expect(intermediateBox.y).toEqual(initialBox.y - 20)
 
   await page.getByText('greek').tap()
@@ -43,7 +43,7 @@ test('Reset scroll state', async ({ page }) => {
   await pinyin.tap()
   await expect(pinyin).toHaveClass(/fcitx-keyboard-pressed/)
   await expect(greek).not.toHaveClass(/fcitx-keyboard-pressed/)
-  const finalBox = (await symbol.boundingBox())!
+  const finalBox = await getBox(symbol)
   expect(finalBox.y).toEqual(initialBox.y)
 })
 

@@ -241,6 +241,7 @@
 .fcitx-keyboard-candidates-split {
   margin-top: 16cqh;
   display: flex;
+  align-items: start; /* Don't let small number of candidates be stretched by tab actions. */
 }
 
 .fcitx-keyboard-candidates {
