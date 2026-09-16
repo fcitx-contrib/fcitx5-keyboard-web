@@ -41,6 +41,7 @@ const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 export const LONG_PRESS_THRESHOLD = 300
+const KEY_REPEAT_INTERVAL = 80 // Same with iOS.
 export const DRAG_THRESHOLD = 10 // radius^2
 const SWIPE_THRESHOLD = 10
 
@@ -187,6 +188,7 @@ function interrupt(touchId: number) {
       case 'DOWN':
         break
       default:
+        cancelLongPress(Number(id))
         touches[id].state = 'INTERRUPTED'
         hidePopover()
     }
@@ -253,7 +255,10 @@ function swipeRelease(touch: Touch) {
 function longPressHandler(touchId: number, container: HTMLElement) {
   touches[touchId].timer = null
   touches[touchId].state = 'PRESSING'
-  if (touches[touchId].type === 'globe') {
+  if (touches[touchId].type === 'backspace') {
+    touches[touchId].timer = window.setInterval(backspace, KEY_REPEAT_INTERVAL)
+  }
+  else if (touches[touchId].type === 'globe') {
     showContextmenu(container, inputMethods_.map(inputMethod => ({
       text: inputMethod.displayName,
       callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
@@ -297,6 +302,7 @@ export function onTouchStart(event: TouchEvent) {
         touchDown(touch)
         state = 'DOWN'
         break
+      case 'backspace':
       case 'globe':
         timer = window.setTimeout(longPressHandler, LONG_PRESS_THRESHOLD, touch.identifier, container)
         break
@@ -343,7 +349,9 @@ export function onTouchMove(event: TouchEvent) {
       doSwipe(touch)
       break
     case 'PRESSING':
-      moveHighlight(touch)
+      if (touches[touch.identifier].type !== 'backspace') {
+        moveHighlight(touch)
+      }
       break
   }
 }
