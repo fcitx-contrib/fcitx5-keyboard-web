@@ -2,15 +2,19 @@ import type { Page } from '@playwright/test'
 import type { VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
 import { SCROLLING } from '../src/api.d'
-import { getKey, getSentEvents, getToolbarButton, GRAY, init, sendSystemEvent, touchDown, touchMove, touchUp, WHITE } from './util'
+import { getKey, getSentEvents, getToolbarButton, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
 
-type Surface = 'keyboard' | 'candidates' | 'editor'
+type Surface = 'keyboard' | 'candidates' | 'editor' | 'symbol'
 
 async function initSurface(page: Page, surface: Surface) {
   await init(page)
   if (surface === 'editor') {
     await getToolbarButton(page, 3).tap()
     return page.locator('.fcitx-keyboard-editor-button-container').nth(8)
+  }
+  if (surface === 'symbol') {
+    await tap(getKey(page, '#+='))
+    return page.locator('.fcitx-keyboard-return-backspace')
   }
   if (surface === 'candidates') {
     await sendSystemEvent(page, { type: 'CANDIDATES', data: {
@@ -25,10 +29,23 @@ async function initSurface(page: Page, surface: Surface) {
     await page.locator('.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button').tap()
     return page.locator('.fcitx-keyboard-side-button-container').nth(2)
   }
-  return page.locator('.fcitx-keyboard-backspace').locator('..')
+  return page.locator('.fcitx-keyboard > .fcitx-keyboard-row > .fcitx-keyboard-key-container').filter({ has: page.locator('.fcitx-keyboard-backspace') })
 }
 
-for (const surface of ['keyboard', 'candidates', 'editor'] as const) {
+function getInterruptTarget(page: Page, surface: Surface) {
+  switch (surface) {
+    case 'keyboard':
+      return getKey(page, 'q')
+    case 'candidates':
+      return page.locator('.fcitx-keyboard-side-button-container').nth(3)
+    case 'editor':
+      return page.locator('.fcitx-keyboard-editor-button-container').nth(0)
+    case 'symbol':
+      return page.locator('.fcitx-keyboard-symbol-item').nth(0)
+  }
+}
+
+for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
   test.describe(surface, () => {
     test('Backspace', async ({ page }) => {
       const backspace = await initSurface(page, surface)
@@ -120,13 +137,9 @@ for (const surface of ['keyboard', 'candidates', 'editor'] as const) {
 
       const touchId = await touchDown(backspace)
       await page.clock.runFor(380)
-      const q = surface === 'keyboard'
-        ? getKey(page, 'q')
-        : surface === 'editor'
-          ? page.locator('.fcitx-keyboard-editor-button-container').nth(0)
-          : page.locator('.fcitx-keyboard-side-button-container').nth(3)
-      const qTouchId = await touchDown(q)
-      await touchUp(q, qTouchId)
+      const interruptTarget = getInterruptTarget(page, surface)
+      const interruptTouchId = await touchDown(interruptTarget)
+      await touchUp(interruptTarget, interruptTouchId)
       await page.clock.runFor(500)
       await touchUp(backspace, touchId)
       await page.clock.runFor(500)

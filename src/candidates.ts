@@ -5,7 +5,7 @@ import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import Enter from 'bundle-text:../svg/enter.svg'
 import { SCROLL_NONE, SCROLLING } from './api.d'
 import { showContextmenu } from './contextmenu'
-import { setDisplayMode } from './display'
+import { updateCandidateDisplayMode } from './display'
 import { getKeyboardContainer } from './selector'
 import { disable, div, enable, enableScroll, getCandidateBar, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
 import { DRAG_THRESHOLD, handleBackspace, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent, sendKeyDown } from './ux'
@@ -130,7 +130,7 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
       element?.remove()
     }
   }
-  setDisplayMode('candidates')
+  updateCandidateDisplayMode()
 }
 
 export function setCandidates(cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasClientPreedit: boolean, tabActions: CandidateAction[]) {
@@ -191,7 +191,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
   if (!hasPanelPreedit && !hasClientPreedit) {
     collapse()
   }
-  setDisplayMode('candidates')
+  updateCandidateDisplayMode()
 }
 
 export function setCandidateActions(index: number, actions: CandidateAction[]) {

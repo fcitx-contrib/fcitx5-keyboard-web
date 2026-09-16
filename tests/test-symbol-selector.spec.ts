@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { SCROLL_NONE } from '../src/api.d'
-import { getBox, getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, tapReturn, touchDown, WHITE } from './util'
+import { getBox, getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, tapReturn, touchDown, touchUp, WHITE } from './util'
 
 function getSymbolButton(page: Page) {
   return page.getByText('#+=')
@@ -124,3 +124,40 @@ test('Return to see all keys released', async ({ page }) => {
   await expect(k).toHaveCSS('background-color', WHITE)
   await expect(symbolButton).toHaveCSS('background-color', GRAY)
 })
+
+for (const longPress of [false, true]) {
+  test(`Backspace ${longPress ? 'long press' : 'tap'} preserves symbol mode`, async ({ page }) => {
+    await init(page)
+    await tap(getSymbolButton(page))
+
+    const backspace = page.locator('.fcitx-keyboard-return-backspace')
+    const touchId = await touchDown(backspace)
+    if (longPress) {
+      await page.waitForTimeout(400)
+    }
+    else {
+      await touchUp(backspace, touchId)
+    }
+
+    await sendSystemEvent(page, { type: 'PREEDIT', data: {
+      auxUp: '',
+      preedit: '',
+      caret: 0,
+    } })
+    await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+      candidates: [],
+      highlighted: -1,
+      scrollState: SCROLL_NONE,
+      scrollStart: true,
+      scrollEnd: true,
+      hasClientPreedit: false,
+      tabActions: [],
+    } })
+
+    await expect(page.getByText('ā')).toBeVisible()
+    await expect(backspace).toBeVisible()
+    if (longPress) {
+      await touchUp(backspace, touchId)
+    }
+  })
+}
