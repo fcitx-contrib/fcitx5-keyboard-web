@@ -5,7 +5,7 @@ import qwerty from '../fcitx5-keyboard-layouts/layout/qwerty.json'
 import { renderCandidateBar, setCandidateActions, setCandidates, setPreedit } from './candidates'
 import { SYSTEM } from './constant'
 import { hideContextMenu, renderContextmenu } from './contextmenu'
-import { removeCandidatesFromStack, setDisplayMode } from './display'
+import { clearCandidates, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
 import { renderPopover } from './popover'
 import { renderReturnBar } from './return'
@@ -114,7 +114,7 @@ export function onMessage(message: string) {
     // fall through
     case 'CLEAR':
       hideContextMenu()
-      removeCandidatesFromStack()
+      clearCandidates()
       break
     case 'PREEDIT':
       setPreedit(event.data.auxUp, event.data.preedit, event.data.caret)
