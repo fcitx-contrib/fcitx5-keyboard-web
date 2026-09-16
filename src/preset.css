@@ -73,9 +73,22 @@
 
 .fcitx-keyboard-return-bar {
   height: var(--bar-height);
-  padding-left: 2%;
+  padding: 0 2%;
   display: flex;
   align-items: center;
+}
+
+.fcitx-keyboard-return-backspace {
+  display: none;
+  position: relative;
+  width: 15%;
+  height: 100%;
+  margin-left: auto;
+  container-type: size;
+}
+
+.fcitx-keyboard-symbol-mode .fcitx-keyboard-return-backspace {
+  display: block;
 }
 
 .fcitx-keyboard-editor {

@@ -19,6 +19,7 @@ export function setDisplayMode(mode: DisplayMode) {
   const toolbar = document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement
   const candidateBar = getCandidateBar()
   const returnBar = document.querySelector('.fcitx-keyboard-return-bar') as HTMLElement
+  returnBar.classList.toggle('fcitx-keyboard-symbol-mode', mode === 'symbol')
   const keyboard = document.querySelector('.fcitx-keyboard') as HTMLElement
   const editor = document.querySelector('.fcitx-keyboard-editor') as HTMLElement
   const statusArea = getStatusArea()
@@ -83,6 +84,12 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(statusArea)
       showSymbolSelector()
       break
+  }
+}
+
+export function updateCandidateDisplayMode() {
+  if (currentMode === 'initial' || currentMode === 'candidates') {
+    setDisplayMode('candidates')
   }
 }
 
