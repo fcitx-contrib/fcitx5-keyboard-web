@@ -10,7 +10,7 @@ import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
 import { hidePopover, showPopover, updateHighlight } from './popover'
-import { getContainer, getKey, press, release } from './util'
+import { DATA_KEY, getContainer, getKey, isAndroidOrIOS, press, release } from './util'
 
 type TouchState = 'HIT' | 'PRESSING' | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
 
@@ -26,6 +26,7 @@ let spaceKeyLabel = ''
 let inputMethods_: InputMethod[] = []
 const touches: { [key: string]: {
   touch: Touch
+  container?: Element
   state: TouchState
   timer: number | null
   longPress?: LongPress
@@ -91,6 +92,25 @@ export function backspace() {
   sendKeyDown('', 'Backspace')
 }
 
+export function handleBackspace(element: HTMLElement) {
+  element.setAttribute(DATA_KEY, JSON.stringify({ type: 'backspace' }))
+  element.addEventListener('touchstart', (event) => {
+    // Suppress the compatibility click so a tap only deletes once.
+    event.preventDefault()
+    onTouchStart(event, element)
+  })
+  element.addEventListener('touchmove', onTouchMove)
+  element.addEventListener('touchend', onTouchEnd)
+  element.addEventListener('touchcancel', onTouchEnd)
+  if (!isAndroidOrIOS) {
+    element.addEventListener('click', backspace)
+  }
+}
+
+function getTouchContainer(touch: Touch) {
+  return touches[touch.identifier]?.container ?? getContainer(touch)
+}
+
 export function selectCandidate(index: number) {
   sendEvent({ type: 'SELECT_CANDIDATE', data: index })
 }
@@ -106,7 +126,7 @@ function executeActions(actions: Action[]) {
 }
 
 function touchDown(touch: Touch) {
-  const container = getContainer(touch)
+  const container = getTouchContainer(touch)
   const key = getKey(container)
   switch (key?.type) {
     case 'key': {
@@ -160,7 +180,7 @@ function touchDown(touch: Touch) {
 }
 
 function touchUp(touch: Touch) {
-  const container = getContainer(touch)
+  const container = getTouchContainer(touch)
   const key = getKey(container)
   if (key?.type === 'shift') {
     shiftPressed = false
@@ -193,6 +213,10 @@ function interrupt(touchId: number) {
         hidePopover()
     }
   }
+}
+
+export function onTouchInterrupt(event: TouchEvent) {
+  interrupt(event.changedTouches[0].identifier)
 }
 
 function getSwipe(touch: Touch) {
@@ -287,10 +311,10 @@ function longPressRelease(touchId: number) {
   }
 }
 
-export function onTouchStart(event: TouchEvent) {
+export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
   const touch = event.changedTouches[0]
   interrupt(touch.identifier)
-  let container = getContainer(touch)
+  let container = touchContainer ?? getContainer(touch)
   const key = getKey(container)
   let swipeUp: Swipe | undefined
   let timer: number | null = null
@@ -316,10 +340,11 @@ export function onTouchStart(event: TouchEvent) {
     }
   }
   // Must recalculate container as layer may have been changed.
-  container = getContainer(touch)
+  container = touchContainer ?? getContainer(touch)
   container && press(container)
   touches[touch.identifier] = {
     touch,
+    container: touchContainer,
     state,
     timer,
     type: key?.type,
@@ -361,7 +386,7 @@ export function onTouchEnd(event: TouchEvent) {
   interrupt(touchId)
   cancelLongPress(touchId)
   const { touch, state, type } = touches[touchId]
-  const container = getContainer(touch)
+  const container = getTouchContainer(touch)
   container && release(container)
 
   switch (state) {

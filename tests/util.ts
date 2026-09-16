@@ -26,13 +26,8 @@ async function center(locator: Locator) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 }
 }
 
-async function isInside(point: { x: number, y: number }, locator: Locator) {
-  const box = await getBox(locator)
-  return box.x <= point.x && point.x <= box.x + box.width && box.y <= point.y && point.y <= box.y + box.height
-}
-
 function isUnderMask(point: { x: number, y: number }, page: Page) {
-  return isInside(point, page.locator('.fcitx-keyboard-mask'))
+  return page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.classList.contains('fcitx-keyboard-mask') ?? false, point)
 }
 
 let touchId = 0
@@ -54,6 +49,7 @@ export async function touchDown(locator: Locator) {
     const touchEvent = new TouchEvent('touchstart', {
       touches: window.touches,
       changedTouches: [touch],
+      bubbles: true,
     })
     target.dispatchEvent(touchEvent)
   }, { touchId, center: ctr, underMask, element: (await locator.elementHandle())! })
@@ -70,6 +66,7 @@ export async function touchMove(locator: Locator, touchId: number, dx: number, d
     const touchEvent = new TouchEvent('touchmove', {
       touches: window.touches,
       changedTouches: [touch],
+      bubbles: true,
     })
     target.dispatchEvent(touchEvent)
   }, { touchId, dx, dy })
@@ -84,6 +81,7 @@ export function touchUp(locator: Locator, touchId: number, cancel: boolean = fal
     const touchEvent = new TouchEvent(cancel ? 'touchcancel' : 'touchend', {
       touches: window.touches,
       changedTouches: [touch],
+      bubbles: true,
     })
     target.dispatchEvent(touchEvent)
   }, { touchId, cancel })

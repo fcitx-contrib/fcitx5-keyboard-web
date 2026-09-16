@@ -8,7 +8,7 @@ import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { getKeyboardContainer } from './selector'
 import { disable, div, enable, enableScroll, getCandidateBar, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
-import { backspace, DRAG_THRESHOLD, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent, sendKeyDown } from './ux'
+import { DRAG_THRESHOLD, handleBackspace, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
 let touchId: number | null = null
 let longPressId: number | null = null
@@ -348,7 +348,7 @@ export function renderCandidateBar() {
 
   const bs = renderSideButton(Backspace)
   setSvgStyle(bs, { height: '60cqh' })
-  handleClick(bs, backspace)
+  handleBackspace(bs)
 
   const enter = renderSideButton(Enter)
   setSvgStyle(enter, { height: '60cqh' })
