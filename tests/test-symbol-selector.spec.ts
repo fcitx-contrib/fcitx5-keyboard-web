@@ -98,6 +98,20 @@ test('Return doesn\'t clear candidates', async ({ page }) => {
   await expect(candidate).toBeVisible()
 })
 
+for (const type of ['CLEAR', 'HIDE'] as const) {
+  test(`${type} while in symbol resets return mode`, async ({ page }) => {
+    const candidate = await renderCandidateAndClickSymbol(page)
+
+    await sendSystemEvent(page, { type })
+    await expect(page.getByText('ā')).toBeVisible()
+
+    await tapReturn(page)
+    await expect(getKey(page, 'q')).toBeVisible()
+    await expect(candidate).not.toBeVisible()
+    await expect(page.locator('.fcitx-keyboard-toolbar')).toBeVisible()
+  })
+}
+
 test('Return to see all keys released', async ({ page }) => {
   await init(page)
 

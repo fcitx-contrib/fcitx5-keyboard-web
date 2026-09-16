@@ -4,9 +4,18 @@ import { getCandidateBar, getStatusArea, getSymbolSelector, hide, release, show 
 
 export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea' | 'symbol'
 
-const displayModeStack: DisplayMode[] = ['initial']
+let currentMode: DisplayMode = 'initial'
+let returnMode: 'initial' | 'candidates' = 'initial'
 
 export function setDisplayMode(mode: DisplayMode) {
+  if (mode === 'initial') {
+    returnMode = 'initial'
+  }
+  else if (currentMode === 'candidates' && mode === 'symbol') {
+    returnMode = 'candidates'
+  }
+  currentMode = mode
+
   const toolbar = document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement
   const candidateBar = getCandidateBar()
   const returnBar = document.querySelector('.fcitx-keyboard-return-bar') as HTMLElement
@@ -75,31 +84,17 @@ export function setDisplayMode(mode: DisplayMode) {
       showSymbolSelector()
       break
   }
-  if (mode === 'initial') {
-    displayModeStack.splice(0, displayModeStack.length, 'initial')
-  }
-  else if (mode !== displayModeStack.at(-1)) {
-    displayModeStack.push(mode)
-  }
 }
 
-export function popDisplayModeStack() {
-  if (displayModeStack.length >= 2) {
-    const [mode] = displayModeStack.splice(displayModeStack.length - 2)
-    setDisplayMode(mode)
-  }
-  else {
+export function popDisplayMode() {
+  setDisplayMode(returnMode)
+  returnMode = 'initial'
+}
+
+export function clearCandidates() {
+  returnMode = 'initial'
+  if (currentMode === 'candidates') {
     setDisplayMode('initial')
-  }
-}
-
-export function removeCandidatesFromStack() {
-  const index = displayModeStack.indexOf('candidates')
-  if (index === displayModeStack.length - 1) {
-    popDisplayModeStack()
-  }
-  else if (index > 0) {
-    displayModeStack.splice(index, 1)
   }
   collapse()
 }
