@@ -2,7 +2,7 @@ import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import FirstPage from 'bundle-text:../svg/first-page.svg'
 import { div, handleClick, press, release, setSvgStyle } from './util'
-import { backspace, sendEvent, sendKeyDown } from './ux'
+import { handleBackspace, sendEvent, sendKeyDown } from './ux'
 
 let selecting = false
 let selectButton: HTMLElement
@@ -81,7 +81,7 @@ export function renderEditor() {
   handleClick(pasteButton, () => sendEvent({ type: 'PASTE' }))
 
   const bsButton = renderEditorButton(Backspace, '4 / 7 / 5 / 9')
-  handleClick(bsButton, backspace)
+  handleBackspace(bsButton)
 
   const homeButton = renderEditorButton(FirstPage, '4 / 1 / 5 / 4')
   handleClick(homeButton, () => sendKeyDown('', 'Home'))

@@ -14,7 +14,7 @@ import { renderSymbolSelector } from './symbol'
 import { setTheme } from './theme'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
 import { div, hide, isAndroidOrIOS, isFirefox } from './util'
-import { onTouchEnd, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
+import { onTouchEnd, onTouchInterrupt, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
@@ -58,6 +58,7 @@ export function setLayout(id: string, layout: Layout) {
   const invisible = div('fcitx-keyboard-invisible')
 
   const container = div('fcitx-keyboard-container')
+  container.addEventListener('touchstart', onTouchInterrupt)
   for (const element of [
     style,
     toolbar,
