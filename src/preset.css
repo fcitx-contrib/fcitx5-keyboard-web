@@ -87,6 +87,14 @@
   container-type: size;
 }
 
+.fcitx-keyboard-return-bar .fcitx-keyboard-symbol-lock {
+  display: none;
+}
+
+.fcitx-keyboard-symbol-mode .fcitx-keyboard-symbol-lock {
+  display: flex;
+}
+
 .fcitx-keyboard-symbol-mode .fcitx-keyboard-return-backspace {
   display: block;
 }

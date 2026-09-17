@@ -1,4 +1,5 @@
 import { popDisplayMode } from './display'
+import { isSymbolLocked } from './symbolState'
 import { div, enableScroll, handleClick, press, release } from './util'
 import { sendEvent } from './ux'
 
@@ -33,8 +34,9 @@ export function selectCategory(index: number) {
         const symbolItem = div('fcitx-keyboard-symbol-item')
         symbolItem.textContent = symbol
         handleClick(symbolItem, () => {
-          // TODO: make it configurable to stay in symbol.
-          popDisplayMode()
+          if (!isSymbolLocked()) {
+            popDisplayMode()
+          }
           sendEvent({ type: 'COMMIT', data: symbol })
         })
         panel.appendChild(symbolItem)
