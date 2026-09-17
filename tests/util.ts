@@ -122,5 +122,5 @@ export function getToolbarButton(page: Page, nth: number) {
 }
 
 export function tapReturn(page: Page) {
-  return page.locator('.fcitx-keyboard-return-bar .fcitx-keyboard-toolbar-button').tap()
+  return page.locator('.fcitx-keyboard-return-button').tap()
 }

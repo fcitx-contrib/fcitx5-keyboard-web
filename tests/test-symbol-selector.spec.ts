@@ -19,6 +19,34 @@ test('Commit', async ({ page }) => {
   ])
 })
 
+test('Lock', async ({ page }) => {
+  await init(page)
+  const lock = page.locator('.fcitx-keyboard-symbol-lock')
+  await expect(lock).toBeHidden()
+
+  await tap(getSymbolButton(page))
+  await expect(lock).toBeVisible()
+  await expect(lock).toHaveAttribute('aria-pressed', 'false')
+
+  await lock.tap()
+  await expect(lock).toHaveAttribute('aria-pressed', 'true')
+  await page.getByText('ā').tap()
+  await expect(page.getByText('á')).toBeVisible()
+
+  await tapReturn(page)
+  await tap(getSymbolButton(page))
+  await expect(lock).toHaveAttribute('aria-pressed', 'true')
+
+  await lock.tap()
+  await expect(lock).toHaveAttribute('aria-pressed', 'false')
+  await page.getByText('á').tap()
+  await expect(getKey(page, 'q')).toBeVisible()
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'COMMIT', data: 'ā' },
+    { type: 'COMMIT', data: 'á' },
+  ])
+})
+
 test('Reset scroll state', async ({ page }) => {
   await init(page)
 
