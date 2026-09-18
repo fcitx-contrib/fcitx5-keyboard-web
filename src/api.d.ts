@@ -31,9 +31,14 @@ export const SCROLL_READY = 1
 export const SCROLLING = 2
 export type ScrollState = typeof SCROLL_NONE | typeof SCROLL_READY | typeof SCROLLING
 
+export type InputType = 'text' | 'number' | 'password' | 'tel' | 'email' | 'url' | 'search'
+
 export type SystemEvent = {
   type: 'ENTER_KEY_TYPE'
   data: string
+} | {
+  type: 'INPUT_TYPE'
+  data: InputType
 } | {
   type: 'CLEAR' | 'HIDE' | 'SELECT' | 'DESELECT'
 } | {
