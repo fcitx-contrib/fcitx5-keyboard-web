@@ -52,7 +52,12 @@ export function renderKey(key: Key, context: Context) {
     case 'space': {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-space')
-      setSpaceKeyLabel(el, getSpaceKeyLabel())
+      if (key.commit) {
+        el.textContent = ''
+      }
+      else {
+        setSpaceKeyLabel(el, getSpaceKeyLabel())
+      }
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
       break
@@ -72,6 +77,10 @@ export function renderKey(key: Key, context: Context) {
       const el = div('fcitx-keyboard-key')
       el.classList.add('fcitx-keyboard-symbol')
       el.textContent = '#+='
+      const label = div('fcitx-keyboard-sub-label')
+      label.classList.add('fcitx-keyboard-key-top', 'fcitx-keyboard-key-right')
+      label.textContent = '123'
+      el.appendChild(label)
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
       break

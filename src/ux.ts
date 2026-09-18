@@ -45,6 +45,8 @@ export const LONG_PRESS_THRESHOLD = 300
 const KEY_REPEAT_INTERVAL = 80 // Same with iOS.
 export const DRAG_THRESHOLD = 10 // radius^2
 const SWIPE_THRESHOLD = 10
+const numpadSwipe: Swipe = { label: '123', actions: [] }
+const numpadLongPress: LongPress = { cells: [numpadSwipe], index: 0 }
 
 function dragged(touch: Touch) {
   const { clientX: startX, clientY: startY } = touches[touch.identifier].touch
@@ -60,6 +62,16 @@ function cancelLongPress(touchId: number) {
     clearTimeout(timer)
     touches[touchId].timer = null
   }
+}
+
+export function cancelPendingTouches() {
+  for (const [id, { touch }] of Object.entries(touches)) {
+    cancelLongPress(Number(id))
+    const container = getTouchContainer(touch)
+    container && release(container)
+    touches[id].state = 'INTERRUPTED'
+  }
+  hidePopover()
 }
 
 export function setLayout(layout: Layout) {
@@ -130,7 +142,12 @@ function touchDown(touch: Touch) {
   const key = getKey(container)
   switch (key?.type) {
     case 'key': {
-      sendKeyDown(key.key ?? '', key.code ?? '')
+      if (key.commit) {
+        sendEvent({ type: 'COMMIT', data: key.key ?? '' })
+      }
+      else {
+        sendKeyDown(key.key ?? '', key.code ?? '')
+      }
       if (shiftPressed) {
         keyPressedWithShiftPressed = true
       }
@@ -144,7 +161,15 @@ function touchDown(touch: Touch) {
       break
     }
     case 'space': {
-      sendKeyDown(' ', 'Space')
+      if (key.commit) {
+        sendEvent({ type: 'COMMIT', data: ' ' })
+        if (currentLayer === 'shift' && !layerLocked) {
+          setLayer('default', false)
+        }
+      }
+      else {
+        sendKeyDown(' ', 'Space')
+      }
       break
     }
     case 'backspace': {
@@ -269,8 +294,14 @@ function doSwipe(touch: Touch) {
 }
 
 function swipeRelease(touch: Touch) {
+  const { type } = touches[touch.identifier]
   const swipeUp = getSwipe(touch)
-  swipeUp && executeActions(swipeUp.actions)
+  if (type === 'symbol' && swipeUp) {
+    setDisplayMode('numpad')
+  }
+  else {
+    swipeUp && executeActions(swipeUp.actions)
+  }
   if (currentLayer === 'shift' && !layerLocked) {
     setLayer('default', false)
   }
@@ -303,9 +334,14 @@ function moveHighlight(touch: Touch) {
 }
 
 function longPressRelease(touchId: number) {
-  const { longPress, index } = touches[touchId]
-  const actions = longPress?.cells[index].actions
-  actions && executeActions(actions)
+  const { longPress, index, type } = touches[touchId]
+  if (type === 'symbol') {
+    setDisplayMode('numpad')
+  }
+  else {
+    const actions = longPress?.cells[index].actions
+    actions && executeActions(actions)
+  }
   if (currentLayer === 'shift' && !layerLocked) {
     setLayer('default', false)
   }
@@ -336,6 +372,11 @@ export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
           timer = window.setTimeout(longPressHandler, LONG_PRESS_THRESHOLD, touch.identifier, container)
           longPress = key.longPress
         }
+        break
+      case 'symbol':
+        swipeUp = numpadSwipe
+        longPress = numpadLongPress
+        timer = window.setTimeout(longPressHandler, LONG_PRESS_THRESHOLD, touch.identifier, container)
         break
     }
   }
@@ -403,6 +444,7 @@ export function onTouchEnd(event: TouchEvent) {
           sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
           break
         case 'key':
+        case 'symbol':
           swipeRelease(event.changedTouches[0])
           break
       }
@@ -444,11 +486,9 @@ export function getEnterKeyInnerHTML() {
 
 export function setEnterKeyType(label: string) {
   enterKeyType = label
-  const enter = document.querySelector('.fcitx-keyboard-enter')
-  if (!enter) {
-    return
+  for (const enter of document.querySelectorAll('.fcitx-keyboard-enter, .fcitx-keyboard-numpad-enter')) {
+    enter.innerHTML = getEnterKeyInnerHTML()
   }
-  enter.innerHTML = getEnterKeyInnerHTML()
 }
 
 export function getSpaceKeyLabel() {

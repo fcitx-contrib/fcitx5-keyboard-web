@@ -5,12 +5,13 @@ import Unlock from 'bundle-text:../svg/unlock.svg'
 import { popDisplayMode } from './display'
 import { isSymbolLocked, toggleSymbolLock } from './symbolState'
 import { div, handleClick, renderToolbarButton } from './util'
-import { handleBackspace } from './ux'
+import { cancelPendingTouches, handleBackspace } from './ux'
 
 export function renderReturnBar() {
   const returnBar = div('fcitx-keyboard-return-bar')
   const returnButton = renderToolbarButton(ArrowLeft)
   returnButton.classList.add('fcitx-keyboard-return-button')
+  returnButton.addEventListener('touchstart', cancelPendingTouches)
   handleClick(returnButton, () => {
     popDisplayMode()
   })

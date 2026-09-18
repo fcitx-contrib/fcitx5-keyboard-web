@@ -1,8 +1,8 @@
 import { collapse } from './candidates'
 import { selectCategory } from './symbol'
-import { getCandidateBar, getStatusArea, getSymbolSelector, hide, release, show } from './util'
+import { getCandidateBar, getNumpad, getStatusArea, getSymbolSelector, hide, release, show } from './util'
 
-export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea' | 'symbol'
+export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea' | 'symbol' | 'numpad'
 
 let currentMode: DisplayMode = 'initial'
 let returnMode: 'initial' | 'candidates' = 'initial'
@@ -11,7 +11,7 @@ export function setDisplayMode(mode: DisplayMode) {
   if (mode === 'initial') {
     returnMode = 'initial'
   }
-  else if (currentMode === 'candidates' && mode === 'symbol') {
+  else if (currentMode === 'candidates' && (mode === 'symbol' || mode === 'numpad')) {
     returnMode = 'candidates'
   }
   currentMode = mode
@@ -24,6 +24,7 @@ export function setDisplayMode(mode: DisplayMode) {
   const editor = document.querySelector('.fcitx-keyboard-editor') as HTMLElement
   const statusArea = getStatusArea()
   const symbolSelector = getSymbolSelector()
+  const numpad = getNumpad()
 
   function showSymbolSelector() {
     show(symbolSelector)
@@ -47,6 +48,7 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(editor)
       hide(statusArea)
       hide(symbolSelector)
+      hide(numpad)
       break
     case 'candidates':
       hide(toolbar)
@@ -56,6 +58,7 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(editor)
       hide(statusArea)
       hide(symbolSelector)
+      hide(numpad)
       break
     case 'edit':
       hide(toolbar)
@@ -65,6 +68,7 @@ export function setDisplayMode(mode: DisplayMode) {
       show(editor)
       hide(statusArea)
       hide(symbolSelector)
+      hide(numpad)
       break
     case 'statusArea':
       hide(toolbar)
@@ -74,6 +78,7 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(editor)
       show(statusArea)
       hide(symbolSelector)
+      hide(numpad)
       break
     case 'symbol':
       hide(toolbar)
@@ -83,6 +88,17 @@ export function setDisplayMode(mode: DisplayMode) {
       hide(editor)
       hide(statusArea)
       showSymbolSelector()
+      hide(numpad)
+      break
+    case 'numpad':
+      hide(toolbar)
+      hide(candidateBar)
+      show(returnBar)
+      hideKeyboard()
+      hide(editor)
+      hide(statusArea)
+      hide(symbolSelector)
+      show(numpad)
       break
   }
 }
