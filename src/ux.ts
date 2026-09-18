@@ -64,6 +64,16 @@ function cancelLongPress(touchId: number) {
   }
 }
 
+export function cancelPendingTouches() {
+  for (const [id, { touch }] of Object.entries(touches)) {
+    cancelLongPress(Number(id))
+    const container = getTouchContainer(touch)
+    container && release(container)
+    touches[id].state = 'INTERRUPTED'
+  }
+  hidePopover()
+}
+
 export function setLayout(layout: Layout) {
   layout_ = layout
 }

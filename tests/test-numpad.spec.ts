@@ -38,6 +38,23 @@ test('Long press symbol opens numpad', async ({ page }) => {
   await expect(getNumpad(page)).toBeVisible()
 })
 
+test('Return cancels a pending numpad key', async ({ page }) => {
+  await init(page)
+
+  const symbolButton = getSymbolButton(page)
+  const symbolTouchId = await touchDown(symbolButton)
+  await touchMove(symbolButton, symbolTouchId, 0, -20)
+  await touchUp(symbolButton, symbolTouchId)
+
+  const one = getNumpad(page).getByText('1', { exact: true })
+  const oneTouchId = await touchDown(one)
+  await tapReturn(page)
+  expect(await getSentEvents(page)).toEqual([])
+
+  await touchUp(one, oneTouchId)
+  expect(await getSentEvents(page)).toEqual([])
+})
+
 test('Numpad commits keys', async ({ page }) => {
   await init(page)
 
