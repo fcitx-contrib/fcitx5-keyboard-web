@@ -1,5 +1,10 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchUp, WHITE } from './util'
+import { getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, tapReturn, touchDown, touchUp, WHITE } from './util'
+
+function getNumpad(page: Page) {
+  return page.locator('.fcitx-keyboard-numpad')
+}
 
 test('Click', async ({ page }) => {
   await init(page)
@@ -88,4 +93,27 @@ test('HIDE event', async ({ page }) => {
 
   await sendSystemEvent(page, { type: 'HIDE' })
   await expect(q).toHaveText('q1')
+})
+
+test('Number input type opens numpad', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'number' })
+
+  const numpad = getNumpad(page)
+  await expect(numpad).toBeVisible()
+  await expect(numpad.locator('.fcitx-keyboard-row')).toHaveCount(4)
+
+  await tap(numpad.getByText('1', { exact: true }))
+  await tap(numpad.getByText('2', { exact: true }))
+  await tap(numpad.getByText('3', { exact: true }))
+
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'COMMIT', data: '1' },
+    { type: 'COMMIT', data: '2' },
+    { type: 'COMMIT', data: '3' },
+  ])
+
+  await tapReturn(page)
+  await expect(getKey(page, 'q')).toBeVisible()
 })

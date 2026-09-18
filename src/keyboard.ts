@@ -1,4 +1,4 @@
-import type { SystemEvent } from './api'
+import type { InputType, SystemEvent } from './api'
 import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../fcitx5-keyboard-layouts/layout/qwerty.json'
@@ -115,6 +115,9 @@ export function onMessage(message: string) {
     case 'ENTER_KEY_TYPE':
       setEnterKeyType(event.data)
       break
+    case 'INPUT_TYPE':
+      handleInputType(event.data)
+      break
     case 'HIDE':
       setLayer('default', false)
     // fall through
@@ -145,5 +148,14 @@ export function onMessage(message: string) {
       return enableUndo(event.data)
     case 'REDO':
       return enableRedo(event.data)
+  }
+}
+
+function handleInputType(type: InputType) {
+  if (type === 'number') {
+    setDisplayMode('numpad')
+  }
+  else {
+    setDisplayMode('initial')
   }
 }
