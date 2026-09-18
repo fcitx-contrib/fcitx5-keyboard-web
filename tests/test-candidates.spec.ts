@@ -317,6 +317,44 @@ function expandOrCollapse(page: Page) {
   return page.locator('.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button').click()
 }
 
+test('Collapse keyboard instead of expanding empty candidates', async ({ page }) => {
+  await init(page)
+  const container = getContainer(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: generateCandidates(0, 10),
+    highlighted: 0,
+    scrollState: SCROLLING,
+    scrollStart: true,
+    scrollEnd: false,
+    hasClientPreedit: true,
+    tabActions: [],
+  } })
+  await expandOrCollapse(page)
+  await expect(container).toContainClass('fcitx-keyboard-expanded')
+
+  await sendSystemEvent(page, { type: 'PREEDIT', data: {
+    auxUp: 'Input Method',
+    preedit: '',
+    caret: 0,
+  } })
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    candidates: [],
+    highlighted: -1,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
+    hasClientPreedit: false,
+    tabActions: [],
+  } })
+
+  await expect(container).not.toContainClass('fcitx-keyboard-expanded')
+  await expandOrCollapse(page)
+
+  await expect(container).not.toContainClass('fcitx-keyboard-expanded')
+  expect(await getSentEvents(page)).toEqual([{ type: 'COLLAPSE' }])
+})
+
 test('Expand/collapse', async ({ page }) => {
   await init(page)
 

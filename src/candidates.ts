@@ -188,7 +188,8 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
     container.appendChild(candidate)
   }
   setPagingButtons(container)
-  if (!hasPanelPreedit && !hasClientPreedit) {
+  if (!container.childElementCount || (!hasPanelPreedit && !hasClientPreedit)) {
+    // Empty candidate lists cannot be expanded; collapse predictions so users can keep typing.
     collapse()
   }
   updateCandidateDisplayMode()
@@ -296,7 +297,10 @@ export function renderCandidateBar() {
   })
   const button = renderToolbarButton(ChevronLeft)
   handleClick(button, () => {
-    if (scrollDirection === 'HORIZONTAL') {
+    if (!list.childElementCount) {
+      sendEvent({ type: 'COLLAPSE' })
+    }
+    else if (scrollDirection === 'HORIZONTAL') {
       expand()
     }
     else {
