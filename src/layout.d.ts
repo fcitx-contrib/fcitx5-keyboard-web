@@ -21,6 +21,7 @@ export interface NormalKey {
   label: string
   key?: string
   code?: string
+  commit?: boolean
   subLabel?: {
     topRight: string
   }
@@ -38,6 +39,7 @@ export interface BackspaceKey {
 
 export interface SpaceKey {
   type: 'space'
+  commit?: boolean
 }
 
 export interface EnterKey {

@@ -7,6 +7,7 @@ import { SYSTEM } from './constant'
 import { hideContextMenu, renderContextmenu } from './contextmenu'
 import { clearCandidates, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
+import { renderNumpad } from './numpad'
 import { renderPopover } from './popover'
 import { renderReturnBar } from './return'
 import { renderStatusArea, setStatusArea } from './statusArea'
@@ -30,6 +31,9 @@ export function setLayout(id: string, layout: Layout) {
 
   const keyboard = div('fcitx-keyboard')
   keyboard.classList.add('fcitx-keyboard-frame')
+
+  const numpad = renderNumpad()
+  numpad.classList.add('fcitx-keyboard-frame')
 
   // Use a mask layer above the keyboard to handle all events, otherwise
   // layer change will destroy event target thus make touchend not fired.
@@ -65,6 +69,7 @@ export function setLayout(id: string, layout: Layout) {
     candidateBar,
     returnBar,
     keyboard,
+    numpad,
     mask,
     editor,
     statusArea,

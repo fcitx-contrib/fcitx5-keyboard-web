@@ -388,6 +388,11 @@
   flex: 1; /* calc(100% - toolbar.height) */
 }
 
+.fcitx-keyboard-numpad {
+  display: flex;
+  flex-direction: column;
+}
+
 .fcitx-keyboard-frame {
   position: absolute;
   top: var(--bar-height);
@@ -427,19 +432,19 @@
   height: 60cqh;
 }
 
-.fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol) {
+.fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol, .fcitx-keyboard-numpad-backspace, .fcitx-keyboard-numpad-enter) {
   background-color: var(--function-key-color);
 }
 
-.fcitx-keyboard-pressed .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol) {
+.fcitx-keyboard-pressed .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol, .fcitx-keyboard-numpad-backspace, .fcitx-keyboard-numpad-enter) {
   background-color: var(--pressed-function-key-color);
 }
 
-.fcitx-keyboard-key.fcitx-keyboard-backspace svg {
+.fcitx-keyboard-key:is(.fcitx-keyboard-backspace, .fcitx-keyboard-numpad-backspace) svg {
   height: 60cqh;
 }
 
-.fcitx-keyboard-key.fcitx-keyboard-enter svg {
+.fcitx-keyboard-key:is(.fcitx-keyboard-enter, .fcitx-keyboard-numpad-enter) svg {
   height: 60cqh;
 }
 

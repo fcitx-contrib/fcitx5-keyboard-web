@@ -83,6 +83,10 @@ export function getSymbolSelector() {
   return document.querySelector('.fcitx-keyboard-symbol-selector') as HTMLElement
 }
 
+export function getNumpad() {
+  return document.querySelector('.fcitx-keyboard-numpad') as HTMLElement
+}
+
 export function setSvgStyle(container: HTMLElement, style: { [key: string]: string }) {
   const svg = container.querySelector('svg') as SVGElement
   for (const [k, v] of Object.entries(style)) {
