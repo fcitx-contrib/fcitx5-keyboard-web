@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { getKey, getSentEvents, init, tap, tapReturn, touchDown, touchMove, touchUp } from './util'
+import { SCROLL_NONE } from '../src/api.d'
+import { getKey, getSentEvents, init, sendSystemEvent, tap, tapReturn, touchDown, touchMove, touchUp } from './util'
 
 function getSymbolButton(page: Page) {
   return page.locator('.fcitx-keyboard-symbol')
@@ -125,3 +126,34 @@ test('Status area button on numpad opens status area and returns to numpad', asy
   await expect(getNumpad(page)).toBeVisible()
   await expect(page.locator('.fcitx-keyboard-status-area')).toBeHidden()
 })
+
+for (const { name, buttonIndex, surface } of [
+  { name: 'editor', buttonIndex: 3, surface: '.fcitx-keyboard-editor' },
+  { name: 'status area', buttonIndex: 5, surface: '.fcitx-keyboard-status-area' },
+]) {
+  test(`Numpad returns to initial mode after opening ${name} from candidates`, async ({ page }) => {
+    await init(page)
+    await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+      candidates: [{ text: '一', label: '1', comment: '' }],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    } })
+    await expect(page.locator('.fcitx-keyboard-candidates')).toBeVisible()
+
+    await openNumpad(page)
+    expect(await getSentEvents(page)).toEqual([{ type: 'COMMIT', data: '' }])
+    const toolbarButton = page.locator('.fcitx-keyboard-toolbar .fcitx-keyboard-toolbar-button:visible').nth(buttonIndex)
+    await toolbarButton.tap()
+    await expect(page.locator(surface)).toBeVisible()
+
+    await tapReturn(page)
+    await expect(getNumpad(page)).toBeVisible()
+    await tapReturn(page)
+    await expect(getKey(page, 'q')).toBeVisible()
+    await expect(page.locator('.fcitx-keyboard-candidates')).toBeHidden()
+  })
+}

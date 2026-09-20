@@ -3,7 +3,7 @@ import { collapse } from './candidates'
 import { selectCategory } from './symbol'
 import { renderToolbarPlaceholder } from './toolbar'
 import { getCandidateBar, getNumpad, getStatusArea, getSymbolSelector, handleClick, hide, release, renderToolbarButton, show } from './util'
-import { cancelPendingTouches } from './ux'
+import { cancelPendingTouches, sendEvent } from './ux'
 
 export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea' | 'symbol' | 'numpad'
 
@@ -12,16 +12,20 @@ let returnMode: 'initial' | 'candidates' | 'numpad' = 'initial'
 let toolbarReturnButton: HTMLElement | null = null
 
 export function setDisplayMode(mode: DisplayMode) {
-  if (mode === 'initial') {
+  const shouldResetInput = currentMode === 'candidates' && mode === 'numpad'
+  if (mode === 'initial' || mode === 'numpad') {
     returnMode = 'initial'
   }
-  else if (currentMode === 'candidates' && (mode === 'symbol' || mode === 'numpad')) {
+  else if (currentMode === 'candidates' && mode === 'symbol') {
     returnMode = 'candidates'
   }
   else if (currentMode === 'numpad' && (mode === 'edit' || mode === 'statusArea')) {
     returnMode = 'numpad'
   }
   currentMode = mode
+  if (shouldResetInput) {
+    sendEvent({ type: 'COMMIT', data: '' })
+  }
 
   const toolbar = document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement
   const candidateBar = getCandidateBar()
