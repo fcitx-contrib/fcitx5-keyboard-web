@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import { getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn } from './util'
 
 function gotoEditor(page: Page) {
-  return getToolbarButton(page, 3).tap()
+  return getToolbarButton(page, 4).tap()
 }
 
 function getSelectButton(page: Page) {

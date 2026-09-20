@@ -35,8 +35,15 @@ function renderDisableButton(icon: string, enabled: () => boolean) {
   return button
 }
 
+export function renderToolbarPlaceholder() {
+  const ph = div('fcitx-keyboard-toolbar-placeholder')
+  ph.classList.add('fcitx-keyboard-toolbar-button')
+  return ph
+}
+
 export function renderToolbar() {
   const toolbar = div('fcitx-keyboard-toolbar')
+  toolbar.appendChild(renderToolbarPlaceholder())
 
   undoButton = renderDisableButton(Undo, () => isUndoEnabled)
   handleClick(undoButton, () => isUndoEnabled && undo())

@@ -186,7 +186,6 @@
 
 .fcitx-keyboard-toolbar {
   height: var(--bar-height);
-  padding-left: 15%;
   display: flex;
   align-items: center;
   justify-content: space-between;
