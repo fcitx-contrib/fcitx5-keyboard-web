@@ -9,7 +9,7 @@ type Surface = 'keyboard' | 'candidates' | 'editor' | 'symbol'
 async function initSurface(page: Page, surface: Surface) {
   await init(page)
   if (surface === 'editor') {
-    await getToolbarButton(page, 3).tap()
+    await getToolbarButton(page, 4).tap()
     return page.locator('.fcitx-keyboard-editor-button-container').nth(8)
   }
   if (surface === 'symbol') {

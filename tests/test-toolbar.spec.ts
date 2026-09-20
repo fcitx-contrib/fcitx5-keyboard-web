@@ -4,7 +4,7 @@ import { DISABLED, ENABLED, getSentEvents, getToolbarButton, init, sendSystemEve
 test('Undo', async ({ page }) => {
   await init(page)
 
-  const undo = getToolbarButton(page, 1)
+  const undo = getToolbarButton(page, 2)
   const svg = undo.locator('svg')
   await expect(svg).toHaveCSS('color', ENABLED)
 
@@ -33,7 +33,7 @@ test('Undo', async ({ page }) => {
 test('Redo', async ({ page }) => {
   await init(page)
 
-  const redo = getToolbarButton(page, 2)
+  const redo = getToolbarButton(page, 3)
   const svg = redo.locator('svg')
   await expect(svg).toHaveCSS('color', ENABLED)
 
@@ -62,7 +62,7 @@ test('Redo', async ({ page }) => {
 test('Collapse', async ({ page }) => {
   await init(page)
 
-  const collapse = getToolbarButton(page, 6)
+  const collapse = getToolbarButton(page, 7)
   await collapse.tap()
   expect(await getSentEvents(page)).toEqual([{
     type: 'COLLAPSE',

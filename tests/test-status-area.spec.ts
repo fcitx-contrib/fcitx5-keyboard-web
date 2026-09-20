@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import { getBox, getContainer, getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn } from './util'
 
 function gotoStatusArea(page: Page) {
-  return getToolbarButton(page, 5).tap()
+  return getToolbarButton(page, 6).tap()
 }
 
 test('Simplified and traditional', async ({ page }) => {
