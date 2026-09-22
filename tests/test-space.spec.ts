@@ -94,7 +94,7 @@ test('Continuous slide shouldn\'t be interrupted by setCandidates', async ({ pag
   await expect(space).toHaveCSS('background-color', GRAY)
 
   // When preedit exists, sliding space may move cursor thus change candidates.
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: { highlighted: 0, candidates: [{
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: { inputContext: 'context', generation: 1, highlighted: 0, candidates: [{
     text: '一',
     label: '1',
     comment: '',

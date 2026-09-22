@@ -18,6 +18,8 @@ async function initSurface(page: Page, surface: Surface) {
   }
   if (surface === 'candidates') {
     await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+      inputContext: 'context',
+      generation: 1,
       candidates: [{ text: '词', label: '', comment: '' }],
       highlighted: 0,
       scrollState: SCROLLING,

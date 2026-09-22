@@ -2,7 +2,7 @@ import type { InputType, SystemEvent } from './api'
 import type { BUILTIN_LAYOUT, Layout } from './layout'
 import presetCss from 'bundle-text:./preset.css'
 import qwerty from '../fcitx5-keyboard-layouts/layout/qwerty.json'
-import { renderCandidateBar, setCandidateActions, setCandidates, setPreedit } from './candidates'
+import { clearCandidateContext, renderCandidateBar, setCandidateActions, setCandidates, setPreedit } from './candidates'
 import { SYSTEM } from './constant'
 import { hideContextMenu, renderContextmenu } from './contextmenu'
 import { clearCandidates, setDisplayMode } from './display'
@@ -123,19 +123,20 @@ export function onMessage(message: string) {
     // fall through
     case 'CLEAR':
       hideContextMenu()
+      clearCandidateContext()
       clearCandidates()
       break
     case 'PREEDIT':
       setPreedit(event.data.auxUp, event.data.preedit, event.data.caret)
       break
     case 'CANDIDATES':
-      setCandidates(event.data.candidates, event.data.highlighted, event.data.scrollState, event.data.scrollStart, event.data.scrollEnd, event.data.hasClientPreedit, event.data.tabActions || [])
+      setCandidates(event.data.inputContext, event.data.generation, event.data.candidates, event.data.highlighted, event.data.scrollState, event.data.scrollStart, event.data.scrollEnd, event.data.hasClientPreedit, event.data.tabActions || [])
       break
     case 'CANDIDATE_ACTIONS':
-      setCandidateActions(event.data.index, event.data.actions)
+      setCandidateActions(event.data.inputContext, event.data.generation, event.data.index, event.data.actions)
       break
     case 'STATUS_AREA':
-      setStatusArea(event.data)
+      setStatusArea(event.data.inputContext, event.data.generation, event.data.actions)
       break
     case 'INPUT_METHODS':
       setInputMethods(event.data.inputMethods, event.data.currentInputMethod)

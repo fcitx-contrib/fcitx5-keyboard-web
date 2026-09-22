@@ -1,4 +1,4 @@
-import type { Candidate, CandidateAction, ScrollState } from './api.d'
+import type { Candidate, CandidateAction, InputContextEvent, ScrollState } from './api.d'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
@@ -18,8 +18,9 @@ let scrollState_: ScrollState = SCROLL_NONE
 let scrollEnd_ = true
 let fetching = false
 let scrollDirection: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL'
+let candidateContext: InputContextEvent | null = null
 
-function renderTabAction(action: CandidateAction) {
+function renderTabAction(context: InputContextEvent, action: CandidateAction) {
   const tab = div('fcitx-keyboard-candidate-tab')
   const tabInner = div('fcitx-keyboard-candidate-tab-inner')
   tabInner.textContent = action.text
@@ -30,11 +31,11 @@ function renderTabAction(action: CandidateAction) {
   tab.addEventListener('touchstart', () => press(tab))
   tab.addEventListener('touchend', () => release(tab))
   tab.addEventListener('touchcancel', () => release(tab))
-  handleClick(tab, () => sendEvent({ type: 'CANDIDATE_TAB_ACTION', data: action.id }))
+  handleClick(tab, () => sendEvent({ type: 'CANDIDATE_TAB_ACTION', data: { ...context, id: action.id } }))
   return tab
 }
 
-function setTabActions(actions: CandidateAction[]) {
+function setTabActions(context: InputContextEvent, actions: CandidateAction[]) {
   const bar = getCandidateBar()
   const tabs = bar.querySelector('.fcitx-keyboard-candidate-tabs') as HTMLElement
   const scrollableTabs = tabs.querySelector('.fcitx-keyboard-candidate-tabs-scrollable') as HTMLElement
@@ -45,10 +46,10 @@ function setTabActions(actions: CandidateAction[]) {
   const scrollableActions = index !== -1 ? actions.slice(0, index) : actions
   const pinnedActions = index !== -1 ? actions.slice(index + 1).filter(action => !action.separator) : []
   for (const action of scrollableActions) {
-    scrollableTabs.appendChild(renderTabAction(action))
+    scrollableTabs.appendChild(renderTabAction(context, action))
   }
   for (const action of pinnedActions) {
-    pinnedTabs.appendChild(renderTabAction(action))
+    pinnedTabs.appendChild(renderTabAction(context, action))
   }
   bar.classList.toggle('fcitx-keyboard-has-tab-actions', actions.length > 0)
 }
@@ -133,11 +134,13 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
   updateCandidateDisplayMode()
 }
 
-export function setCandidates(cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasClientPreedit: boolean, tabActions: CandidateAction[]) {
+export function setCandidates(inputContext: string, generation: number, cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasClientPreedit: boolean, tabActions: CandidateAction[]) {
+  const context = { inputContext, generation }
+  candidateContext = context
   scrollState_ = scrollState
   touchId = null
   longPressId = null
-  setTabActions(scrollState === SCROLLING ? tabActions : [])
+  setTabActions(context, scrollState === SCROLLING ? tabActions : [])
   const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates')!
   if (scrollState !== SCROLLING || scrollStart) {
     container.scroll({ left: 0, top: 0 })
@@ -161,7 +164,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
       cancelLongPress()
       longPressId = window.setTimeout(() => {
         longPressId = null
-        sendEvent({ type: 'ASK_CANDIDATE_ACTIONS', data: offset + i })
+        sendEvent({ type: 'ASK_CANDIDATE_ACTIONS', data: { ...context, index: offset + i } })
       }, LONG_PRESS_THRESHOLD)
       touchId = event.changedTouches[0].identifier
     })
@@ -177,7 +180,7 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
       const touch = event.changedTouches[0]
       if (touchId === touch.identifier) {
         if (longPressId && !dragged(touch)) {
-          selectCandidate(offset + i)
+          selectCandidate(context, offset + i)
         }
         cancelLongPress()
       }
@@ -195,7 +198,11 @@ export function setCandidates(cands: Candidate[], highlighted: number, scrollSta
   updateCandidateDisplayMode()
 }
 
-export function setCandidateActions(index: number, actions: CandidateAction[]) {
+export function setCandidateActions(inputContext: string, generation: number, index: number, actions: CandidateAction[]) {
+  if (candidateContext?.inputContext !== inputContext || candidateContext.generation !== generation) {
+    return
+  }
+  const context = { inputContext, generation }
   const candidate = document.querySelectorAll('.fcitx-keyboard-candidate')[index]
   if (!candidate) {
     return
@@ -203,6 +210,7 @@ export function setCandidateActions(index: number, actions: CandidateAction[]) {
   showContextmenu(candidate, actions.map(action => ({
     text: action.text,
     callback: () => sendEvent({ type: 'CANDIDATE_ACTION', data: {
+      ...context,
       index,
       id: action.id,
     } }),
@@ -288,11 +296,15 @@ export function renderCandidateBar() {
     const box = list.getBoundingClientRect()
     if (scrollDirection === 'HORIZONTAL' && left < box.right * 1.5) {
       fetching = true
-      sendEvent({ type: 'SCROLL', data: { start: list.childElementCount, count: 20 } })
+      if (candidateContext) {
+        sendEvent({ type: 'SCROLL', data: { ...candidateContext, start: list.childElementCount, count: 20 } })
+      }
     }
     else if (scrollDirection === 'VERTICAL' && top - box.bottom < box.height) {
       fetching = true
-      sendEvent({ type: 'SCROLL', data: { start: list.childElementCount, count: 25 } })
+      if (candidateContext) {
+        sendEvent({ type: 'SCROLL', data: { ...candidateContext, start: list.childElementCount, count: 25 } })
+      }
     }
   })
   const button = renderToolbarButton(ChevronLeft)
@@ -362,4 +374,8 @@ export function renderCandidateBar() {
   side.append(pageUp, pageDown, bs, enter)
   bar.append(container, button, side)
   return bar
+}
+
+export function clearCandidateContext() {
+  candidateContext = null
 }

@@ -22,6 +22,8 @@ test('Show and clear', async ({ page }) => {
   const toolbar = page.locator('.fcitx-keyboard-toolbar')
   const candidateBar = getCandidateBar(page)
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: [
       { text: '一', label: '1', comment: '' },
       { text: '1️⃣', label: '2', comment: '' },
@@ -46,6 +48,8 @@ test('Select', async ({ page }) => {
 
   const candidateBar = getCandidateBar(page)
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: [
       { text: '一', label: '1', comment: '' },
       { text: '1️⃣', label: '2', comment: '' },
@@ -62,7 +66,54 @@ test('Select', async ({ page }) => {
   await firstCandidate.tap()
   expect(await getSentEvents(page)).toEqual([{
     type: 'SELECT_CANDIDATE',
-    data: 0,
+    data: { inputContext: 'context', generation: 1, index: 0 },
+  }])
+})
+
+test('Candidate events keep their rendered input context', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context-a',
+    generation: 1,
+    candidates: [{ text: '一', label: '1', comment: '' }],
+    highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
+    hasClientPreedit: true,
+    tabActions: [],
+  } })
+  const staleCandidate = await page.locator('.fcitx-keyboard-candidate').elementHandle()
+
+  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context-b',
+    generation: 2,
+    candidates: [{ text: '二', label: '1', comment: '' }],
+    highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
+    hasClientPreedit: true,
+    tabActions: [],
+  } })
+  await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
+    inputContext: 'context-a',
+    generation: 1,
+    index: 0,
+    actions: [{ id: 1, text: 'stale action' }],
+  } })
+  await expect(page.getByText('stale action')).toHaveCount(0)
+
+  await staleCandidate!.evaluate((element) => {
+    const touch = new Touch({ identifier: 0, target: element, clientX: 0, clientY: 0 })
+    element.dispatchEvent(new TouchEvent('touchstart', { touches: [touch], changedTouches: [touch], bubbles: true }))
+    element.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [touch], bubbles: true }))
+  })
+
+  expect(await getSentEvents(page)).toEqual([{
+    type: 'SELECT_CANDIDATE',
+    data: { inputContext: 'context-a', generation: 1, index: 0 },
   }])
 })
 
@@ -70,6 +121,8 @@ test('Overflow', async ({ page }) => {
   await init(page)
 
   const event: SystemEvent = { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: [{ text: '长长长长长长长长长长长长长长长长长长长长长长长长长长长长', label: '', comment: '' }],
     highlighted: 0,
     scrollState: SCROLL_NONE,
@@ -96,6 +149,8 @@ test('Actions', async ({ page }) => {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: [{ text: '一', label: '1', comment: '' }],
     highlighted: 0,
     scrollState: SCROLL_NONE,
@@ -106,17 +161,19 @@ test('Actions', async ({ page }) => {
   } })
   const candidate = page.locator('.fcitx-keyboard-candidate')
   await longPress(candidate)
-  const sentEvents: VirtualKeyboardEvent[] = [{ type: 'ASK_CANDIDATE_ACTIONS', data: 0 }]
+  const sentEvents: VirtualKeyboardEvent[] = [{ type: 'ASK_CANDIDATE_ACTIONS', data: { inputContext: 'context', generation: 1, index: 0 } }]
   expect(await getSentEvents(page)).toEqual(sentEvents)
 
   await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
+    inputContext: 'context',
+    generation: 1,
     index: 0,
     actions: [{ id: 1, text: '置顶' }, { id: 2, text: '删词' }],
   } })
   const deleteButton = page.getByText('删词')
   await deleteButton.tap()
   await expect(deleteButton).not.toBeVisible()
-  sentEvents.push({ type: 'CANDIDATE_ACTION', data: { index: 0, id: 2 } })
+  sentEvents.push({ type: 'CANDIDATE_ACTION', data: { inputContext: 'context', generation: 1, index: 0, id: 2 } })
   expect(await getSentEvents(page)).toEqual(sentEvents)
 })
 
@@ -124,6 +181,8 @@ test('Actions disappear on clear', async ({ page }) => {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: [{ text: '一', label: '1', comment: '' }],
     highlighted: 0,
     scrollState: SCROLL_NONE,
@@ -133,6 +192,8 @@ test('Actions disappear on clear', async ({ page }) => {
     tabActions: [],
   } })
   await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
+    inputContext: 'context',
+    generation: 1,
     index: 0,
     actions: [{ id: 1, text: '置顶' }],
   } })
@@ -147,6 +208,8 @@ test('Tab actions', async ({ page }) => {
   await init(page)
 
   const event: SystemEvent = { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: generateCandidates(0, 24),
     highlighted: 0,
     scrollState: SCROLLING,
@@ -184,7 +247,7 @@ test('Tab actions', async ({ page }) => {
   }
 
   await tab.first().click()
-  expect(await getSentEvents(page)).toContainEqual({ type: 'CANDIDATE_TAB_ACTION', data: 1 })
+  expect(await getSentEvents(page)).toContainEqual({ type: 'CANDIDATE_TAB_ACTION', data: { inputContext: 'context', generation: 1, id: 1 } })
 
   event.data.candidates = generateCandidates(0, 8)
   await sendSystemEvent(page, event)
@@ -210,6 +273,8 @@ test('Preedit', async ({ page }) => {
   expect(box.y + box.height).toEqual(y)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: [{ text: '一', label: '1', comment: '' }],
     highlighted: 0,
     scrollState: SCROLL_NONE,
@@ -272,6 +337,8 @@ test('Horizontal scroll', async ({ page }) => {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: generateCandidates(0, 20),
     highlighted: 0,
     scrollState: SCROLLING,
@@ -285,12 +352,14 @@ test('Horizontal scroll', async ({ page }) => {
   // There is a maybe more than 100ms delay before event is emitted.
   while (true) {
     const sentEvents = await getSentEvents(page)
-    if (JSON.stringify(sentEvents) === JSON.stringify([{ type: 'SCROLL', data: { start: 20, count: 20 } }])) {
+    if (JSON.stringify(sentEvents) === JSON.stringify([{ type: 'SCROLL', data: { inputContext: 'context', generation: 1, start: 20, count: 20 } }])) {
       break
     }
   }
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: generateCandidates(20, 10),
     highlighted: -1,
     scrollState: SCROLLING,
@@ -307,9 +376,9 @@ test('Horizontal scroll', async ({ page }) => {
   await longPress(lastCandidate)
   await tap(lastCandidate)
   expect(await getSentEvents(page), 'Only one scroll event').toEqual([
-    { type: 'SCROLL', data: { start: 20, count: 20 } },
-    { type: 'ASK_CANDIDATE_ACTIONS', data: 29 },
-    { type: 'SELECT_CANDIDATE', data: 29 },
+    { type: 'SCROLL', data: { inputContext: 'context', generation: 1, start: 20, count: 20 } },
+    { type: 'ASK_CANDIDATE_ACTIONS', data: { inputContext: 'context', generation: 1, index: 29 } },
+    { type: 'SELECT_CANDIDATE', data: { inputContext: 'context', generation: 1, index: 29 } },
   ])
 })
 
@@ -322,6 +391,8 @@ test('Collapse keyboard instead of expanding empty candidates', async ({ page })
   const container = getContainer(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: generateCandidates(0, 10),
     highlighted: 0,
     scrollState: SCROLLING,
@@ -339,6 +410,8 @@ test('Collapse keyboard instead of expanding empty candidates', async ({ page })
     caret: 0,
   } })
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: [],
     highlighted: -1,
     scrollState: SCROLL_NONE,
@@ -359,6 +432,8 @@ test('Expand/collapse', async ({ page }) => {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: generateCandidates(0, 60),
     highlighted: 0,
     scrollState: SCROLLING,
@@ -391,6 +466,8 @@ test('Auto collapse if no preedit', async ({ page }) => {
 
   function setCandidates(hasClientPreedit: boolean) {
     return sendSystemEvent(page, { type: 'CANDIDATES', data: {
+      inputContext: 'context',
+      generation: 1,
       candidates: generateCandidates(0, 10),
       highlighted: 0,
       scrollState: SCROLLING,
@@ -416,6 +493,8 @@ test('Vertical scroll', async ({ page }) => {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: generateCandidates(0, 60),
     highlighted: 0,
     scrollState: SCROLLING,
@@ -430,7 +509,7 @@ test('Vertical scroll', async ({ page }) => {
   // There is a maybe more than 100ms delay before event is emitted.
   while (true) {
     const sentEvents = await getSentEvents(page)
-    if (JSON.stringify(sentEvents) === JSON.stringify([{ type: 'SCROLL', data: { start: 60, count: 25 } }])) {
+    if (JSON.stringify(sentEvents) === JSON.stringify([{ type: 'SCROLL', data: { inputContext: 'context', generation: 1, start: 60, count: 25 } }])) {
       break
     }
   }
@@ -440,6 +519,8 @@ test('Paging button', async ({ page }) => {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: generateCandidates(0, 85),
     highlighted: 0,
     scrollState: SCROLLING,

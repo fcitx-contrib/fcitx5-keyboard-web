@@ -26,6 +26,11 @@ export interface CandidateAction {
   separator?: boolean
 }
 
+export interface InputContextEvent {
+  inputContext: string
+  generation: number
+}
+
 export const SCROLL_NONE = 0
 export const SCROLL_READY = 1
 export const SCROLLING = 2
@@ -53,7 +58,7 @@ export type SystemEvent = {
   }
 } | {
   type: 'CANDIDATES'
-  data: {
+  data: InputContextEvent & {
     candidates: Candidate[]
     highlighted: number
     scrollState: ScrollState
@@ -64,13 +69,15 @@ export type SystemEvent = {
   }
 } | {
   type: 'CANDIDATE_ACTIONS'
-  data: {
+  data: InputContextEvent & {
     index: number
     actions: CandidateAction[]
   }
 } | {
   type: 'STATUS_AREA'
-  data: StatusAreaAction[]
+  data: InputContextEvent & {
+    actions: StatusAreaAction[]
+  }
 } | {
   type: 'INPUT_METHODS'
   data: {
@@ -92,23 +99,32 @@ export type VirtualKeyboardEvent = {
   type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE'
     | 'SELECT' | 'DESELECT' | 'SELECT_ALL' | 'GLOBE'
 } | {
-  type: 'SELECT_CANDIDATE' | 'ASK_CANDIDATE_ACTIONS' | 'STATUS_AREA_ACTION'
-  data: number
+  type: 'SELECT_CANDIDATE' | 'ASK_CANDIDATE_ACTIONS'
+  data: InputContextEvent & {
+    index: number
+  }
 } | {
   type: 'CANDIDATE_ACTION'
-  data: {
+  data: InputContextEvent & {
     index: number
     id: number
   }
 } | {
   type: 'CANDIDATE_TAB_ACTION'
-  data: number
+  data: InputContextEvent & {
+    id: number
+  }
+} | {
+  type: 'STATUS_AREA_ACTION'
+  data: InputContextEvent & {
+    id: number
+  }
 } | {
   type: 'BACKSPACE_SLIDE'
   data: 'LEFT' | 'RIGHT' | 'RELEASE'
 } | {
   type: 'SCROLL'
-  data: {
+  data: InputContextEvent & {
     start: number
     count: number
   }

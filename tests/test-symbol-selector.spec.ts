@@ -91,6 +91,8 @@ async function renderCandidateAndClickSymbol(page: Page) {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
     candidates: [
       { text: '一', label: '1', comment: '' },
     ],
@@ -173,6 +175,8 @@ for (const longPress of [false, true]) {
       caret: 0,
     } })
     await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+      inputContext: 'context',
+      generation: 1,
       candidates: [],
       highlighted: -1,
       scrollState: SCROLL_NONE,
