@@ -134,6 +134,8 @@ for (const { name, buttonIndex, surface } of [
   test(`Numpad returns to initial mode after opening ${name} from candidates`, async ({ page }) => {
     await init(page)
     await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+      inputContext: 'context',
+      generation: 1,
       candidates: [{ text: '一', label: '1', comment: '' }],
       highlighted: 0,
       scrollState: SCROLL_NONE,

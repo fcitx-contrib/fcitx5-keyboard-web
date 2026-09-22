@@ -1,5 +1,5 @@
 import type { Action, Key, Layout, LongPress, Swipe } from '../src/layout'
-import type { InputMethod, VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
+import type { InputContextEvent, InputMethod, VirtualKeyboardClient, VirtualKeyboardEvent } from './api'
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import ArrowRight from 'bundle-text:../svg/arrow-right.svg'
 import CheckMark from 'bundle-text:../svg/checkmark.svg'
@@ -123,8 +123,8 @@ function getTouchContainer(touch: Touch) {
   return touches[touch.identifier]?.container ?? getContainer(touch)
 }
 
-export function selectCandidate(index: number) {
-  sendEvent({ type: 'SELECT_CANDIDATE', data: index })
+export function selectCandidate(context: InputContextEvent, index: number) {
+  sendEvent({ type: 'SELECT_CANDIDATE', data: { ...context, index } })
 }
 
 function executeActions(actions: Action[]) {
