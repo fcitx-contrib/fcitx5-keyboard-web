@@ -85,8 +85,7 @@ test('Candidate events keep their rendered input context', async ({ page }) => {
     tabActions: [],
   } })
   const staleCandidate = await page.locator('.fcitx-keyboard-candidate').elementHandle()
-
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
+  const nextCandidates: SystemEvent = { type: 'CANDIDATES', data: {
     inputContext: 'context-b',
     generation: 2,
     candidates: [{ text: '二', label: '1', comment: '' }],
@@ -96,7 +95,15 @@ test('Candidate events keep their rendered input context', async ({ page }) => {
     scrollEnd: false,
     hasClientPreedit: true,
     tabActions: [],
-  } })
+  } }
+  await staleCandidate!.evaluate((element, event) => {
+    const touch = new Touch({ identifier: 0, target: element, clientX: 0, clientY: 0 })
+    element.dispatchEvent(new TouchEvent('touchstart', { touches: [touch], changedTouches: [touch], bubbles: true }))
+    window.onMessage(JSON.stringify(event))
+  }, nextCandidates)
+  await page.waitForTimeout(400)
+  expect(await getSentEvents(page)).toEqual([])
+
   await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
     inputContext: 'context-a',
     generation: 1,

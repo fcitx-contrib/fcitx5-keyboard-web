@@ -139,7 +139,7 @@ export function setCandidates(inputContext: string, generation: number, cands: C
   candidateContext = context
   scrollState_ = scrollState
   touchId = null
-  longPressId = null
+  cancelLongPress()
   setTabActions(context, scrollState === SCROLLING ? tabActions : [])
   const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates')!
   if (scrollState !== SCROLLING || scrollStart) {
