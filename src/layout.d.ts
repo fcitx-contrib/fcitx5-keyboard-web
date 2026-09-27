@@ -11,8 +11,14 @@ export interface Swipe {
   actions: Action[]
 }
 
+export interface LongPressCell {
+  type?: 'unicode' | 'emoji' | 'quickphrase'
+  label?: string
+  actions?: Action[]
+}
+
 export interface LongPress {
-  cells: Swipe[]
+  cells: LongPressCell[]
   index: number
 }
 

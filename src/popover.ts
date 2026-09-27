@@ -1,4 +1,5 @@
 import type { LongPress } from './layout'
+import Unicode from 'bundle-text:../svg/unicode.svg'
 import { div, hide, show } from './util'
 
 export function renderPopover() {
@@ -10,23 +11,28 @@ export function showPopover(element: Element, display: string | LongPress) {
   const box = element.getBoundingClientRect()
   container.innerHTML = ''
   let index = -1
-  let labels: string[]
+  let cells: LongPress['cells']
   if (typeof display === 'string') {
-    labels = [display]
+    cells = [{ label: display }]
     container.classList.add('fcitx-keyboard-swipe')
   }
   else {
-    labels = display.cells.map(cell => cell.label)
+    cells = display.cells
     index = display.index
     container.classList.remove('fcitx-keyboard-swipe')
   }
-  for (let i = 0; i < labels.length; ++i) {
+  for (let i = 0; i < cells.length; ++i) {
     const cell = div('fcitx-keyboard-popover-cell')
     const popover = div('fcitx-keyboard-popover')
     if (i === index) {
       cell.classList.add('fcitx-keyboard-highlighted')
     }
-    popover.textContent = labels[i]
+    if (cells[i].type === 'unicode') {
+      popover.innerHTML = Unicode
+    }
+    else {
+      popover.textContent = cells[i].label ?? ''
+    }
     cell.appendChild(popover)
     cell.style.width = `${box.width}px`
     cell.style.height = `${box.height}px`

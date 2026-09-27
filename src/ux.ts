@@ -6,6 +6,7 @@ import CheckMark from 'bundle-text:../svg/checkmark.svg'
 import Enter from 'bundle-text:../svg/enter.svg'
 import Search from 'bundle-text:../svg/search.svg'
 import Send from 'bundle-text:../svg/send.svg'
+import { LONG_PRESS_THRESHOLD } from './constant'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
@@ -41,7 +42,6 @@ const touches: { [key: string]: {
 const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
-export const LONG_PRESS_THRESHOLD = 300
 const KEY_REPEAT_INTERVAL = 80 // Same with iOS.
 export const DRAG_THRESHOLD = 10 // radius^2
 const SWIPE_THRESHOLD = 10
@@ -339,8 +339,13 @@ function longPressRelease(touchId: number) {
     setDisplayMode('numpad')
   }
   else {
-    const actions = longPress?.cells[index].actions
-    actions && executeActions(actions)
+    const cell = longPress?.cells[index]
+    if (cell?.type === 'unicode') {
+      sendEvent({ type: 'UNICODE' })
+    }
+    else if (cell?.actions) {
+      executeActions(cell.actions)
+    }
   }
   if (currentLayer === 'shift' && !layerLocked) {
     setLayer('default', false)
