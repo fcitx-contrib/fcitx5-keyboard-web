@@ -97,7 +97,7 @@ export type VirtualKeyboardEvent = {
   data: string
 } | {
   type: 'UNDO' | 'REDO' | 'CUT' | 'COPY' | 'PASTE' | 'COLLAPSE'
-    | 'SELECT' | 'DESELECT' | 'SELECT_ALL' | 'GLOBE' | 'UNICODE'
+    | 'SELECT' | 'DESELECT' | 'SELECT_ALL' | 'GLOBE' | 'QUICKPHRASE' | 'UNICODE'
 } | {
   type: 'SELECT_CANDIDATE' | 'ASK_CANDIDATE_ACTIONS'
   data: InputContextEvent & {

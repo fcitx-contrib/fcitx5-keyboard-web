@@ -343,6 +343,9 @@ function longPressRelease(touchId: number) {
     if (cell?.type === 'unicode') {
       sendEvent({ type: 'UNICODE' })
     }
+    else if (cell?.type === 'quickphrase') {
+      sendEvent({ type: 'QUICKPHRASE' })
+    }
     else if (cell?.actions) {
       executeActions(cell.actions)
     }
