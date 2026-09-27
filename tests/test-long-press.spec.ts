@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { getSentEvents, init, longPress, tap, touchMove } from './util'
+import { getBox, getSentEvents, init, longPress, tap, touchMove } from './util'
 
 test('Long press', async ({ page }) => {
   await init(page)
@@ -65,5 +65,20 @@ test('Interrupted', async ({ page }) => {
   })
   expect(await getSentEvents(page)).toEqual([
     { type: 'KEY_DOWN', data: { key: 'm', code: 'KeyM' } },
+  ])
+})
+
+test('Unicode', async ({ page }) => {
+  await init(page)
+
+  const comma = page.locator('.fcitx-keyboard').getByText(',', { exact: true })
+  const highlightedPopover = page.locator('.fcitx-keyboard-highlighted .fcitx-keyboard-popover')
+  await longPress(comma, async (touchId) => {
+    const box = await getBox(comma)
+    await touchMove(comma, touchId, -box.width * 1.5, 0)
+    return expect(highlightedPopover.locator('svg')).toHaveCount(1)
+  })
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'UNICODE' },
   ])
 })

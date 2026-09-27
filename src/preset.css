@@ -559,6 +559,11 @@
   color: var(--popover-label-color);
 }
 
+.fcitx-keyboard-popover svg {
+  width: 45cqh;
+  height: 45cqh;
+}
+
 .fcitx-keyboard-swipe .fcitx-keyboard-popover {
   color: var(--popover-highlight-color);
 }

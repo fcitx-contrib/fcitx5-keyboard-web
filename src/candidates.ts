@@ -4,11 +4,12 @@ import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import Enter from 'bundle-text:../svg/enter.svg'
 import { SCROLL_NONE, SCROLLING } from './api.d'
+import { LONG_PRESS_THRESHOLD } from './constant'
 import { showContextmenu } from './contextmenu'
 import { updateCandidateDisplayMode } from './display'
 import { getKeyboardContainer } from './selector'
 import { disable, div, enable, enableScroll, getCandidateBar, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
-import { DRAG_THRESHOLD, handleBackspace, LONG_PRESS_THRESHOLD, selectCandidate, sendEvent, sendKeyDown } from './ux'
+import { DRAG_THRESHOLD, handleBackspace, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
 let touchId: number | null = null
 let longPressId: number | null = null

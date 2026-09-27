@@ -5,6 +5,7 @@ import type {
 import type { SystemEvent } from '../src/api'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { LONG_PRESS_THRESHOLD } from '../src/constant'
 
 export const WHITE = 'rgb(255, 255, 255)'
 export const GRAY = 'rgb(188, 192, 199)'
@@ -94,7 +95,7 @@ export async function tap(locator: Locator) {
 
 export async function longPress(locator: Locator, action?: (touchId: number) => Promise<any>) {
   const touchId = await touchDown(locator)
-  await locator.page().waitForTimeout(300)
+  await locator.page().waitForTimeout(LONG_PRESS_THRESHOLD + 50)
   action && await action(touchId)
   return touchUp(locator, touchId)
 }
