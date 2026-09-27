@@ -82,3 +82,18 @@ test('Unicode', async ({ page }) => {
     { type: 'UNICODE' },
   ])
 })
+
+test('Quick phrase', async ({ page }) => {
+  await init(page)
+
+  const comma = page.locator('.fcitx-keyboard').getByText(',', { exact: true })
+  const highlightedPopover = page.locator('.fcitx-keyboard-highlighted .fcitx-keyboard-popover')
+  await longPress(comma, async (touchId) => {
+    const box = await getBox(comma)
+    await touchMove(comma, touchId, box.width * 1.5, 0)
+    return expect(highlightedPopover.locator('svg')).toHaveCount(1)
+  })
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'QUICKPHRASE' },
+  ])
+})

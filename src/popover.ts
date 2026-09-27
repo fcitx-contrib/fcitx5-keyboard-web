@@ -1,4 +1,5 @@
 import type { LongPress } from './layout'
+import QuickPhrase from 'bundle-text:../svg/quickphrase.svg'
 import Unicode from 'bundle-text:../svg/unicode.svg'
 import { div, hide, show } from './util'
 
@@ -29,6 +30,9 @@ export function showPopover(element: Element, display: string | LongPress) {
     }
     if (cells[i].type === 'unicode') {
       popover.innerHTML = Unicode
+    }
+    else if (cells[i].type === 'quickphrase') {
+      popover.innerHTML = QuickPhrase
     }
     else {
       popover.textContent = cells[i].label ?? ''
