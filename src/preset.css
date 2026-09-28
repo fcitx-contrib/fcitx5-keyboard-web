@@ -468,13 +468,26 @@
 
 .fcitx-keyboard-symbol-categories {
   width: 20%;
+  box-sizing: border-box;
+  overflow: hidden auto;
+  scrollbar-width: none;
+  border-inline-end: 1px solid var(--disabled-color);
+}
+
+.fcitx-keyboard-symbol-categories::-webkit-scrollbar {
+  display: none;
 }
 
 .fcitx-keyboard-symbol-category {
   height: 20%;
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: min(6cqh, 4cqw);
+  padding: 0 1cqw;
+  overflow: hidden;
+  white-space: nowrap;
   color: var(--key-label-color);
 }
 
@@ -490,6 +503,7 @@
 }
 
 .fcitx-keyboard-symbol-item {
+  position: relative;
   height: 20%;
   flex: 0 0 20%;
   display: flex;
@@ -500,6 +514,21 @@
 
 .fcitx-keyboard-symbol-item:active {
   background-color: var(--pressed-key-color);
+}
+
+.fcitx-keyboard-symbol-width {
+  position: absolute;
+  top: 1cqh;
+  right: 1cqh;
+  width: 3cqh;
+  height: 3cqh;
+  color: var(--key-sub-label-color);
+}
+
+.fcitx-keyboard-symbol-width svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .fcitx-keyboard-contextmenu-container {

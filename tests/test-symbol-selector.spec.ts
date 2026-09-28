@@ -7,16 +7,51 @@ function getSymbolButton(page: Page) {
   return page.getByText('#+=')
 }
 
+function getCategory(page: Page, key: string) {
+  return page.locator(`.fcitx-keyboard-symbol-category[data-category="${key}"]`)
+}
+
 test('Commit', async ({ page }) => {
   await init(page)
 
   const symbolButton = getSymbolButton(page)
   await tap(symbolButton)
-  const symbol = page.getByText('ā')
+  const symbol = page.getByText('，', { exact: true })
   await symbol.tap()
   expect(await getSentEvents(page)).toEqual([
-    { type: 'COMMIT', data: 'ā' },
+    { type: 'COMMIT', data: '，' },
   ])
+})
+
+test('Categories', async ({ page }) => {
+  await init(page)
+  await tap(getSymbolButton(page))
+
+  const categories = page.locator('.fcitx-keyboard-symbol-category')
+  await expect(categories).toHaveCount(20)
+  await expect(getCategory(page, 'chinese_punctuation')).toHaveText('Chinese')
+  await expect(getCategory(page, 'katakana')).toHaveText('Katakana')
+})
+
+test('Localized category names', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'language', { value: 'zh-TW' })
+  })
+  await init(page)
+  await tap(getSymbolButton(page))
+
+  await expect(getCategory(page, 'chinese_punctuation')).toHaveText('中文')
+  await expect(getCategory(page, 'arrow')).toHaveText('箭頭')
+})
+
+test('Width badges', async ({ page }) => {
+  await init(page)
+  await tap(getSymbolButton(page))
+  await getCategory(page, 'currency').tap()
+
+  await expect(page.getByText('¥', { exact: true }).locator('.fcitx-keyboard-symbol-half-width')).toHaveCount(1)
+  await expect(page.getByText('￥', { exact: true }).locator('.fcitx-keyboard-symbol-full-width')).toHaveCount(1)
+  await expect(page.getByText('€', { exact: true }).locator('.fcitx-keyboard-symbol-width')).toHaveCount(0)
 })
 
 test('Lock', async ({ page }) => {
@@ -30,8 +65,8 @@ test('Lock', async ({ page }) => {
 
   await lock.tap()
   await expect(lock).toHaveAttribute('aria-pressed', 'true')
-  await page.getByText('ā').tap()
-  await expect(page.getByText('á')).toBeVisible()
+  await page.getByText('，', { exact: true }).tap()
+  await expect(page.getByText('。', { exact: true })).toBeVisible()
 
   await tapReturn(page)
   await tap(getSymbolButton(page))
@@ -39,11 +74,11 @@ test('Lock', async ({ page }) => {
 
   await lock.tap()
   await expect(lock).toHaveAttribute('aria-pressed', 'false')
-  await page.getByText('á').tap()
+  await page.getByText('。', { exact: true }).tap()
   await expect(getKey(page, 'q')).toBeVisible()
   expect(await getSentEvents(page)).toEqual([
-    { type: 'COMMIT', data: 'ā' },
-    { type: 'COMMIT', data: 'á' },
+    { type: 'COMMIT', data: '，' },
+    { type: 'COMMIT', data: '。' },
   ])
 })
 
@@ -52,25 +87,25 @@ test('Reset scroll state', async ({ page }) => {
 
   const symbolButton = getSymbolButton(page)
   await tap(symbolButton)
-  const pinyin = page.getByText('pinyin')
-  const greek = page.getByText('greek')
-  await expect(pinyin).toHaveClass(/fcitx-keyboard-pressed/)
-  await expect(greek).not.toHaveClass(/fcitx-keyboard-pressed/)
+  const chinese = getCategory(page, 'chinese_punctuation')
+  const english = getCategory(page, 'english_punctuation')
+  await expect(chinese).toHaveClass(/fcitx-keyboard-pressed/)
+  await expect(english).not.toHaveClass(/fcitx-keyboard-pressed/)
 
-  const symbol = page.getByText('ā')
+  const symbol = page.getByText('，', { exact: true })
   const initialBox = await getBox(symbol)
 
   await page.evaluate(() => document.querySelector('.fcitx-keyboard-symbol-panel')?.scrollBy(0, 20))
   const intermediateBox = await getBox(symbol)
   expect(intermediateBox.y).toEqual(initialBox.y - 20)
 
-  await page.getByText('greek').tap()
-  await expect(pinyin).not.toHaveClass(/fcitx-keyboard-pressed/)
-  await expect(greek).toHaveClass(/fcitx-keyboard-pressed/)
+  await english.tap()
+  await expect(chinese).not.toHaveClass(/fcitx-keyboard-pressed/)
+  await expect(english).toHaveClass(/fcitx-keyboard-pressed/)
 
-  await pinyin.tap()
-  await expect(pinyin).toHaveClass(/fcitx-keyboard-pressed/)
-  await expect(greek).not.toHaveClass(/fcitx-keyboard-pressed/)
+  await chinese.tap()
+  await expect(chinese).toHaveClass(/fcitx-keyboard-pressed/)
+  await expect(english).not.toHaveClass(/fcitx-keyboard-pressed/)
   const finalBox = await getBox(symbol)
   expect(finalBox.y).toEqual(initialBox.y)
 })
@@ -80,11 +115,11 @@ test('Reset category', async ({ page }) => {
 
   const symbolButton = getSymbolButton(page)
   await tap(symbolButton)
-  const greek = page.getByText('greek')
-  await greek.tap()
+  const english = getCategory(page, 'english_punctuation')
+  await english.tap()
   await tapReturn(page)
   await tap(symbolButton)
-  await expect(greek).not.toHaveClass(/fcitx-keyboard-pressed/)
+  await expect(english).not.toHaveClass(/fcitx-keyboard-pressed/)
 })
 
 async function renderCandidateAndClickSymbol(page: Page) {
@@ -115,7 +150,7 @@ async function renderCandidateAndClickSymbol(page: Page) {
 test('Commit and clear candidates', async ({ page }) => {
   const candidate = await renderCandidateAndClickSymbol(page)
 
-  await page.getByText('ā').tap()
+  await page.getByText('，', { exact: true }).tap()
   await sendSystemEvent(page, { type: 'CLEAR' })
   await expect(getKey(page, 'q'), 'Should return to keyboard on clear').toBeVisible()
   await expect(candidate).not.toBeVisible()
@@ -133,7 +168,7 @@ for (const type of ['CLEAR', 'HIDE'] as const) {
     const candidate = await renderCandidateAndClickSymbol(page)
 
     await sendSystemEvent(page, { type })
-    await expect(page.getByText('ā')).toBeVisible()
+    await expect(page.getByText('，', { exact: true })).toBeVisible()
 
     await tapReturn(page)
     await expect(getKey(page, 'q')).toBeVisible()
@@ -186,7 +221,7 @@ for (const longPress of [false, true]) {
       tabActions: [],
     } })
 
-    await expect(page.getByText('ā')).toBeVisible()
+    await expect(page.getByText('，', { exact: true })).toBeVisible()
     await expect(backspace).toBeVisible()
     if (longPress) {
       await touchUp(backspace, touchId)
