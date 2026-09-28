@@ -54,6 +54,8 @@ export function setDisplayMode(mode: DisplayMode) {
   function showSymbolSelector() {
     show(symbolSelector)
     selectCategory(0)
+    const categories = symbolSelector.querySelector('.fcitx-keyboard-symbol-categories') as HTMLElement
+    categories.scrollTop = 0
   }
 
   function hideKeyboard() {

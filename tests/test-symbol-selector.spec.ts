@@ -117,9 +117,13 @@ test('Reset category', async ({ page }) => {
   await tap(symbolButton)
   const english = getCategory(page, 'english_punctuation')
   await english.tap()
+  const categories = page.locator('.fcitx-keyboard-symbol-categories')
+  await categories.evaluate(element => element.scrollTop = element.scrollHeight)
+  expect(await categories.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
   await tapReturn(page)
   await tap(symbolButton)
   await expect(english).not.toHaveClass(/fcitx-keyboard-pressed/)
+  expect(await categories.evaluate(element => element.scrollTop)).toBe(0)
 })
 
 async function renderCandidateAndClickSymbol(page: Page) {
