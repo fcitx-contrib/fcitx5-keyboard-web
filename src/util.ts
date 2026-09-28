@@ -149,6 +149,10 @@ export function handleRepeatableClick(element: HTMLElement, handler: () => void)
 
   let longPressTimer: number | null = null
   let repeatTimer: number | null = null
+  let repeatTouchId: number | null = null
+  let startX = 0
+  let startY = 0
+  let touchMoved = false
   let cancelRepeat: () => void
   const stopRepeat = () => {
     if (longPressTimer !== null) {
@@ -166,14 +170,21 @@ export function handleRepeatableClick(element: HTMLElement, handler: () => void)
   cancelRepeat = () => {
     element.setAttribute('data-dragged', 'true')
     stopRepeat()
+    repeatTouchId = null
   }
 
-  element.addEventListener('touchstart', () => {
+  element.addEventListener('touchstart', (event) => {
     cancelRepeatableClick()
+    const touch = event.changedTouches[0]
+    repeatTouchId = touch.identifier
+    startX = touch.clientX
+    startY = touch.clientY
+    touchMoved = false
     activeRepeatStopper = cancelRepeat
+    const initiatingTouchId = touch.identifier
     longPressTimer = window.setTimeout(() => {
       longPressTimer = null
-      if (element.hasAttribute('data-dragged')) {
+      if (repeatTouchId !== initiatingTouchId || touchMoved) {
         return
       }
       // Suppress handleClick's tap action after a long press.
@@ -181,8 +192,28 @@ export function handleRepeatableClick(element: HTMLElement, handler: () => void)
       repeatTimer = window.setInterval(handler, KEY_REPEAT_INTERVAL)
     }, LONG_PRESS_THRESHOLD)
   })
-  element.addEventListener('touchend', stopRepeat)
-  element.addEventListener('touchcancel', stopRepeat)
+  element.addEventListener('touchmove', (event) => {
+    const touch = Array.from(event.changedTouches).find(touch => touch.identifier === repeatTouchId)
+    if (!touch) {
+      return
+    }
+    const box = element.getBoundingClientRect()
+    if (Math.abs(touch.clientX - startX) > box.width / 2
+      || Math.abs(touch.clientY - startY) > box.height / 2) {
+      touchMoved = true
+      element.setAttribute('data-dragged', 'true')
+      stopRepeat()
+    }
+  })
+  const handleTouchEnd = (event: TouchEvent) => {
+    if (!Array.from(event.changedTouches).some(touch => touch.identifier === repeatTouchId)) {
+      return
+    }
+    stopRepeat()
+    repeatTouchId = null
+  }
+  element.addEventListener('touchend', handleTouchEnd)
+  element.addEventListener('touchcancel', handleTouchEnd)
 }
 
 export function enableScroll(element: HTMLElement) {

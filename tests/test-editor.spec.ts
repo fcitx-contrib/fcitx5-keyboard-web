@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn, touchDown, touchUp } from './util'
+import { getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn, touchDown, touchMove, touchUp } from './util'
 
 function gotoEditor(page: Page) {
   return getToolbarButton(page, 4).tap()
@@ -81,6 +81,58 @@ test('Leaving editor stops repeated arrow key', async ({ page }) => {
   await page.clock.runFor(500)
   await touchUp(left, touchId)
   expect(await getSentEvents(page)).toHaveLength(1)
+})
+
+test('Dragging stops repeated arrow key', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'userAgent', { value: 'Android' })
+  })
+  await init(page)
+  await gotoEditor(page)
+  await page.clock.install({ time: 0 })
+  await page.clock.pauseAt(1000)
+
+  const left = page.locator('.fcitx-keyboard-editor-button-container').first()
+  const touchId = await touchDown(left)
+  await page.clock.runFor(380)
+  expect(await getSentEvents(page)).toHaveLength(1)
+
+  await touchMove(left, touchId, 100, 0)
+  await page.clock.runFor(500)
+  await touchUp(left, touchId)
+  expect(await getSentEvents(page)).toHaveLength(1)
+})
+
+test('Other touches do not stop repeated arrow key', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'userAgent', { value: 'Android' })
+  })
+  await init(page)
+  await gotoEditor(page)
+  await page.clock.install({ time: 0 })
+  await page.clock.pauseAt(1000)
+
+  const left = page.locator('.fcitx-keyboard-editor-button-container').first()
+  const touchId = await touchDown(left)
+  await page.clock.runFor(380)
+  expect(await getSentEvents(page)).toHaveLength(1)
+
+  await left.evaluate((element) => {
+    const touch = new Touch({ identifier: 9999, target: element })
+    for (const type of ['touchend', 'touchcancel']) {
+      element.dispatchEvent(new TouchEvent(type, {
+        touches: window.touches,
+        changedTouches: [touch],
+        bubbles: true,
+      }))
+    }
+  })
+  await page.clock.runFor(80 * 2)
+  expect(await getSentEvents(page)).toHaveLength(3)
+
+  await touchUp(left, touchId)
+  await page.clock.runFor(500)
+  expect(await getSentEvents(page)).toHaveLength(3)
 })
 
 test('Select (all)', async ({ page }) => {
