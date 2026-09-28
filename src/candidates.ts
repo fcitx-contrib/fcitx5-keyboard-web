@@ -17,6 +17,8 @@ let startX = 0
 let startY = 0
 let scrollState_: ScrollState = SCROLL_NONE
 let scrollEnd_ = true
+let hasPrev_ = false
+let hasNext_ = false
 let fetching = false
 let scrollDirection: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL'
 let candidateContext: InputContextEvent | null = null
@@ -135,7 +137,7 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
   updateCandidateDisplayMode()
 }
 
-export function setCandidates(inputContext: string, generation: number, cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasClientPreedit: boolean, tabActions: CandidateAction[]) {
+export function setCandidates(inputContext: string, generation: number, cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasPrev: boolean, hasNext: boolean, hasClientPreedit: boolean, tabActions: CandidateAction[]) {
   const context = { inputContext, generation }
   candidateContext = context
   scrollState_ = scrollState
@@ -151,6 +153,8 @@ export function setCandidates(inputContext: string, generation: number, cands: C
     fetching = false
   }
   scrollEnd_ = scrollEnd
+  hasPrev_ = hasPrev
+  hasNext_ = hasNext
   const offset = container.childElementCount
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')
@@ -221,13 +225,16 @@ export function setCandidateActions(inputContext: string, generation: number, in
 function setPagingButtons(list: Element) {
   const pageUp = document.querySelector('.fcitx-keyboard-side-button-container:nth-child(1)')!
   const pageDown = document.querySelector('.fcitx-keyboard-side-button-container:nth-child(2)')!
-  if (list.scrollTop === 0) {
+  const isBulk = scrollState_ === SCROLLING
+  if (isBulk ? list.scrollTop <= 1 : !hasPrev_) {
     disable(pageUp)
   }
   else {
     enable(pageUp)
   }
-  if (list.scrollTop + list.clientHeight >= list.scrollHeight - 1) { // Tolerate rounding issue.
+  if (isBulk
+    ? scrollEnd_ && list.scrollTop + list.clientHeight >= list.scrollHeight - 1 // Tolerate rounding issue.
+    : !hasNext_) {
     disable(pageDown)
   }
   else {
@@ -326,6 +333,15 @@ export function renderCandidateBar() {
   const pageUp = renderSideButton(ArrowLeft)
   setSvgStyle(pageUp, { height: '50cqh', transform: 'rotate(90deg)' })
   handleClick(pageUp, () => {
+    if (pageUp.classList.contains('fcitx-keyboard-disabled')) {
+      return
+    }
+    if (scrollState_ !== SCROLLING) {
+      if (candidateContext) {
+        sendEvent({ type: 'PAGE', data: { ...candidateContext, next: false } })
+      }
+      return
+    }
     const tops: number[] = []
     const { top, bottom } = list.getBoundingClientRect()
     for (const candidate of document.querySelectorAll('.fcitx-keyboard-candidate')) {
@@ -349,6 +365,15 @@ export function renderCandidateBar() {
   const pageDown = renderSideButton(ArrowLeft)
   setSvgStyle(pageDown, { height: '50cqh', transform: 'rotate(270deg)' })
   handleClick(pageDown, () => {
+    if (pageDown.classList.contains('fcitx-keyboard-disabled')) {
+      return
+    }
+    if (scrollState_ !== SCROLLING) {
+      if (candidateContext) {
+        sendEvent({ type: 'PAGE', data: { ...candidateContext, next: true } })
+      }
+      return
+    }
     const { bottom } = list.getBoundingClientRect()
     let previousTop = 0
     let firstTop: number | null = null

@@ -130,7 +130,7 @@ export function onMessage(message: string) {
       setPreedit(event.data.auxUp, event.data.preedit, event.data.caret)
       break
     case 'CANDIDATES':
-      setCandidates(event.data.inputContext, event.data.generation, event.data.candidates, event.data.highlighted, event.data.scrollState, event.data.scrollStart, event.data.scrollEnd, event.data.hasClientPreedit, event.data.tabActions || [])
+      setCandidates(event.data.inputContext, event.data.generation, event.data.candidates, event.data.highlighted, event.data.scrollState, event.data.scrollStart, event.data.scrollEnd, event.data.hasPrev ?? false, event.data.hasNext ?? false, event.data.hasClientPreedit, event.data.tabActions || [])
       break
     case 'CANDIDATE_ACTIONS':
       setCandidateActions(event.data.inputContext, event.data.generation, event.data.index, event.data.actions)

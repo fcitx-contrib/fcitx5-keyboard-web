@@ -520,9 +520,10 @@ test('Vertical scroll', async ({ page }) => {
       break
     }
   }
+  await expect(page.locator('.fcitx-keyboard-side-button-container:nth-child(2)'), 'More bulk candidates can still be loaded').not.toContainClass('fcitx-keyboard-disabled')
 })
 
-test('Paging button', async ({ page }) => {
+test('Bulk paging buttons scroll candidates', async ({ page }) => {
   await init(page)
 
   await sendSystemEvent(page, { type: 'CANDIDATES', data: {
@@ -545,8 +546,8 @@ test('Paging button', async ({ page }) => {
   await expect(pageDown).not.toContainClass('fcitx-keyboard-disabled')
 
   const candidates = page.locator('.fcitx-keyboard-candidates')
-  await candidates.evaluate(element => element.scrollBy({ top: 1 }))
-  expect(await candidates.evaluate(element => element.scrollTop)).toEqual(1)
+  await candidates.evaluate(element => element.scrollBy({ top: 2 }))
+  expect(await candidates.evaluate(element => element.scrollTop)).toEqual(2)
   await expect(pageUp, 'Slight scroll down counts').not.toContainClass('fcitx-keyboard-disabled')
 
   await pageUp.click()
@@ -577,4 +578,49 @@ test('Paging button', async ({ page }) => {
 
   await pageDown.click()
   await expect(pageDown).toContainClass('fcitx-keyboard-disabled')
+})
+
+test('Non-bulk paging buttons use pageable state', async ({ page }) => {
+  await init(page)
+
+  const event: SystemEvent = { type: 'CANDIDATES', data: {
+    inputContext: 'context',
+    generation: 1,
+    candidates: generateCandidates(0, 10),
+    highlighted: 0,
+    scrollState: SCROLL_NONE,
+    scrollStart: false,
+    scrollEnd: false,
+    hasPrev: false,
+    hasNext: true,
+    hasClientPreedit: true,
+    tabActions: [],
+  } }
+  await sendSystemEvent(page, event)
+  await expandOrCollapse(page)
+
+  const pageUp = page.locator('.fcitx-keyboard-side-button-container:nth-child(1)')
+  const pageDown = page.locator('.fcitx-keyboard-side-button-container:nth-child(2)')
+  await expect(pageUp).toContainClass('fcitx-keyboard-disabled')
+  await expect(pageDown).not.toContainClass('fcitx-keyboard-disabled')
+
+  await pageUp.click()
+  expect(await getSentEvents(page)).toEqual([])
+  await pageDown.click()
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'PAGE', data: { inputContext: 'context', generation: 1, next: true } },
+  ])
+
+  event.data.hasPrev = true
+  event.data.hasNext = false
+  await sendSystemEvent(page, event)
+  await expect(pageUp).not.toContainClass('fcitx-keyboard-disabled')
+  await expect(pageDown).toContainClass('fcitx-keyboard-disabled')
+
+  await pageDown.click()
+  await pageUp.click()
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'PAGE', data: { inputContext: 'context', generation: 1, next: true } },
+    { type: 'PAGE', data: { inputContext: 'context', generation: 1, next: false } },
+  ])
 })

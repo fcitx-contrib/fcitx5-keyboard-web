@@ -64,6 +64,8 @@ export type SystemEvent = {
     scrollState: ScrollState
     scrollStart: boolean
     scrollEnd: boolean
+    hasPrev?: boolean
+    hasNext?: boolean
     hasClientPreedit: boolean
     tabActions: CandidateAction[]
   }
@@ -113,6 +115,11 @@ export type VirtualKeyboardEvent = {
   type: 'CANDIDATE_TAB_ACTION'
   data: InputContextEvent & {
     id: number
+  }
+} | {
+  type: 'PAGE'
+  data: InputContextEvent & {
+    next: boolean
   }
 } | {
   type: 'STATUS_AREA_ACTION'
