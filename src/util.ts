@@ -1,4 +1,5 @@
 import type { Key, Style } from './layout'
+import { KEY_REPEAT_INTERVAL, LONG_PRESS_THRESHOLD } from './constant'
 
 export const DATA_KEY = 'data-key'
 
@@ -132,6 +133,56 @@ export function handleClick(element: HTMLElement, handler: () => void) {
   else {
     element.addEventListener('click', handler)
   }
+}
+
+let activeRepeatStopper: (() => void) | null = null
+
+export function cancelRepeatableClick() {
+  activeRepeatStopper?.()
+}
+
+export function handleRepeatableClick(element: HTMLElement, handler: () => void) {
+  handleClick(element, handler)
+  if (!isAndroidOrIOS) {
+    return
+  }
+
+  let longPressTimer: number | null = null
+  let repeatTimer: number | null = null
+  let cancelRepeat: () => void
+  const stopRepeat = () => {
+    if (longPressTimer !== null) {
+      clearTimeout(longPressTimer)
+      longPressTimer = null
+    }
+    if (repeatTimer !== null) {
+      clearInterval(repeatTimer)
+      repeatTimer = null
+    }
+    if (activeRepeatStopper === cancelRepeat) {
+      activeRepeatStopper = null
+    }
+  }
+  cancelRepeat = () => {
+    element.setAttribute('data-dragged', 'true')
+    stopRepeat()
+  }
+
+  element.addEventListener('touchstart', () => {
+    cancelRepeatableClick()
+    activeRepeatStopper = cancelRepeat
+    longPressTimer = window.setTimeout(() => {
+      longPressTimer = null
+      if (element.hasAttribute('data-dragged')) {
+        return
+      }
+      // Suppress handleClick's tap action after a long press.
+      element.setAttribute('data-dragged', 'true')
+      repeatTimer = window.setInterval(handler, KEY_REPEAT_INTERVAL)
+    }, LONG_PRESS_THRESHOLD)
+  })
+  element.addEventListener('touchend', stopRepeat)
+  element.addEventListener('touchcancel', stopRepeat)
 }
 
 export function enableScroll(element: HTMLElement) {

@@ -6,7 +6,7 @@ import CheckMark from 'bundle-text:../svg/checkmark.svg'
 import Enter from 'bundle-text:../svg/enter.svg'
 import Search from 'bundle-text:../svg/search.svg'
 import Send from 'bundle-text:../svg/send.svg'
-import { LONG_PRESS_THRESHOLD } from './constant'
+import { KEY_REPEAT_INTERVAL, LONG_PRESS_THRESHOLD } from './constant'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
@@ -42,7 +42,6 @@ const touches: { [key: string]: {
 const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
-const KEY_REPEAT_INTERVAL = 80 // Same with iOS.
 export const DRAG_THRESHOLD = 10 // radius^2
 const SWIPE_THRESHOLD = 10
 const numpadSwipe: Swipe = { label: '123', actions: [] }

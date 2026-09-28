@@ -1,7 +1,7 @@
 import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import FirstPage from 'bundle-text:../svg/first-page.svg'
-import { div, handleClick, press, release, setSvgStyle } from './util'
+import { div, handleClick, handleRepeatableClick, press, release, setSvgStyle } from './util'
 import { handleBackspace, sendEvent, sendKeyDown } from './ux'
 
 let selecting = false
@@ -50,19 +50,19 @@ export function renderEditor() {
 
   const leftButton = renderEditorButton(ChevronLeft, '1 / 1 / 4 / 3')
   setSvgStyle(leftButton, { height: '20cqh' })
-  handleClick(leftButton, () => sendKeyDown('', 'ArrowLeft'))
+  handleRepeatableClick(leftButton, () => sendKeyDown('', 'ArrowLeft'))
 
   const upButton = renderEditorButton(ChevronLeft, '1 / 3 / 2 / 5')
   setSvgStyle(upButton, { transform: 'rotate(90deg)' })
-  handleClick(upButton, () => sendKeyDown('', 'ArrowUp'))
+  handleRepeatableClick(upButton, () => sendKeyDown('', 'ArrowUp'))
 
   const rightButton = renderEditorButton(ChevronLeft, '1 / 5 / 4 / 7')
   setSvgStyle(rightButton, { height: '20cqh', transform: 'scaleX(-1)' })
-  handleClick(rightButton, () => sendKeyDown('', 'ArrowRight'))
+  handleRepeatableClick(rightButton, () => sendKeyDown('', 'ArrowRight'))
 
   const downButton = renderEditorButton(ChevronLeft, '3 / 3 / 4 / 5')
   setSvgStyle(downButton, { transform: 'rotate(270deg)' })
-  handleClick(downButton, () => sendKeyDown('', 'ArrowDown'))
+  handleRepeatableClick(downButton, () => sendKeyDown('', 'ArrowDown'))
 
   selectButton = renderEditorButton('Select', '2 / 3 / 3 / 5')
   selectButton.addEventListener('touchstart', () => {

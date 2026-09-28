@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn } from './util'
+import { getKey, getSentEvents, getToolbarButton, init, sendSystemEvent, tapReturn, touchDown, touchUp } from './util'
 
 function gotoEditor(page: Page) {
   return getToolbarButton(page, 4).tap()
@@ -30,6 +30,57 @@ test('Basic keys', async ({ page }) => {
     { type: 'KEY_DOWN', data: { key: '', code: 'Home' } },
     { type: 'KEY_DOWN', data: { key: '', code: 'End' } },
   ])
+})
+
+test('Long press arrow keys', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'userAgent', { value: 'Android' })
+  })
+  await init(page)
+  await gotoEditor(page)
+  await page.clock.install({ time: 0 })
+  await page.clock.pauseAt(1000)
+
+  const buttons = page.locator('.fcitx-keyboard-editor-button-container')
+  const codes = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown']
+  const expected = []
+  for (const [index, code] of codes.entries()) {
+    const button = buttons.nth(index)
+    const touchId = await touchDown(button)
+    await page.clock.runFor(300)
+    expect(await getSentEvents(page)).toEqual(expected)
+
+    await page.clock.runFor(80 * 3)
+    expected.push(...Array.from({ length: 3 }, () => ({
+      type: 'KEY_DOWN' as const,
+      data: { key: '', code },
+    })))
+    expect(await getSentEvents(page)).toEqual(expected)
+
+    await touchUp(button, touchId, code === 'ArrowDown')
+    await page.clock.runFor(500)
+    expect(await getSentEvents(page)).toEqual(expected)
+  }
+})
+
+test('Leaving editor stops repeated arrow key', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'userAgent', { value: 'Android' })
+  })
+  await init(page)
+  await gotoEditor(page)
+  await page.clock.install({ time: 0 })
+  await page.clock.pauseAt(1000)
+
+  const left = page.locator('.fcitx-keyboard-editor-button-container').first()
+  const touchId = await touchDown(left)
+  await page.clock.runFor(380)
+  expect(await getSentEvents(page)).toHaveLength(1)
+
+  await tapReturn(page)
+  await page.clock.runFor(500)
+  await touchUp(left, touchId)
+  expect(await getSentEvents(page)).toHaveLength(1)
 })
 
 test('Select (all)', async ({ page }) => {
