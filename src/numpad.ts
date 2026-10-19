@@ -23,7 +23,8 @@ const rows: Row[] = [
   {
     keys: [
       normalKey('/', sideColumnFlex),
-      normalKey(','),
+      normalKey(',', halfMiddleColumnFlex),
+      normalKey(':', halfMiddleColumnFlex),
       normalKey('0'),
       { type: 'space', flex: halfMiddleColumnFlex, commit: true },
       normalKey('.', halfMiddleColumnFlex),

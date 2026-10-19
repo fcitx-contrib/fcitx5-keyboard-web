@@ -72,6 +72,8 @@ test('Numpad commits keys', async ({ page }) => {
   await expect(numpad.locator('.fcitx-keyboard-row')).toHaveCount(4)
   await tap(numpad.getByText('+', { exact: true }))
   await tap(numpad.getByText('1', { exact: true }))
+  await tap(numpad.getByText(',', { exact: true }))
+  await tap(numpad.getByText(':', { exact: true }))
   await tap(numpad.getByText('0', { exact: true }))
   await tap(numpad.locator('.fcitx-keyboard-numpad-space'))
   await tap(numpad.getByText('.', { exact: true }))
@@ -81,6 +83,8 @@ test('Numpad commits keys', async ({ page }) => {
   expect(await getSentEvents(page)).toEqual([
     { type: 'COMMIT', data: '+' },
     { type: 'COMMIT', data: '1' },
+    { type: 'COMMIT', data: ',' },
+    { type: 'COMMIT', data: ':' },
     { type: 'COMMIT', data: '0' },
     { type: 'COMMIT', data: ' ' },
     { type: 'COMMIT', data: '.' },
