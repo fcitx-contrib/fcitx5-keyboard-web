@@ -190,8 +190,8 @@ test('Return to see all keys released', async ({ page }) => {
   const symbolButton = getSymbolButton(page)
   await tap(symbolButton)
   await tapReturn(page)
-  await expect(k).toHaveCSS('background-color', WHITE)
-  await expect(symbolButton).toHaveCSS('background-color', GRAY)
+  await expect(k.locator('..').locator(':scope > .fcitx-keyboard-key-background')).toHaveCSS('fill', WHITE)
+  await expect(symbolButton.locator('..').locator(':scope > .fcitx-keyboard-key-background')).toHaveCSS('fill', GRAY)
 })
 
 for (const longPress of [false, true]) {

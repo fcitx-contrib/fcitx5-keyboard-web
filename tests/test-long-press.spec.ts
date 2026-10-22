@@ -5,7 +5,9 @@ test('Long press', async ({ page }) => {
   await init(page)
 
   const l = page.getByText('l)')
-  await longPress(l)
+  await longPress(l, async () => {
+    return expect(page.locator('.fcitx-keyboard-popover-background path')).toHaveCount(1)
+  })
   expect(await getSentEvents(page)).toEqual([
     { type: 'KEY_DOWN', data: { key: ')', code: '' } },
   ])

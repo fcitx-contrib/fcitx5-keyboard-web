@@ -9,7 +9,7 @@ import { showContextmenu } from './contextmenu'
 import { updateCandidateDisplayMode } from './display'
 import { getKeyboardContainer } from './selector'
 import { disable, div, enable, enableScroll, getCandidateBar, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
-import { DRAG_THRESHOLD, handleBackspace, selectCandidate, sendEvent, sendKeyDown } from './ux'
+import { DRAG_THRESHOLD_SQUARED, handleBackspace, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
 let touchId: number | null = null
 let longPressId: number | null = null
@@ -61,7 +61,7 @@ function dragged(touch: Touch) {
   const { clientX, clientY } = touch
   const dX = clientX - startX
   const dY = clientY - startY
-  return dX * dX + dY * dY > DRAG_THRESHOLD
+  return dX * dX + dY * dY > DRAG_THRESHOLD_SQUARED
 }
 
 function cancelLongPress() {

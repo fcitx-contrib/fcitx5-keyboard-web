@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { SCROLL_NONE } from '../src/api.d'
-import { getKey, getSentEvents, init, sendSystemEvent, tap, tapReturn, touchDown, touchMove, touchUp } from './util'
+import { getKey, getKeyBackground, getSentEvents, init, sendSystemEvent, tap, tapReturn, touchDown, touchMove, touchUp } from './util'
 
 function getSymbolButton(page: Page) {
   return page.locator('.fcitx-keyboard-symbol')
@@ -30,6 +30,8 @@ test('Swipe up on symbol opens numpad', async ({ page }) => {
   const touchId = await touchDown(symbolButton)
   await touchMove(symbolButton, touchId, 0, -20)
   await expect(page.locator('.fcitx-keyboard-popover')).toHaveText('123')
+  await expect(page.locator('.fcitx-keyboard-popover-background path')).toHaveCount(1)
+  await expect(page.locator('.fcitx-keyboard-popover-cell')).not.toContainClass('fcitx-keyboard-highlighted')
   await touchUp(symbolButton, touchId)
 
   await expect(getNumpad(page)).toBeVisible()
@@ -44,6 +46,7 @@ test('Long press symbol opens numpad', async ({ page }) => {
   const touchId = await touchDown(symbolButton)
   await page.waitForTimeout(400)
   await expect(page.locator('.fcitx-keyboard-popover')).toHaveText('123')
+  await expect(page.locator('.fcitx-keyboard-popover-cell')).not.toContainClass('fcitx-keyboard-highlighted')
   await touchUp(symbolButton, touchId)
 
   await expect(getNumpad(page)).toBeVisible()
@@ -93,6 +96,35 @@ test('Numpad commits keys', async ({ page }) => {
   ])
   await tapReturn(page)
   await expect(getKey(page, 'q1')).toBeVisible()
+})
+
+test('Every numpad key keeps its resting outline without a bubble', async ({ page }) => {
+  await init(page)
+  await openNumpad(page)
+
+  const keys = getNumpad(page).locator('.fcitx-keyboard-key')
+  const keyCount = await keys.count()
+  expect(keyCount).toBeGreaterThan(0)
+  for (let i = 0; i < keyCount; i++) {
+    const key = keys.nth(i)
+    const path = getKeyBackground(key).locator('path')
+    const outline = await path.getAttribute('d')
+    const touchId = await touchDown(key)
+    await expect(key.locator('..')).toContainClass('fcitx-keyboard-pressed')
+    await expect(page.locator('.fcitx-keyboard-popover-container')).not.toBeVisible()
+    await expect(page.locator('.fcitx-keyboard-popover-source')).toHaveCount(0)
+    await expect(page.locator('.fcitx-keyboard-popover-background')).toHaveCount(0)
+    await expect(path).toHaveAttribute('d', outline!)
+    await touchUp(key, touchId)
+    await expect(key.locator('..')).not.toContainClass('fcitx-keyboard-pressed')
+  }
+
+  await tapReturn(page)
+  const e = page.getByText('e3')
+  const touchId = await touchDown(e)
+  await expect(page.locator('.fcitx-keyboard-popover')).toBeVisible()
+  await expect(page.locator('.fcitx-keyboard-popover')).toHaveText('e')
+  await touchUp(e, touchId)
 })
 
 test('Numpad shows toolbar buttons', async ({ page }) => {

@@ -118,6 +118,10 @@ export function getKey(page: Page, key: string) {
   return page.locator('.fcitx-keyboard').getByText(key)
 }
 
+export function getKeyBackground(key: Locator) {
+  return key.locator('..').locator(':scope > .fcitx-keyboard-key-background')
+}
+
 export function getToolbarButton(page: Page, nth: number) {
   return page.locator(`.fcitx-keyboard-toolbar .fcitx-keyboard-toolbar-button:nth-child(${nth})`)
 }

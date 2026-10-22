@@ -2,7 +2,7 @@ import type { Locator } from '@playwright/test'
 import type { VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
 import { SCROLL_NONE } from '../src/api.d'
-import { getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
+import { getKeyBackground, getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
 
 async function getFontSize(locator: Locator) {
   const fontSize = await locator.evaluate(element => window.getComputedStyle(element).getPropertyValue('font-size'))
@@ -88,10 +88,10 @@ test('Continuous slide shouldn\'t be interrupted by setCandidates', async ({ pag
 
   const space = page.locator('.fcitx-keyboard-space')
   const touchId = await touchDown(space)
-  await expect(space).toHaveCSS('background-color', GRAY)
+  await expect(getKeyBackground(space)).toHaveCSS('fill', GRAY)
 
   await touchMove(space, touchId, -15, 0)
-  await expect(space).toHaveCSS('background-color', GRAY)
+  await expect(getKeyBackground(space)).toHaveCSS('fill', GRAY)
 
   // When preedit exists, sliding space may move cursor thus change candidates.
   await sendSystemEvent(page, { type: 'CANDIDATES', data: { inputContext: 'context', generation: 1, highlighted: 0, candidates: [{
@@ -99,8 +99,8 @@ test('Continuous slide shouldn\'t be interrupted by setCandidates', async ({ pag
     label: '1',
     comment: '',
   }], scrollState: SCROLL_NONE, scrollStart: false, scrollEnd: false, hasClientPreedit: true, tabActions: [] } })
-  await expect(space).toHaveCSS('background-color', GRAY)
+  await expect(getKeyBackground(space)).toHaveCSS('fill', GRAY)
 
   await touchUp(space, touchId)
-  await expect(space).toHaveCSS('background-color', WHITE)
+  await expect(getKeyBackground(space)).toHaveCSS('fill', WHITE)
 })

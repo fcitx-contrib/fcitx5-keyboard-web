@@ -87,6 +87,15 @@
   container-type: size;
 }
 
+.fcitx-keyboard-return-backspace .fcitx-keyboard-key {
+  background-color: var(--function-key-color);
+  box-shadow: 0 2cqh rgb(0 0 0 / 30%);
+}
+
+.fcitx-keyboard-return-backspace.fcitx-keyboard-pressed .fcitx-keyboard-key {
+  background-color: var(--pressed-function-key-color);
+}
+
 .fcitx-keyboard-return-bar .fcitx-keyboard-symbol-lock {
   display: none;
 }
@@ -417,26 +426,52 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--key-color);
   color: var(--key-label-color);
-  box-shadow: 0 2cqh rgb(0 0 0 / 30%);
   font-size: 40cqh;
 }
 
-.fcitx-keyboard-pressed .fcitx-keyboard-key {
-  background-color: var(--pressed-key-color);
+.fcitx-keyboard-key-background {
+  position: absolute;
+  z-index: 0;
+  inset: 8cqh 6cqh;
+  width: calc(100% - 12cqh);
+  height: 84cqh;
+  overflow: visible;
+  pointer-events: none;
+  fill: var(--key-color);
+}
+
+.fcitx-keyboard-key-shadow {
+  fill: rgb(0 0 0 / 30%);
+}
+
+.fcitx-keyboard-pressed .fcitx-keyboard-key-background {
+  fill: var(--pressed-key-color);
 }
 
 .fcitx-keyboard-key.fcitx-keyboard-shift svg {
   height: 60cqh;
 }
 
-.fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol, .fcitx-keyboard-numpad-backspace, .fcitx-keyboard-numpad-enter) {
-  background-color: var(--function-key-color);
+.fcitx-keyboard-function-key-background {
+  fill: var(--function-key-color);
 }
 
-.fcitx-keyboard-pressed .fcitx-keyboard-key:is(.fcitx-keyboard-shift, .fcitx-keyboard-backspace, .fcitx-keyboard-enter, .fcitx-keyboard-symbol, .fcitx-keyboard-numpad-backspace, .fcitx-keyboard-numpad-enter) {
-  background-color: var(--pressed-function-key-color);
+.fcitx-keyboard-pressed .fcitx-keyboard-function-key-background {
+  fill: var(--pressed-function-key-color);
+}
+
+.fcitx-keyboard-key-container.fcitx-keyboard-popover-source .fcitx-keyboard-key {
+  color: transparent;
+}
+
+.fcitx-keyboard-key-container.fcitx-keyboard-popover-source .fcitx-keyboard-key-background {
+  fill: var(--key-color);
+  z-index: 1;
+}
+
+.fcitx-keyboard-popover-source .fcitx-keyboard-key > * {
+  visibility: hidden;
 }
 
 .fcitx-keyboard-key:is(.fcitx-keyboard-backspace, .fcitx-keyboard-numpad-backspace) svg {
@@ -566,35 +601,44 @@
 }
 
 .fcitx-keyboard-popover-container {
-  background-color: var(--popover-container-color);
-  display: flex;
+  color: var(--popover-label-color);
   position: fixed;
-  box-shadow: 0 0 8px rgb(0 0 0 / 30%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .fcitx-keyboard-popover-cell {
-  position: relative;
-  container-type: size;
+  position: absolute;
+  top: 0;
+  height: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .fcitx-keyboard-popover {
-  position: absolute;
-  inset: 8cqh 6cqh;
-  border-radius: 7cqh;
-  font-size: 40cqh;
+  width: 100%;
+  height: 60%;
+  border-radius: 5px;
   display: flex;
   justify-content: center;
   align-items: center;
   color: var(--popover-label-color);
+  font-weight: 300;
+}
+
+.fcitx-keyboard-popover-large-label {
+  left: 0;
+  width: 100%;
+}
+
+.fcitx-keyboard-popover-label .fcitx-keyboard-popover {
+  height: 100%;
 }
 
 .fcitx-keyboard-popover svg {
-  width: 45cqh;
-  height: 45cqh;
-}
-
-.fcitx-keyboard-swipe .fcitx-keyboard-popover {
-  color: var(--popover-highlight-color);
+  width: 50%;
+  height: 50%;
 }
 
 .fcitx-keyboard-highlighted .fcitx-keyboard-popover {
