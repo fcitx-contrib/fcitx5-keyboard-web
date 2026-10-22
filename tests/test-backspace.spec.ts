@@ -49,31 +49,34 @@ function getInterruptTarget(page: Page, surface: Surface) {
 
 for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
   test.describe(surface, () => {
+    const colorProperty = surface === 'keyboard' ? 'fill' : 'background-color'
+    const visualSelector = surface === 'keyboard' ? ':scope > .fcitx-keyboard-key-background' : ':scope > div'
+
     test('Backspace', async ({ page }) => {
       const backspace = await initSurface(page, surface)
-      const visual = backspace.locator(':scope > div')
-      await expect(visual).toHaveCSS('background-color', GRAY)
+      const visual = backspace.locator(visualSelector)
+      await expect(visual).toHaveCSS(colorProperty, GRAY)
 
       const touchId = await touchDown(backspace)
-      await expect(visual).toHaveCSS('background-color', WHITE)
+      await expect(visual).toHaveCSS(colorProperty, WHITE)
 
       await touchUp(backspace, touchId)
       expect(await getSentEvents(page)).toEqual([{
         type: 'KEY_DOWN',
         data: { key: '', code: 'Backspace' },
       }])
-      await expect(visual).toHaveCSS('background-color', GRAY)
+      await expect(visual).toHaveCSS(colorProperty, GRAY)
     })
 
     test('Slide', async ({ page }) => {
       const backspace = await initSurface(page, surface)
-      const visual = backspace.locator(':scope > div')
+      const visual = backspace.locator(visualSelector)
       const touchId = await touchDown(backspace)
       await touchMove(backspace, touchId, -25, 0)
-      await expect(visual).toHaveCSS('background-color', WHITE)
+      await expect(visual).toHaveCSS(colorProperty, WHITE)
       await touchMove(backspace, touchId, 15, 0)
       await touchUp(backspace, touchId)
-      await expect(visual).toHaveCSS('background-color', GRAY)
+      await expect(visual).toHaveCSS(colorProperty, GRAY)
 
       const leftEvent: VirtualKeyboardEvent = { type: 'BACKSPACE_SLIDE', data: 'LEFT' }
       const rightEvent: VirtualKeyboardEvent = { type: 'BACKSPACE_SLIDE', data: 'RIGHT' }
@@ -89,7 +92,7 @@ for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
     for (const cancel of [false, true]) {
       test(`Long press stops on touch${cancel ? 'cancel' : 'end'}`, async ({ page }) => {
         const backspace = await initSurface(page, surface)
-        const visual = backspace.locator(':scope > div')
+        const visual = backspace.locator(visualSelector)
         await page.clock.install({ time: 0 })
         await page.clock.pauseAt(1000)
 
@@ -102,7 +105,7 @@ for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
           type: 'KEY_DOWN',
           data: { key: '', code: 'Backspace' },
         })))
-        await expect(visual).toHaveCSS('background-color', WHITE)
+        await expect(visual).toHaveCSS(colorProperty, WHITE)
         await expect(page.locator('.fcitx-keyboard-popover')).toBeHidden()
 
         await touchMove(backspace, touchId, -25, 0)
@@ -112,7 +115,7 @@ for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
         await touchUp(backspace, touchId, cancel)
         await page.clock.runFor(500)
         expect(await getSentEvents(page)).toHaveLength(4)
-        await expect(visual).toHaveCSS('background-color', GRAY)
+        await expect(visual).toHaveCSS(colorProperty, GRAY)
       })
     }
 

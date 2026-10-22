@@ -4,6 +4,7 @@ import Globe from 'bundle-text:../svg/globe.svg'
 import ShiftFiled from 'bundle-text:../svg/shift-filled.svg'
 import ShiftUppercaseFiled from 'bundle-text:../svg/shift-uppercase-filled.svg'
 import Shift from 'bundle-text:../svg/shift.svg'
+import { renderKeyBackground } from './keyBackground'
 import { DATA_KEY, div, press } from './util'
 import { getEnterKeyInnerHTML, getSpaceKeyLabel, setSpaceKeyLabel } from './ux'
 
@@ -92,6 +93,9 @@ export function renderKey(key: Key, context: Context) {
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
     }
+  }
+  if (container.querySelector('.fcitx-keyboard-key')) {
+    container.prepend(renderKeyBackground(['backspace', 'enter', 'shift', 'symbol'].includes(key.type)))
   }
   return container
 }

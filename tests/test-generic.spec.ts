@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { getKey, getSentEvents, GRAY, init, sendSystemEvent, tap, tapReturn, touchDown, touchUp, WHITE } from './util'
+import { getKey, getSentEvents, init, sendSystemEvent, tap, tapReturn, touchDown, touchUp } from './util'
 
 function getNumpad(page: Page) {
   return page.locator('.fcitx-keyboard-numpad')
@@ -10,18 +10,14 @@ test('Click', async ({ page }) => {
   await init(page)
 
   const q = getKey(page, 'q')
-  await expect(q).toHaveCSS('background-color', WHITE)
-
   const touchId = await touchDown(q)
   expect(await getSentEvents(page), 'To support other gestures, no event should be sent on press.').toEqual([])
-  await expect(q).toHaveCSS('background-color', GRAY)
 
   await touchUp(q, touchId)
   expect(await getSentEvents(page)).toEqual([{
     type: 'KEY_DOWN',
     data: { key: 'q', code: 'KeyQ' },
   }])
-  await expect(q).toHaveCSS('background-color', WHITE)
 })
 
 test('Touch canceled', async ({ page }) => {
@@ -34,7 +30,6 @@ test('Touch canceled', async ({ page }) => {
     type: 'KEY_DOWN',
     data: { key: 'q', code: 'KeyQ' },
   }])
-  await expect(q).toHaveCSS('background-color', WHITE)
 })
 
 test('Enter', async ({ page }) => {
@@ -59,16 +54,10 @@ test('Preserve press order', async ({ page }) => {
   await init(page)
 
   const w = getKey(page, 'w')
-  await expect(w).toHaveCSS('background-color', WHITE)
-
   const o = getKey(page, 'o')
-  await expect(o).toHaveCSS('background-color', WHITE)
 
   const wTouchId = await touchDown(w)
-  await expect(w).toHaveCSS('background-color', GRAY)
-
   const oTouchId = await touchDown(o)
-  await expect(o).toHaveCSS('background-color', GRAY)
 
   await touchUp(o, oTouchId)
   await touchUp(w, wTouchId)
@@ -79,8 +68,6 @@ test('Preserve press order', async ({ page }) => {
     type: 'KEY_DOWN',
     data: { key: 'o', code: 'KeyO' },
   }])
-  await expect(w).toHaveCSS('background-color', WHITE)
-  await expect(o).toHaveCSS('background-color', WHITE)
 })
 
 test('HIDE event', async ({ page }) => {

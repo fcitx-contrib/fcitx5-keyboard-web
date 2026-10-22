@@ -10,7 +10,8 @@ import { KEY_REPEAT_INTERVAL, LONG_PRESS_THRESHOLD } from './constant'
 import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
-import { hidePopover, showPopover, updateHighlight } from './popover'
+import { observeKeyBackgrounds } from './keyBackground'
+import { hidePopover, showKeyPreview, showPopover, updateHighlight } from './popover'
 import { DATA_KEY, getContainer, getKey, isAndroidOrIOS, press, release } from './util'
 
 type TouchState = 'HIT' | 'PRESSING' | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
@@ -42,17 +43,23 @@ const touches: { [key: string]: {
 const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
-export const DRAG_THRESHOLD = 10 // radius^2
+export const DRAG_THRESHOLD_SQUARED = 10 // CSS px squared
 const SWIPE_THRESHOLD = 10
 const numpadSwipe: Swipe = { label: '123', actions: [] }
 const numpadLongPress: LongPress = { cells: [numpadSwipe], index: 0 }
 
 function dragged(touch: Touch) {
-  const { clientX: startX, clientY: startY } = touches[touch.identifier].touch
+  const { touch: initialTouch, type } = touches[touch.identifier]
+  const { clientX: startX, clientY: startY } = initialTouch
   const { clientX, clientY } = touch
   const dX = clientX - startX
   const dY = clientY - startY
-  return dX * dX + dY * dY > DRAG_THRESHOLD
+  // Keep ordinary keys tappable until a gesture reaches the swipe threshold.
+  // Use each axis so a diagonal approach does not cancel before swiping up.
+  if (type === 'key' || type === 'symbol') {
+    return Math.max(Math.abs(dX), Math.abs(dY)) >= SWIPE_THRESHOLD
+  }
+  return dX * dX + dY * dY > DRAG_THRESHOLD_SQUARED
 }
 
 function cancelLongPress(touchId: number) {
@@ -284,7 +291,10 @@ function doSwipe(touch: Touch) {
   else {
     const swipe = getSwipe(touch)
     if (swipe) {
-      showPopover(getContainer(touches[touch.identifier].touch)!, swipe.label)
+      showPopover(
+        getContainer(touches[touch.identifier].touch)!,
+        type === 'symbol' ? numpadLongPress : swipe.label,
+      )
     }
     else {
       hidePopover()
@@ -357,6 +367,7 @@ function longPressRelease(touchId: number) {
 export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
   const touch = event.changedTouches[0]
   interrupt(touch.identifier)
+  hidePopover()
   let container = touchContainer ?? getContainer(touch)
   const key = getKey(container)
   let swipeUp: Swipe | undefined
@@ -390,6 +401,9 @@ export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
   // Must recalculate container as layer may have been changed.
   container = touchContainer ?? getContainer(touch)
   container && press(container)
+  if (container && key?.type === 'key') {
+    showKeyPreview(container, key.label)
+  }
   touches[touch.identifier] = {
     touch,
     container: touchContainer,
@@ -436,6 +450,7 @@ export function onTouchEnd(event: TouchEvent) {
   const { touch, state, type } = touches[touchId]
   const container = getTouchContainer(touch)
   container && release(container)
+  hidePopover()
 
   switch (state) {
     case 'HIT':
@@ -445,7 +460,6 @@ export function onTouchEnd(event: TouchEvent) {
       touchUp(touch)
       break
     case 'SWIPING':
-      hidePopover()
       switch (type) {
         case 'backspace':
           sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
@@ -457,7 +471,6 @@ export function onTouchEnd(event: TouchEvent) {
       }
       break
     case 'PRESSING':
-      hidePopover()
       longPressRelease(touchId)
       break
   }
@@ -477,6 +490,7 @@ export function setLayer(id: string, locked: boolean) {
           locked,
         }))
       }
+      observeKeyBackgrounds(keyboard.closest('.fcitx-keyboard-container')!)
     }
   }
 }
