@@ -137,6 +137,20 @@ export function setPreedit(auxUp: string, preedit: string, caret: number) {
   updateCandidateDisplayMode()
 }
 
+function revealHighlightedCandidate(container: Element, candidate: HTMLElement | null) {
+  if (!candidate || scrollDirection !== 'HORIZONTAL') {
+    return
+  }
+  const viewport = container.getBoundingClientRect()
+  const box = candidate.getBoundingClientRect()
+  if (box.width > viewport.width || box.left < viewport.left) {
+    container.scrollBy({ left: Math.floor(box.left - viewport.left) })
+  }
+  else if (box.right > viewport.right) {
+    container.scrollBy({ left: Math.ceil(box.right - viewport.right) })
+  }
+}
+
 export function setCandidates(inputContext: string, generation: number, cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasPrev: boolean, hasNext: boolean, hasClientPreedit: boolean, tabActions: CandidateAction[]) {
   const context = { inputContext, generation }
   candidateContext = context
@@ -156,6 +170,7 @@ export function setCandidates(inputContext: string, generation: number, cands: C
   hasPrev_ = hasPrev
   hasNext_ = hasNext
   const offset = container.childElementCount
+  let highlightedCandidate: HTMLElement | null = null
   for (let i = 0; i < cands.length; ++i) {
     const candidate = div('fcitx-keyboard-candidate')
     const candidateInner = div('fcitx-keyboard-candidate-inner')
@@ -192,6 +207,7 @@ export function setCandidates(inputContext: string, generation: number, cands: C
     })
     if (i === highlighted) {
       candidate.classList.add('fcitx-keyboard-highlighted')
+      highlightedCandidate = candidate
     }
     container.appendChild(candidate)
   }
@@ -201,6 +217,7 @@ export function setCandidates(inputContext: string, generation: number, cands: C
     collapse()
   }
   updateCandidateDisplayMode()
+  revealHighlightedCandidate(container, highlightedCandidate)
 }
 
 export function setCandidateActions(inputContext: string, generation: number, index: number, actions: CandidateAction[]) {
