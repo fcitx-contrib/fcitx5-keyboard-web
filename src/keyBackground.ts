@@ -1,4 +1,5 @@
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+export const BUBBLE_SHADOW_RADIUS = 2
 let nextBackgroundId = 0
 
 export function keyRadius(key: Element) {
@@ -47,7 +48,9 @@ export function restoreKeyBackground(svg: SVGSVGElement) {
   const radius = keyRadius(key)
   const { width, height } = keyBounds(svg)
   const shadowOffset = Math.round(svg.parentElement!.getBoundingClientRect().height * 0.02 * scale) / scale // 2cqh
-  svg.querySelector('use')!.setAttribute('y', shadowOffset.toString())
+  const shadow = svg.querySelector('use')!
+  shadow.setAttribute('y', shadowOffset.toString())
+  shadow.removeAttribute('filter')
   svg.classList.remove('fcitx-keyboard-popover-background')
   svg.querySelector('path')!.setAttribute('d', width && height ? roundedKeyPath(0, 0, width, height, radius) : '')
 }
@@ -61,11 +64,20 @@ export function renderKeyBackground(functionKey: boolean) {
   svg.setAttribute('aria-hidden', 'true')
   const path = document.createElementNS(SVG_NAMESPACE, 'path')
   path.id = `fcitx-keyboard-key-background-${nextBackgroundId++}`
-  // Reuse the silhouette for one unblurred shadow in the same coordinate space.
+  const defs = document.createElementNS(SVG_NAMESPACE, 'defs')
+  const filter = document.createElementNS(SVG_NAMESPACE, 'filter')
+  filter.id = `${path.id}-shadow`
+  filter.setAttribute('filterUnits', 'userSpaceOnUse')
+  filter.setAttribute('color-interpolation-filters', 'sRGB')
+  const blur = document.createElementNS(SVG_NAMESPACE, 'feGaussianBlur')
+  blur.setAttribute('stdDeviation', BUBBLE_SHADOW_RADIUS.toString())
+  filter.appendChild(blur)
+  defs.appendChild(filter)
+  // Reuse the silhouette; only bubbles enable the soft-shadow filter.
   const shadow = document.createElementNS(SVG_NAMESPACE, 'use')
   shadow.classList.add('fcitx-keyboard-key-shadow')
   shadow.setAttribute('href', `#${path.id}`)
-  svg.append(shadow, path)
+  svg.append(defs, shadow, path)
   return svg
 }
 

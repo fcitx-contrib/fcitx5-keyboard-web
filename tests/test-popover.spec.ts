@@ -1,30 +1,25 @@
 import type { Page } from '@playwright/test'
 import type { Buffer } from 'node:buffer'
 import { expect, test } from '@playwright/test'
-import { getBox, getKeyBackground, init, touchDown, touchUp } from './util'
+import { getBox, getKeyBackground, init, readScreenshotPixels, touchDown, touchUp } from './util'
 
 async function expectSameOutline(page: Page, before: Buffer, after: Buffer) {
-  const maxDelta = await page.evaluate(async (urls) => {
-    const pixels = await Promise.all(urls.map(async (url) => {
-      const image = new Image()
-      image.src = url
-      await image.decode()
-      const canvas = document.createElement('canvas')
-      canvas.width = image.width
-      canvas.height = image.height
-      const context = canvas.getContext('2d')!
-      context.drawImage(image, 0, 0)
-      return context.getImageData(0, 0, image.width, image.height).data
-    }))
-    let maxDelta = 0
-    for (let i = 0; i < pixels[0].length; ++i) {
-      maxDelta = Math.max(maxDelta, Math.abs(pixels[0][i] - pixels[1][i]))
-    }
-    return maxDelta
-  }, [before, after].map(buffer => `data:image/png;base64,${buffer.toString('base64')}`))
-  // A changing SVG contour may round antialiasing coverage by one color level.
-  // Do not permit the much larger difference from displaced edges or shadows.
-  expect(maxDelta).toBeLessThanOrEqual(1)
+  const pixels = await readScreenshotPixels(page, [before, after])
+  try {
+    const maxDelta = await pixels.evaluate(([before, after]) => {
+      let maxDelta = 0
+      for (let i = 0; i < before.data.length; ++i) {
+        maxDelta = Math.max(maxDelta, Math.abs(before.data[i] - after.data[i]))
+      }
+      return maxDelta
+    })
+    // A changing SVG contour may round antialiasing coverage by one color level.
+    // Do not permit the much larger difference from displaced edges or shadows.
+    expect(maxDelta).toBeLessThanOrEqual(1)
+  }
+  finally {
+    await pixels.dispose()
+  }
 }
 
 test('Show key preview while touching a normal key', async ({ page }) => {
@@ -86,18 +81,85 @@ test('Resize the resting SVG and preserve it after a preview', async ({ page }) 
   await expect(path).toHaveAttribute('d', resizedPath!)
 })
 
-test.describe('Key outline and shadow', () => {
+test.describe('Key outline and bubble shadow', () => {
   test.use({ viewport: { width: 393, height: 800 }, deviceScaleFactor: 3 })
 
   for (const dark of [false, true]) {
+    test(`Cast a soft shadow around the entire bubble in ${dark ? 'dark' : 'light'} theme`, async ({ page }) => {
+      await init(page)
+      await page.clock.install({ time: 0 })
+      await page.clock.pauseAt(1000)
+      await page.locator('.fcitx-keyboard-container').evaluate((element, dark) => {
+        element.classList.toggle('fcitx-dark', dark)
+        element.classList.toggle('fcitx-light', !dark)
+      }, dark)
+      const key = page.getByText('g^')
+      const background = getKeyBackground(key)
+      const shadow = background.locator('use')
+      const restingOffset = await shadow.getAttribute('y')
+      const before = await key.locator('..').screenshot()
+      await expect(shadow).toHaveCSS('filter', 'none')
+      const touchId = await touchDown(key)
+      await expect(shadow).toHaveAttribute('y', '0')
+      const filterId = await background.locator('filter').getAttribute('id')
+      await expect(shadow).toHaveAttribute('filter', `url(#${filterId})`)
+      await expect(background.locator('feGaussianBlur')).toHaveAttribute('stdDeviation', '2')
+      await expect(shadow).toHaveCSS('fill', dark ? 'rgba(16, 13, 14, 0.3)' : 'rgb(128, 128, 128)')
+
+      const outline = await background.evaluate((svg) => {
+        const box = svg.getBoundingClientRect()
+        const path = svg.querySelector('path')!.getBBox()
+        return { x: box.x + path.x, y: box.y + path.y, width: path.width, height: path.height }
+      })
+      const clip = {
+        x: Math.floor(outline.x) - 6,
+        y: Math.floor(outline.y) - 6,
+        width: Math.ceil(outline.width) + 13,
+        height: Math.ceil(outline.height) + 13,
+      }
+      const withShadow = await page.screenshot({ clip })
+      await shadow.evaluate(element => element.style.visibility = 'hidden')
+      const withoutShadow = await page.screenshot({ clip })
+      await shadow.evaluate(element => element.style.removeProperty('visibility'))
+      const radius = await key.evaluate(element => Number.parseFloat(getComputedStyle(element).borderTopLeftRadius))
+      const images = await readScreenshotPixels(page, [withShadow, withoutShadow])
+      try {
+        const pixels = await images.evaluate((images, { outline, clip, radius }) => {
+          const scale = images[0].width / clip.width
+          const points = [
+            { side: 'top', x: outline.x + outline.width / 2, y: outline.y - 1 },
+            { side: 'left', x: outline.x - 1, y: outline.y + 2 * radius + 4 },
+            { side: 'right', x: outline.x + outline.width + 1, y: outline.y + 2 * radius + 4 },
+            { side: 'bottom', x: outline.x + outline.width / 2, y: outline.y + outline.height + 1 },
+          ]
+          return points.map(({ side, x, y }) => {
+            const index = (Math.round((y - clip.y) * scale) * images[0].width + Math.round((x - clip.x) * scale)) * 4
+            const brightness = images.map(({ data }) => data[index] + data[index + 1] + data[index + 2])
+            return { side, withShadow: brightness[0], withoutShadow: brightness[1] }
+          })
+        }, { outline, clip, radius })
+        for (const pixel of pixels) {
+          expect(pixel.withShadow, `${pixel.side} shadow must not be clipped`).toBeLessThan(pixel.withoutShadow)
+        }
+      }
+      finally {
+        await images.dispose()
+      }
+      await touchUp(key, touchId)
+      await expect(shadow).toHaveAttribute('y', restingOffset!)
+      await expect(shadow).toHaveCSS('filter', 'none')
+      expect(await key.locator('..').screenshot()).toEqual(before)
+    })
+
     test(`Preserve the lower key outline in ${dark ? 'dark' : 'light'} theme`, async ({ page }) => {
       await init(page)
       await page.locator('.fcitx-keyboard-container').evaluate((element, dark) => {
         element.classList.toggle('fcitx-dark', dark)
         element.classList.toggle('fcitx-light', !dark)
       }, dark)
-      // Compare only the key shape and shadow, excluding the disappearing labels.
-      await page.addStyleTag({ content: '.fcitx-keyboard-key { color: transparent !important; } .fcitx-keyboard-sub-label { visibility: hidden !important; }' })
+      // Isolate the unchanged fill/outline from the deliberately different
+      // bubble shadow and the disappearing key labels.
+      await page.addStyleTag({ content: '.fcitx-keyboard-key { color: transparent !important; } .fcitx-keyboard-sub-label, .fcitx-keyboard-key-shadow { visibility: hidden !important; }' })
 
       for (const label of ['q1', 'y6', 'p0']) {
         const key = page.getByText(label)
