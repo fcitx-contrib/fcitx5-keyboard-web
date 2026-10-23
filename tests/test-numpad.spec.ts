@@ -108,6 +108,8 @@ test('Every numpad key keeps its resting outline without a bubble', async ({ pag
   for (let i = 0; i < keyCount; i++) {
     const key = keys.nth(i)
     const path = getKeyBackground(key).locator('path')
+    // Showing the numpad schedules its first geometry update asynchronously.
+    await expect(path).toHaveAttribute('d', /.+/)
     const outline = await path.getAttribute('d')
     const touchId = await touchDown(key)
     await expect(key.locator('..')).toContainClass('fcitx-keyboard-pressed')

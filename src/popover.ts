@@ -1,12 +1,11 @@
 import type { LongPress, LongPressCell } from './layout'
 import QuickPhrase from 'bundle-text:../svg/quickphrase.svg'
 import Unicode from 'bundle-text:../svg/unicode.svg'
-import { keyBottomPath, keyBounds, keyRadius, restoreKeyBackground, roundedKeyPath } from './keyBackground'
+import { BUBBLE_SHADOW_RADIUS, keyBottomPath, keyBounds, keyRadius, restoreKeyBackground, roundedKeyPath } from './keyBackground'
 import { div, hide, show } from './util'
 
 // See fcitx5-ios/uipanel/Bubble.swift
 const SIDE_RATIO = 0.4
-const SHADOW_RADIUS = 2
 const CELL_WIDTH = 30
 
 type BubblePosition = 'left' | 'middle' | 'right'
@@ -52,7 +51,7 @@ function getGeometry(element: Element, itemCount: number, index: number, singleT
   const radius = keyRadius(keyElement)
   const rowGap = Math.max(0, cellBox.height - keyBox.height)
   const columnGap = Math.max(0, cellBox.width - keyBox.width)
-  const height = 2 * keyBox.height + 1.5 * rowGap - SHADOW_RADIUS
+  const height = 2 * keyBox.height + 1.5 * rowGap - BUBBLE_SHADOW_RADIUS
   const side = SIDE_RATIO * keyBox.width
   const position: BubblePosition
     = keyBox.left - side < keyboardBox.left
@@ -164,6 +163,23 @@ function updateBackground(element: Element, geometry: BubbleGeometry, itemCount:
   setPopoverSource(element)
   const svg = element.querySelector('.fcitx-keyboard-key-background')!
   svg.classList.add('fcitx-keyboard-popover-background')
+  // The bubble casts a centered soft shadow around its entire silhouette,
+  // unlike the resting key's downward, unblurred shadow.
+  const shadow = svg.querySelector('use')!
+  shadow.setAttribute('y', '0')
+  const filter = svg.querySelector('filter')!
+  const padding = 3 * BUBBLE_SHADOW_RADIUS
+  // Explicit local-coordinate bounds cover the portion above the SVG viewport
+  // and the wider long-press menu, including the blur outside their edges.
+  for (const [attribute, value] of Object.entries({
+    x: geometry.left - geometry.keyLeft - padding,
+    y: geometry.top - geometry.keyTop - padding,
+    width: geometry.width + 2 * padding,
+    height: geometry.height + 2 * padding,
+  })) {
+    filter.setAttribute(attribute, value.toString())
+  }
+  shadow.setAttribute('filter', `url(#${filter.id})`)
   const path = roundedRectangle
     ? roundedKeyPath(0, geometry.keyHeight - geometry.height, geometry.keyWidth, geometry.height, geometry.radius)
     : bubblePath(geometry, itemCount, index)

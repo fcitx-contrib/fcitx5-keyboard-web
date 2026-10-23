@@ -2,6 +2,7 @@ import type {
   Locator,
   Page,
 } from '@playwright/test'
+import type { Buffer } from 'node:buffer'
 import type { SystemEvent } from '../src/api'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -128,4 +129,19 @@ export function getToolbarButton(page: Page, nth: number) {
 
 export function tapReturn(page: Page) {
   return page.locator('.fcitx-keyboard-return-button:visible').tap()
+}
+
+// Keep pixel buffers in the browser; callers must dispose the returned handle.
+export function readScreenshotPixels(page: Page, screenshots: Buffer[]) {
+  return page.evaluateHandle(async urls => Promise.all(urls.map(async (url) => {
+    const image = new Image()
+    image.src = url
+    await image.decode()
+    const canvas = document.createElement('canvas')
+    canvas.width = image.width
+    canvas.height = image.height
+    const context = canvas.getContext('2d')!
+    context.drawImage(image, 0, 0)
+    return context.getImageData(0, 0, image.width, image.height)
+  })), screenshots.map(buffer => `data:image/png;base64,${buffer.toString('base64')}`))
 }
