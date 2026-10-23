@@ -276,11 +276,15 @@
 .fcitx-keyboard-candidates {
   display: flex;
   column-gap: 1cqw;
+
+  /* Allow the last candidate to clear fractional viewport edges after rounding. */
+  padding-inline-end: 1px;
   overflow: scroll hidden;
   scrollbar-width: none;
 }
 
 .fcitx-keyboard-expanded .fcitx-keyboard-candidates {
+  padding-inline-end: 0;
   flex-wrap: wrap;
   overflow: hidden scroll;
   gap: 16cqh 0;
