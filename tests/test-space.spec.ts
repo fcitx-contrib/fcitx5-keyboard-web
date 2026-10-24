@@ -13,23 +13,28 @@ test('Space', async ({ page }) => {
   await init(page)
 
   const space = page.locator('.fcitx-keyboard-space')
-  await sendSystemEvent(page, { type: 'INPUT_METHODS', data: {
-    currentInputMethod: 'pinyin',
-    inputMethods: [
-      { name: 'keyboard-us', displayName: 'English' },
-      { name: 'pinyin', displayName: '拼音' },
-    ],
-  } })
+  await sendSystemEvent(page, {
+    type: 'INPUT_METHODS',
+    data: {
+      currentInputMethod: 'pinyin',
+      inputMethods: [
+        { name: 'keyboard-us', displayName: 'English' },
+        { name: 'pinyin', displayName: '拼音' },
+      ],
+    },
+  })
   await expect(space).toHaveText('拼音')
 
   await tap(space)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: {
-      key: ' ',
-      code: 'Space',
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: {
+        key: ' ',
+        code: 'Space',
+      },
     },
-  }])
+  ])
 })
 
 test('Adjust font size', async ({ page }) => {
@@ -37,12 +42,15 @@ test('Adjust font size', async ({ page }) => {
 
   const space = page.locator('.fcitx-keyboard-space')
   const longLabel = 'Long Long Long Long Long'
-  await sendSystemEvent(page, { type: 'INPUT_METHODS', data: {
-    currentInputMethod: 'long',
-    inputMethods: [
-      { name: 'long', displayName: longLabel },
-    ],
-  } })
+  await sendSystemEvent(page, {
+    type: 'INPUT_METHODS',
+    data: {
+      currentInputMethod: 'long',
+      inputMethods: [
+        { name: 'long', displayName: longLabel },
+      ],
+    },
+  })
   await expect(space).toHaveText(longLabel)
   const fontSize = await getFontSize(space)
   expect(fontSize).toBeLessThan(12)
@@ -63,8 +71,14 @@ test('Continuous slide', async ({ page }) => {
 
   await touchMove(space, touchId, -7, 0)
   await touchMove(space, touchId, -9, 0)
-  const leftEvent: VirtualKeyboardEvent = { type: 'KEY_DOWN', data: { key: '', code: 'ArrowLeft' } }
-  const rightEvent: VirtualKeyboardEvent = { type: 'KEY_DOWN', data: { key: '', code: 'ArrowRight' } }
+  const leftEvent: VirtualKeyboardEvent = {
+    type: 'KEY_DOWN',
+    data: { key: '', code: 'ArrowLeft' },
+  }
+  const rightEvent: VirtualKeyboardEvent = {
+    type: 'KEY_DOWN',
+    data: { key: '', code: 'ArrowRight' },
+  }
   const sentEvents: VirtualKeyboardEvent[] = [leftEvent, leftEvent]
   expect(await getSentEvents(page)).toEqual(sentEvents)
 
@@ -94,11 +108,26 @@ test('Continuous slide shouldn\'t be interrupted by setCandidates', async ({ pag
   await expect(getKeyBackground(space)).toHaveCSS('fill', GRAY)
 
   // When preedit exists, sliding space may move cursor thus change candidates.
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: { inputContext: 'context', generation: 1, highlighted: 0, candidates: [{
-    text: '一',
-    label: '1',
-    comment: '',
-  }], scrollState: SCROLL_NONE, scrollStart: false, scrollEnd: false, hasClientPreedit: true, tabActions: [] } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      highlighted: 0,
+      candidates: [
+        {
+          text: '一',
+          label: '1',
+          comment: '',
+        },
+      ],
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   await expect(getKeyBackground(space)).toHaveCSS('fill', GRAY)
 
   await touchUp(space, touchId)

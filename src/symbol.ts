@@ -61,7 +61,9 @@ function getCategoryName(category: SymbolCategory) {
   const language = locale.split('_')[0]
   const locales = [locale]
   if (language === 'zh') {
-    locales.push(/(?:^|_)(?:TW|HK|MO|Hant)(?:_|$)/i.test(locale) ? 'zh_TW' : 'zh_CN')
+    locales.push(/(?:^|_)(?:TW|HK|MO|Hant)(?:_|$)/i.test(locale)
+      ? 'zh_TW'
+      : 'zh_CN')
   }
   locales.push(language, 'en')
   for (const candidate of locales) {
@@ -96,7 +98,9 @@ export function selectCategory(index: number) {
         if (width) {
           const badge = div('fcitx-keyboard-symbol-width')
           badge.classList.add(`fcitx-keyboard-symbol-${width}-width`)
-          badge.innerHTML = width === 'half' ? HalfWidth : FullWidth
+          badge.innerHTML = width === 'half'
+            ? HalfWidth
+            : FullWidth
           badge.setAttribute('aria-hidden', 'true')
           symbolItem.appendChild(badge)
         }

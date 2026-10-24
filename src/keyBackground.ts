@@ -12,7 +12,14 @@ export function keyBounds(svg: SVGSVGElement) {
   const scale = window.devicePixelRatio
   const width = Math.round(box.width * scale) / scale
   const height = Math.round(box.height * scale) / scale
-  return { left: box.left, top: box.top, width, height, right: box.left + width, bottom: box.top + height }
+  return {
+    left: box.left,
+    top: box.top,
+    width,
+    height,
+    right: box.left + width,
+    bottom: box.top + height,
+  }
 }
 
 // Shared by the resting key and the bubble, in the key's local coordinates.
@@ -52,7 +59,9 @@ export function restoreKeyBackground(svg: SVGSVGElement) {
   shadow.setAttribute('y', shadowOffset.toString())
   shadow.removeAttribute('filter')
   svg.classList.remove('fcitx-keyboard-popover-background')
-  svg.querySelector('path')!.setAttribute('d', width && height ? roundedKeyPath(0, 0, width, height, radius) : '')
+  svg.querySelector('path')!.setAttribute('d', width && height
+    ? roundedKeyPath(0, 0, width, height, radius)
+    : '')
 }
 
 export function renderKeyBackground(functionKey: boolean) {

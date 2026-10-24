@@ -14,14 +14,20 @@ let redoButton: HTMLElement | null = null
 
 export function enableUndo(enabled: boolean) {
   isUndoEnabled = enabled
-  if (undoButton)
-    enabled ? enable(undoButton) : disable(undoButton)
+  if (undoButton) {
+    enabled
+      ? enable(undoButton)
+      : disable(undoButton)
+  }
 }
 
 export function enableRedo(enabled: boolean) {
   isRedoEnabled = enabled
-  if (redoButton)
-    enabled ? enable(redoButton) : disable(redoButton)
+  if (redoButton) {
+    enabled
+      ? enable(redoButton)
+      : disable(redoButton)
+  }
 }
 
 function renderDisableButton(icon: string, enabled: () => boolean) {
@@ -64,7 +70,14 @@ export function renderToolbar() {
   handleClick(collapseButton, () => sendEvent({ type: 'COLLAPSE' }))
   setSvgStyle(collapseButton, { transform: 'rotate(270deg)' })
 
-  for (const button of [undoButton, redoButton, editButton, clipboardButton, statusAreaButton, collapseButton]) {
+  for (const button of [
+    undoButton,
+    redoButton,
+    editButton,
+    clipboardButton,
+    statusAreaButton,
+    collapseButton,
+  ]) {
     toolbar.appendChild(button)
   }
   return toolbar

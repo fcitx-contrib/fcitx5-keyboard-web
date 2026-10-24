@@ -66,12 +66,18 @@ export function renderEditor() {
 
   selectButton = renderEditorButton('Select', '2 / 3 / 3 / 5')
   selectButton.addEventListener('touchstart', () => {
-    sendEvent({ type: selecting ? 'DESELECT' : 'SELECT' })
-    selecting ? deselect() : select()
+    sendEvent({
+      type: selecting ? 'DESELECT' : 'SELECT',
+    })
+    selecting
+      ? deselect()
+      : select()
   })
 
   selectAllOrCutButton = renderEditorButton('Cut', '1 / 7 / 2 / 9')
-  handleClick(selectAllOrCutButton, () => sendEvent({ type: selecting ? 'CUT' : 'SELECT_ALL' }))
+  handleClick(selectAllOrCutButton, () => sendEvent({
+    type: selecting ? 'CUT' : 'SELECT_ALL',
+  }))
   adjustSelectAllOrCut()
 
   const copyButton = renderEditorButton('Copy', '2 / 7 / 3 / 9')
@@ -90,7 +96,19 @@ export function renderEditor() {
   setSvgStyle(endButton, { transform: 'scaleX(-1)' })
   handleClick(endButton, () => sendKeyDown('', 'End'))
 
-  for (const button of [leftButton, upButton, rightButton, downButton, selectButton, selectAllOrCutButton, copyButton, pasteButton, bsButton, homeButton, endButton]) {
+  for (const button of [
+    leftButton,
+    upButton,
+    rightButton,
+    downButton,
+    selectButton,
+    selectAllOrCutButton,
+    copyButton,
+    pasteButton,
+    bsButton,
+    homeButton,
+    endButton,
+  ]) {
     editor.appendChild(button)
   }
   return editor

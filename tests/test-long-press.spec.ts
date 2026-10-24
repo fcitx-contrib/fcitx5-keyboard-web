@@ -9,7 +9,10 @@ test('Long press', async ({ page }) => {
     return expect(page.locator('.fcitx-keyboard-popover-background path')).toHaveCount(1)
   })
   expect(await getSentEvents(page)).toEqual([
-    { type: 'KEY_DOWN', data: { key: ')', code: '' } },
+    {
+      type: 'KEY_DOWN',
+      data: { key: ')', code: '' },
+    },
   ])
 })
 
@@ -24,7 +27,10 @@ test('Slide right', async ({ page }) => {
     return expect(highlightedPopover).toHaveText('>')
   })
   expect(await getSentEvents(page)).toEqual([
-    { type: 'KEY_DOWN', data: { key: '>', code: '' } },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '>', code: '' },
+    },
   ])
 })
 
@@ -41,7 +47,10 @@ test('Slide left after shift', async ({ page }) => {
     return expect(highlightedPopover).toHaveText('l')
   })
   expect(await getSentEvents(page)).toEqual([
-    { type: 'KEY_DOWN', data: { key: 'l', code: 'KeyL' } },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'l', code: 'KeyL' },
+    },
   ])
 })
 
@@ -66,7 +75,10 @@ test('Interrupted', async ({ page }) => {
     return expect(page.locator('.fcitx-keyboard-popover-container')).not.toBeVisible()
   })
   expect(await getSentEvents(page)).toEqual([
-    { type: 'KEY_DOWN', data: { key: 'm', code: 'KeyM' } },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'm', code: 'KeyM' },
+    },
   ])
 })
 

@@ -9,25 +9,32 @@ test('Undo', async ({ page }) => {
   await expect(svg).toHaveCSS('color', ENABLED)
 
   await undo.tap()
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'UNDO',
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'UNDO',
+    },
+  ])
 
   await sendSystemEvent(page, { type: 'UNDO', data: false })
   await expect(svg).toHaveCSS('color', DISABLED)
   await undo.tap()
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'UNDO',
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'UNDO',
+    },
+  ])
 
   await sendSystemEvent(page, { type: 'UNDO', data: true })
   await expect(svg).toHaveCSS('color', ENABLED)
   await undo.tap()
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'UNDO',
-  }, {
-    type: 'UNDO',
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'UNDO',
+    },
+    {
+      type: 'UNDO',
+    },
+  ])
 })
 
 test('Redo', async ({ page }) => {
@@ -38,25 +45,32 @@ test('Redo', async ({ page }) => {
   await expect(svg).toHaveCSS('color', ENABLED)
 
   await redo.tap()
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'REDO',
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'REDO',
+    },
+  ])
 
   await sendSystemEvent(page, { type: 'REDO', data: false })
   await expect(svg).toHaveCSS('color', DISABLED)
   await redo.tap()
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'REDO',
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'REDO',
+    },
+  ])
 
   await sendSystemEvent(page, { type: 'REDO', data: true })
   await expect(svg).toHaveCSS('color', ENABLED)
   await redo.tap()
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'REDO',
-  }, {
-    type: 'REDO',
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'REDO',
+    },
+    {
+      type: 'REDO',
+    },
+  ])
 })
 
 test('Collapse', async ({ page }) => {
@@ -64,7 +78,9 @@ test('Collapse', async ({ page }) => {
 
   const collapse = getToolbarButton(page, 7)
   await collapse.tap()
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'COLLAPSE',
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'COLLAPSE',
+    },
+  ])
 })

@@ -35,7 +35,10 @@ function getLabel(icon: string, desc: string): [string, boolean /* isText */] {
       return [LightbulbOutline, false]
     default: {
       const segmentData = Array.from(segmenter.segment(desc))
-      return [segmentData.length ? segmentData[0].segment : '', true]
+      return [
+        segmentData.length ? segmentData[0].segment : '',
+        true,
+      ]
     }
   }
 }
@@ -60,12 +63,18 @@ export function setStatusArea(inputContext: string, generation: number, actions:
           text: child.desc,
           separator: child.separator,
           callback: () => {
-            sendEvent({ type: 'STATUS_AREA_ACTION', data: { ...context, id: child.id } })
+            sendEvent({
+              type: 'STATUS_AREA_ACTION',
+              data: { ...context, id: child.id },
+            })
           },
         })))
       }
       else {
-        sendEvent({ type: 'STATUS_AREA_ACTION', data: { ...context, id: action.id } })
+        sendEvent({
+          type: 'STATUS_AREA_ACTION',
+          data: { ...context, id: action.id },
+        })
       }
     })
     const text = div('fcitx-keyboard-status-area-text')

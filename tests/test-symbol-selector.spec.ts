@@ -129,19 +129,22 @@ test('Reset category', async ({ page }) => {
 async function renderCandidateAndClickSymbol(page: Page) {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: [
-      { text: '一', label: '1', comment: '' },
-    ],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [
+        { text: '一', label: '1', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   const candidate = page.locator('.fcitx-keyboard-candidate')
   await expect(candidate).toBeVisible()
 
@@ -208,22 +211,28 @@ for (const longPress of [false, true]) {
       await touchUp(backspace, touchId)
     }
 
-    await sendSystemEvent(page, { type: 'PREEDIT', data: {
-      auxUp: '',
-      preedit: '',
-      caret: 0,
-    } })
-    await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-      inputContext: 'context',
-      generation: 1,
-      candidates: [],
-      highlighted: -1,
-      scrollState: SCROLL_NONE,
-      scrollStart: true,
-      scrollEnd: true,
-      hasClientPreedit: false,
-      tabActions: [],
-    } })
+    await sendSystemEvent(page, {
+      type: 'PREEDIT',
+      data: {
+        auxUp: '',
+        preedit: '',
+        caret: 0,
+      },
+    })
+    await sendSystemEvent(page, {
+      type: 'CANDIDATES',
+      data: {
+        inputContext: 'context',
+        generation: 1,
+        candidates: [],
+        highlighted: -1,
+        scrollState: SCROLL_NONE,
+        scrollStart: true,
+        scrollEnd: true,
+        hasClientPreedit: false,
+        tabActions: [],
+      },
+    })
 
     await expect(page.getByText('，', { exact: true })).toBeVisible()
     await expect(backspace).toBeVisible()

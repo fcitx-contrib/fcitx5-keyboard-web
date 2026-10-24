@@ -21,20 +21,23 @@ test('Show and clear', async ({ page }) => {
 
   const toolbar = page.locator('.fcitx-keyboard-toolbar')
   const candidateBar = getCandidateBar(page)
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: [
-      { text: '一', label: '1', comment: '' },
-      { text: '1️⃣', label: '2', comment: '' },
-    ],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [
+        { text: '一', label: '1', comment: '' },
+        { text: '1️⃣', label: '2', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   await expect(candidateBar.locator('.fcitx-keyboard-candidate')).toHaveCount(2)
   await expect(toolbar).not.toBeVisible()
 
@@ -47,97 +50,146 @@ test('Select', async ({ page }) => {
   await init(page)
 
   const candidateBar = getCandidateBar(page)
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: [
-      { text: '一', label: '1', comment: '' },
-      { text: '1️⃣', label: '2', comment: '' },
-    ],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [
+        { text: '一', label: '1', comment: '' },
+        { text: '1️⃣', label: '2', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
 
   const firstCandidate = candidateBar.locator('.fcitx-keyboard-candidate').first()
   await firstCandidate.tap()
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'SELECT_CANDIDATE',
-    data: { inputContext: 'context', generation: 1, index: 0 },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'SELECT_CANDIDATE',
+      data: { inputContext: 'context', generation: 1, index: 0 },
+    },
+  ])
 })
 
 test('Candidate events keep their rendered input context', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context-a',
-    generation: 1,
-    candidates: [{ text: '一', label: '1', comment: '' }],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context-a',
+      generation: 1,
+      candidates: [
+        { text: '一', label: '1', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   const staleCandidate = await page.locator('.fcitx-keyboard-candidate').elementHandle()
-  const nextCandidates: SystemEvent = { type: 'CANDIDATES', data: {
-    inputContext: 'context-b',
-    generation: 2,
-    candidates: [{ text: '二', label: '1', comment: '' }],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } }
+  const nextCandidates: SystemEvent = {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context-b',
+      generation: 2,
+      candidates: [
+        { text: '二', label: '1', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  }
   await staleCandidate!.evaluate((element, event) => {
-    const touch = new Touch({ identifier: 0, target: element, clientX: 0, clientY: 0 })
-    element.dispatchEvent(new TouchEvent('touchstart', { touches: [touch], changedTouches: [touch], bubbles: true }))
+    const touch = new Touch({
+      identifier: 0,
+      target: element,
+      clientX: 0,
+      clientY: 0,
+    })
+    element.dispatchEvent(new TouchEvent('touchstart', {
+      touches: [touch],
+      changedTouches: [touch],
+      bubbles: true,
+    }))
     window.onMessage(JSON.stringify(event))
   }, nextCandidates)
   await page.waitForTimeout(400)
   expect(await getSentEvents(page)).toEqual([])
 
-  await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
-    inputContext: 'context-a',
-    generation: 1,
-    index: 0,
-    actions: [{ id: 1, text: 'stale action' }],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATE_ACTIONS',
+    data: {
+      inputContext: 'context-a',
+      generation: 1,
+      index: 0,
+      actions: [
+        { id: 1, text: 'stale action' },
+      ],
+    },
+  })
   await expect(page.getByText('stale action')).toHaveCount(0)
 
   await staleCandidate!.evaluate((element) => {
-    const touch = new Touch({ identifier: 0, target: element, clientX: 0, clientY: 0 })
-    element.dispatchEvent(new TouchEvent('touchstart', { touches: [touch], changedTouches: [touch], bubbles: true }))
-    element.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [touch], bubbles: true }))
+    const touch = new Touch({
+      identifier: 0,
+      target: element,
+      clientX: 0,
+      clientY: 0,
+    })
+    element.dispatchEvent(new TouchEvent('touchstart', {
+      touches: [touch],
+      changedTouches: [touch],
+      bubbles: true,
+    }))
+    element.dispatchEvent(new TouchEvent('touchend', {
+      touches: [],
+      changedTouches: [touch],
+      bubbles: true,
+    }))
   })
 
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'SELECT_CANDIDATE',
-    data: { inputContext: 'context-a', generation: 1, index: 0 },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'SELECT_CANDIDATE',
+      data: { inputContext: 'context-a', generation: 1, index: 0 },
+    },
+  ])
 })
 
 test('Overflow', async ({ page }) => {
   await init(page)
 
-  const event: SystemEvent = { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: [{ text: '长长长长长长长长长长长长长长长长长长长长长长长长长长长长', label: '', comment: '' }],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } }
+  const event: SystemEvent = {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [
+        { text: '长长长长长长长长长长长长长长长长长长长长长长长长长长长长', label: '', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  }
   const candidate = getCandidateBar(page).locator('.fcitx-keyboard-candidate')
   await sendSystemEvent(page, event)
   const initialBox = await getBox(candidate)
@@ -155,55 +207,89 @@ test('Overflow', async ({ page }) => {
 test('Actions', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: [{ text: '一', label: '1', comment: '' }],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [
+        { text: '一', label: '1', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   const candidate = page.locator('.fcitx-keyboard-candidate')
   await longPress(candidate)
-  const sentEvents: VirtualKeyboardEvent[] = [{ type: 'ASK_CANDIDATE_ACTIONS', data: { inputContext: 'context', generation: 1, index: 0 } }]
+  const sentEvents: VirtualKeyboardEvent[] = [
+    {
+      type: 'ASK_CANDIDATE_ACTIONS',
+      data: { inputContext: 'context', generation: 1, index: 0 },
+    },
+  ]
   expect(await getSentEvents(page)).toEqual(sentEvents)
 
-  await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
-    inputContext: 'context',
-    generation: 1,
-    index: 0,
-    actions: [{ id: 1, text: '置顶' }, { id: 2, text: '删词' }],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATE_ACTIONS',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      index: 0,
+      actions: [
+        { id: 1, text: '置顶' },
+        { id: 2, text: '删词' },
+      ],
+    },
+  })
   const deleteButton = page.getByText('删词')
   await deleteButton.tap()
   await expect(deleteButton).not.toBeVisible()
-  sentEvents.push({ type: 'CANDIDATE_ACTION', data: { inputContext: 'context', generation: 1, index: 0, id: 2 } })
+  sentEvents.push({
+    type: 'CANDIDATE_ACTION',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      index: 0,
+      id: 2,
+    },
+  })
   expect(await getSentEvents(page)).toEqual(sentEvents)
 })
 
 test('Actions disappear on clear', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: [{ text: '一', label: '1', comment: '' }],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
-  await sendSystemEvent(page, { type: 'CANDIDATE_ACTIONS', data: {
-    inputContext: 'context',
-    generation: 1,
-    index: 0,
-    actions: [{ id: 1, text: '置顶' }],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [
+        { text: '一', label: '1', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATE_ACTIONS',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      index: 0,
+      actions: [
+        { id: 1, text: '置顶' },
+      ],
+    },
+  })
   const pinButton = page.getByText('置顶')
   await expect(pinButton).toBeVisible()
 
@@ -214,23 +300,26 @@ test('Actions disappear on clear', async ({ page }) => {
 test('Tab actions', async ({ page }) => {
   await init(page)
 
-  const event: SystemEvent = { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: generateCandidates(0, 24),
-    highlighted: 0,
-    scrollState: SCROLLING,
-    scrollStart: true,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [
-      { id: 1, text: 'xi', checked: true },
-      { id: 2, text: 'xian' },
-      { id: 3, text: '', separator: true },
-      { id: 4, text: '单字', checked: true },
-      { id: 5, text: '笔画' },
-    ],
-  } }
+  const event: SystemEvent = {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: generateCandidates(0, 24),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [
+        { id: 1, text: 'xi', checked: true },
+        { id: 2, text: 'xian' },
+        { id: 3, text: '', separator: true },
+        { id: 4, text: '单字', checked: true },
+        { id: 5, text: '笔画' },
+      ],
+    },
+  }
   await sendSystemEvent(page, event)
 
   const tabs = page.locator('.fcitx-keyboard-candidate-tabs')
@@ -254,7 +343,10 @@ test('Tab actions', async ({ page }) => {
   }
 
   await tab.first().click()
-  expect(await getSentEvents(page)).toContainEqual({ type: 'CANDIDATE_TAB_ACTION', data: { inputContext: 'context', generation: 1, id: 1 } })
+  expect(await getSentEvents(page)).toContainEqual({
+    type: 'CANDIDATE_TAB_ACTION',
+    data: { inputContext: 'context', generation: 1, id: 1 },
+  })
 
   event.data.candidates = generateCandidates(0, 8)
   await sendSystemEvent(page, event)
@@ -268,28 +360,36 @@ test('Tab actions', async ({ page }) => {
 test('Preedit', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'PREEDIT', data: {
-    auxUp: 'Quick Phrase: ',
-    preedit: 'vah',
-    caret: -1,
-  } })
+  await sendSystemEvent(page, {
+    type: 'PREEDIT',
+    data: {
+      auxUp: 'Quick Phrase: ',
+      preedit: 'vah',
+      caret: -1,
+    },
+  })
   const preedit = page.locator('.fcitx-keyboard-preedit')
   await expect(preedit).toHaveText('Quick Phrase: vah')
   const box = await getBox(preedit)
   const { y } = await getBox(page.locator('#fcitx-app'))
   expect(box.y + box.height).toEqual(y)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: [{ text: '一', label: '1', comment: '' }],
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [
+        { text: '一', label: '1', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   const newBox = await getBox(preedit)
   expect(newBox, 'No layout shift').toEqual(box)
 })
@@ -303,22 +403,28 @@ test('Long preedit', async ({ page }) => {
   const postCaret = page.locator('.fcitx-keyboard-post-caret')
 
   // long post-caret
-  await sendSystemEvent(page, { type: 'PREEDIT', data: {
-    auxUp: '阿',
-    preedit: text,
-    caret: 3,
-  } })
+  await sendSystemEvent(page, {
+    type: 'PREEDIT',
+    data: {
+      auxUp: '阿',
+      preedit: text,
+      caret: 3,
+    },
+  })
   expect(await getBox(caret)).toHaveProperty('width', 1)
   const { height } = await getBox(auxUp)
   expect(await getBox(preCaret)).toHaveProperty('height', height)
   expect(await getBox(postCaret)).toHaveProperty('height', height)
 
   // long pre-caret
-  await sendSystemEvent(page, { type: 'PREEDIT', data: {
-    auxUp: '阿',
-    preedit: text,
-    caret: (text.length - 1) * 3,
-  } })
+  await sendSystemEvent(page, {
+    type: 'PREEDIT',
+    data: {
+      auxUp: '阿',
+      preedit: text,
+      caret: (text.length - 1) * 3,
+    },
+  })
   await expect(caret).not.toBeInViewport()
   expect(await getBox(preCaret)).toHaveProperty('height', height)
   expect(await getBox(postCaret)).toHaveProperty('height', height)
@@ -327,11 +433,14 @@ test('Long preedit', async ({ page }) => {
 test('Caret blink', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'PREEDIT', data: {
-    auxUp: '',
-    preedit: '🐦‍🔥she',
-    caret: 13,
-  } })
+  await sendSystemEvent(page, {
+    type: 'PREEDIT',
+    data: {
+      auxUp: '',
+      preedit: '🐦‍🔥she',
+      caret: 13,
+    },
+  })
   await expect(page.locator('.fcitx-keyboard-pre-caret')).toHaveText('🐦‍🔥sh')
   await expect(page.locator('.fcitx-keyboard-post-caret')).toHaveText('e')
   const caret = page.locator('.fcitx-keyboard-caret')
@@ -343,38 +452,54 @@ test('Caret blink', async ({ page }) => {
 test('Horizontal scroll', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: generateCandidates(0, 20),
-    highlighted: 0,
-    scrollState: SCROLLING,
-    scrollStart: true,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: generateCandidates(0, 20),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   const candidates = page.locator('.fcitx-keyboard-candidates')
   await candidates.evaluate(element => element.scrollBy(element.lastElementChild!.getBoundingClientRect().right, 0))
   // There is a maybe more than 100ms delay before event is emitted.
   while (true) {
     const sentEvents = await getSentEvents(page)
-    if (JSON.stringify(sentEvents) === JSON.stringify([{ type: 'SCROLL', data: { inputContext: 'context', generation: 1, start: 20, count: 20 } }])) {
+    if (JSON.stringify(sentEvents) === JSON.stringify([
+      {
+        type: 'SCROLL',
+        data: {
+          inputContext: 'context',
+          generation: 1,
+          start: 20,
+          count: 20,
+        },
+      },
+    ])) {
       break
     }
   }
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: generateCandidates(20, 10),
-    highlighted: -1,
-    scrollState: SCROLLING,
-    scrollStart: false,
-    scrollEnd: true,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: generateCandidates(20, 10),
+      highlighted: -1,
+      scrollState: SCROLLING,
+      scrollStart: false,
+      scrollEnd: true,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   const candidate = candidates.locator('.fcitx-keyboard-candidate')
   await expect(candidate).toHaveCount(30)
 
@@ -383,9 +508,23 @@ test('Horizontal scroll', async ({ page }) => {
   await longPress(lastCandidate)
   await tap(lastCandidate)
   expect(await getSentEvents(page), 'Only one scroll event').toEqual([
-    { type: 'SCROLL', data: { inputContext: 'context', generation: 1, start: 20, count: 20 } },
-    { type: 'ASK_CANDIDATE_ACTIONS', data: { inputContext: 'context', generation: 1, index: 29 } },
-    { type: 'SELECT_CANDIDATE', data: { inputContext: 'context', generation: 1, index: 29 } },
+    {
+      type: 'SCROLL',
+      data: {
+        inputContext: 'context',
+        generation: 1,
+        start: 20,
+        count: 20,
+      },
+    },
+    {
+      type: 'ASK_CANDIDATE_ACTIONS',
+      data: { inputContext: 'context', generation: 1, index: 29 },
+    },
+    {
+      type: 'SELECT_CANDIDATE',
+      data: { inputContext: 'context', generation: 1, index: 29 },
+    },
   ])
 })
 
@@ -397,58 +536,72 @@ test('Collapse keyboard instead of expanding empty candidates', async ({ page })
   await init(page)
   const container = getContainer(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: generateCandidates(0, 10),
-    highlighted: 0,
-    scrollState: SCROLLING,
-    scrollStart: true,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: generateCandidates(0, 10),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   await expandOrCollapse(page)
   await expect(container).toContainClass('fcitx-keyboard-expanded')
 
-  await sendSystemEvent(page, { type: 'PREEDIT', data: {
-    auxUp: 'Input Method',
-    preedit: '',
-    caret: 0,
-  } })
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: [],
-    highlighted: -1,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasClientPreedit: false,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'PREEDIT',
+    data: {
+      auxUp: 'Input Method',
+      preedit: '',
+      caret: 0,
+    },
+  })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [],
+      highlighted: -1,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasClientPreedit: false,
+      tabActions: [],
+    },
+  })
 
   await expect(container).not.toContainClass('fcitx-keyboard-expanded')
   await expandOrCollapse(page)
 
   await expect(container).not.toContainClass('fcitx-keyboard-expanded')
-  expect(await getSentEvents(page)).toEqual([{ type: 'COLLAPSE' }])
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'COLLAPSE' },
+  ])
 })
 
 test('Expand/collapse', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: generateCandidates(0, 60),
-    highlighted: 0,
-    scrollState: SCROLLING,
-    scrollStart: true,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: generateCandidates(0, 60),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   const c29 = page.getByText('词29')
   await expect(c29).not.toBeInViewport()
 
@@ -459,8 +612,14 @@ test('Expand/collapse', async ({ page }) => {
   await page.locator('.fcitx-keyboard-side-button-container:nth-child(4)').click()
 
   expect(await getSentEvents(page)).toEqual([
-    { type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } },
-    { type: 'KEY_DOWN', data: { key: '\r', code: 'Enter' } },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'Backspace' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '\r', code: 'Enter' },
+    },
   ])
 
   await expandOrCollapse(page)
@@ -472,17 +631,20 @@ test('Auto collapse if no preedit', async ({ page }) => {
   const container = getContainer(page)
 
   function setCandidates(hasClientPreedit: boolean) {
-    return sendSystemEvent(page, { type: 'CANDIDATES', data: {
-      inputContext: 'context',
-      generation: 1,
-      candidates: generateCandidates(0, 10),
-      highlighted: 0,
-      scrollState: SCROLLING,
-      scrollStart: true,
-      scrollEnd: false,
-      hasClientPreedit,
-      tabActions: [],
-    } })
+    return sendSystemEvent(page, {
+      type: 'CANDIDATES',
+      data: {
+        inputContext: 'context',
+        generation: 1,
+        candidates: generateCandidates(0, 10),
+        highlighted: 0,
+        scrollState: SCROLLING,
+        scrollStart: true,
+        scrollEnd: false,
+        hasClientPreedit,
+        tabActions: [],
+      },
+    })
   }
 
   await setCandidates(true)
@@ -499,24 +661,37 @@ test('Auto collapse if no preedit', async ({ page }) => {
 test('Vertical scroll', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: generateCandidates(0, 60),
-    highlighted: 0,
-    scrollState: SCROLLING,
-    scrollStart: true,
-    scrollEnd: false,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: generateCandidates(0, 60),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: false,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   await expandOrCollapse(page)
 
   await page.evaluate(() => document.querySelector('.fcitx-keyboard-candidates')?.scrollBy({ top: 240 }))
   // There is a maybe more than 100ms delay before event is emitted.
   while (true) {
     const sentEvents = await getSentEvents(page)
-    if (JSON.stringify(sentEvents) === JSON.stringify([{ type: 'SCROLL', data: { inputContext: 'context', generation: 1, start: 60, count: 25 } }])) {
+    if (JSON.stringify(sentEvents) === JSON.stringify([
+      {
+        type: 'SCROLL',
+        data: {
+          inputContext: 'context',
+          generation: 1,
+          start: 60,
+          count: 25,
+        },
+      },
+    ])) {
       break
     }
   }
@@ -526,17 +701,20 @@ test('Vertical scroll', async ({ page }) => {
 test('Bulk paging buttons scroll candidates', async ({ page }) => {
   await init(page)
 
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: generateCandidates(0, 85),
-    highlighted: 0,
-    scrollState: SCROLLING,
-    scrollStart: true,
-    scrollEnd: true,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: generateCandidates(0, 85),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: true,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   await expandOrCollapse(page)
   const top = (await getBox(page.getByText('词0'))).y
 
@@ -583,19 +761,22 @@ test('Bulk paging buttons scroll candidates', async ({ page }) => {
 test('Non-bulk paging buttons use pageable state', async ({ page }) => {
   await init(page)
 
-  const event: SystemEvent = { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: generateCandidates(0, 10),
-    highlighted: 0,
-    scrollState: SCROLL_NONE,
-    scrollStart: false,
-    scrollEnd: false,
-    hasPrev: false,
-    hasNext: true,
-    hasClientPreedit: true,
-    tabActions: [],
-  } }
+  const event: SystemEvent = {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: generateCandidates(0, 10),
+      highlighted: 0,
+      scrollState: SCROLL_NONE,
+      scrollStart: false,
+      scrollEnd: false,
+      hasPrev: false,
+      hasNext: true,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  }
   await sendSystemEvent(page, event)
   await expandOrCollapse(page)
 
@@ -608,7 +789,10 @@ test('Non-bulk paging buttons use pageable state', async ({ page }) => {
   expect(await getSentEvents(page)).toEqual([])
   await pageDown.click()
   expect(await getSentEvents(page)).toEqual([
-    { type: 'PAGE', data: { inputContext: 'context', generation: 1, next: true } },
+    {
+      type: 'PAGE',
+      data: { inputContext: 'context', generation: 1, next: true },
+    },
   ])
 
   event.data.hasPrev = true
@@ -620,7 +804,13 @@ test('Non-bulk paging buttons use pageable state', async ({ page }) => {
   await pageDown.click()
   await pageUp.click()
   expect(await getSentEvents(page)).toEqual([
-    { type: 'PAGE', data: { inputContext: 'context', generation: 1, next: true } },
-    { type: 'PAGE', data: { inputContext: 'context', generation: 1, next: false } },
+    {
+      type: 'PAGE',
+      data: { inputContext: 'context', generation: 1, next: true },
+    },
+    {
+      type: 'PAGE',
+      data: { inputContext: 'context', generation: 1, next: false },
+    },
   ])
 })

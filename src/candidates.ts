@@ -34,7 +34,10 @@ function renderTabAction(context: InputContextEvent, action: CandidateAction) {
   tab.addEventListener('touchstart', () => press(tab))
   tab.addEventListener('touchend', () => release(tab))
   tab.addEventListener('touchcancel', () => release(tab))
-  handleClick(tab, () => sendEvent({ type: 'CANDIDATE_TAB_ACTION', data: { ...context, id: action.id } }))
+  handleClick(tab, () => sendEvent({
+    type: 'CANDIDATE_TAB_ACTION',
+    data: { ...context, id: action.id },
+  }))
   return tab
 }
 
@@ -46,8 +49,12 @@ function setTabActions(context: InputContextEvent, actions: CandidateAction[]) {
   scrollableTabs.innerHTML = ''
   pinnedTabs.innerHTML = ''
   const index = actions.findIndex(action => action.separator)
-  const scrollableActions = index !== -1 ? actions.slice(0, index) : actions
-  const pinnedActions = index !== -1 ? actions.slice(index + 1).filter(action => !action.separator) : []
+  const scrollableActions = index !== -1
+    ? actions.slice(0, index)
+    : actions
+  const pinnedActions = index !== -1
+    ? actions.slice(index + 1).filter(action => !action.separator)
+    : []
   for (const action of scrollableActions) {
     scrollableTabs.appendChild(renderTabAction(context, action))
   }
@@ -144,10 +151,14 @@ function revealHighlightedCandidate(container: Element, candidate: HTMLElement |
   const viewport = container.getBoundingClientRect()
   const box = candidate.getBoundingClientRect()
   if (box.width > viewport.width || box.left < viewport.left) {
-    container.scrollBy({ left: Math.floor(box.left - viewport.left) })
+    container.scrollBy({
+      left: Math.floor(box.left - viewport.left),
+    })
   }
   else if (box.right > viewport.right) {
-    container.scrollBy({ left: Math.ceil(box.right - viewport.right) })
+    container.scrollBy({
+      left: Math.ceil(box.right - viewport.right),
+    })
   }
 }
 
@@ -157,7 +168,9 @@ export function setCandidates(inputContext: string, generation: number, cands: C
   scrollState_ = scrollState
   touchId = null
   cancelLongPress()
-  setTabActions(context, scrollState === SCROLLING ? tabActions : [])
+  setTabActions(context, scrollState === SCROLLING
+    ? tabActions
+    : [])
   const container = getCandidateBar().querySelector('.fcitx-keyboard-candidates')!
   if (scrollState !== SCROLLING || scrollStart) {
     container.scroll({ left: 0, top: 0 })
@@ -184,7 +197,10 @@ export function setCandidates(inputContext: string, generation: number, cands: C
       cancelLongPress()
       longPressId = window.setTimeout(() => {
         longPressId = null
-        sendEvent({ type: 'ASK_CANDIDATE_ACTIONS', data: { ...context, index: offset + i } })
+        sendEvent({
+          type: 'ASK_CANDIDATE_ACTIONS',
+          data: { ...context, index: offset + i },
+        })
       }, LONG_PRESS_THRESHOLD)
       touchId = event.changedTouches[0].identifier
     })
@@ -231,11 +247,14 @@ export function setCandidateActions(inputContext: string, generation: number, in
   }
   showContextmenu(candidate, actions.map(action => ({
     text: action.text,
-    callback: () => sendEvent({ type: 'CANDIDATE_ACTION', data: {
-      ...context,
-      index,
-      id: action.id,
-    } }),
+    callback: () => sendEvent({
+      type: 'CANDIDATE_ACTION',
+      data: {
+        ...context,
+        index,
+        id: action.id,
+      },
+    }),
   })))
 }
 
@@ -243,7 +262,9 @@ function setPagingButtons(list: Element) {
   const pageUp = document.querySelector('.fcitx-keyboard-side-button-container:nth-child(1)')!
   const pageDown = document.querySelector('.fcitx-keyboard-side-button-container:nth-child(2)')!
   const isBulk = scrollState_ === SCROLLING
-  if (isBulk ? list.scrollTop <= 1 : !hasPrev_) {
+  if (isBulk
+    ? list.scrollTop <= 1
+    : !hasPrev_) {
     disable(pageUp)
   }
   else {
@@ -322,13 +343,19 @@ export function renderCandidateBar() {
     if (scrollDirection === 'HORIZONTAL' && left < box.right * 1.5) {
       fetching = true
       if (candidateContext) {
-        sendEvent({ type: 'SCROLL', data: { ...candidateContext, start: list.childElementCount, count: 20 } })
+        sendEvent({
+          type: 'SCROLL',
+          data: { ...candidateContext, start: list.childElementCount, count: 20 },
+        })
       }
     }
     else if (scrollDirection === 'VERTICAL' && top - box.bottom < box.height) {
       fetching = true
       if (candidateContext) {
-        sendEvent({ type: 'SCROLL', data: { ...candidateContext, start: list.childElementCount, count: 25 } })
+        sendEvent({
+          type: 'SCROLL',
+          data: { ...candidateContext, start: list.childElementCount, count: 25 },
+        })
       }
     }
   })
@@ -355,7 +382,10 @@ export function renderCandidateBar() {
     }
     if (scrollState_ !== SCROLLING) {
       if (candidateContext) {
-        sendEvent({ type: 'PAGE', data: { ...candidateContext, next: false } })
+        sendEvent({
+          type: 'PAGE',
+          data: { ...candidateContext, next: false },
+        })
       }
       return
     }
@@ -387,7 +417,10 @@ export function renderCandidateBar() {
     }
     if (scrollState_ !== SCROLLING) {
       if (candidateContext) {
-        sendEvent({ type: 'PAGE', data: { ...candidateContext, next: true } })
+        sendEvent({
+          type: 'PAGE',
+          data: { ...candidateContext, next: true },
+        })
       }
       return
     }

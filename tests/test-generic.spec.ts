@@ -14,10 +14,12 @@ test('Click', async ({ page }) => {
   expect(await getSentEvents(page), 'To support other gestures, no event should be sent on press.').toEqual([])
 
   await touchUp(q, touchId)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: 'q', code: 'KeyQ' },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'q', code: 'KeyQ' },
+    },
+  ])
 })
 
 test('Touch canceled', async ({ page }) => {
@@ -26,10 +28,12 @@ test('Touch canceled', async ({ page }) => {
   const q = getKey(page, 'q')
   const touchId = await touchDown(q)
   await touchUp(q, touchId, true)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: 'q', code: 'KeyQ' },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'q', code: 'KeyQ' },
+    },
+  ])
 })
 
 test('Enter', async ({ page }) => {
@@ -40,10 +44,12 @@ test('Enter', async ({ page }) => {
   const enterSvg = await svg.innerHTML()
 
   await tap(enter)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: '\r', code: 'Enter' },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: '\r', code: 'Enter' },
+    },
+  ])
 
   await sendSystemEvent(page, { type: 'ENTER_KEY_TYPE', data: 'search' })
   const searchSvg = await svg.innerHTML()
@@ -61,13 +67,16 @@ test('Preserve press order', async ({ page }) => {
 
   await touchUp(o, oTouchId)
   await touchUp(w, wTouchId)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: 'w', code: 'KeyW' },
-  }, {
-    type: 'KEY_DOWN',
-    data: { key: 'o', code: 'KeyO' },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'w', code: 'KeyW' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'o', code: 'KeyO' },
+    },
+  ])
 })
 
 test('HIDE event', async ({ page }) => {

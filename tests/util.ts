@@ -40,7 +40,9 @@ export async function touchDown(locator: Locator) {
   await locator.page().evaluate((arg) => {
     const { touchId, center, underMask, element } = arg
     window.touches ||= []
-    const target = underMask ? document.querySelector('.fcitx-keyboard-mask')! : element
+    const target = underMask
+      ? document.querySelector('.fcitx-keyboard-mask')!
+      : element
     const touch = new Touch({
       identifier: touchId,
       target,
@@ -54,7 +56,12 @@ export async function touchDown(locator: Locator) {
       bubbles: true,
     })
     target.dispatchEvent(touchEvent)
-  }, { touchId, center: ctr, underMask, element: (await locator.elementHandle())! })
+  }, {
+    touchId,
+    center: ctr,
+    underMask,
+    element: (await locator.elementHandle())!,
+  })
   return touchId++
 }
 
@@ -63,7 +70,12 @@ export async function touchMove(locator: Locator, touchId: number, dx: number, d
     const { touchId, dx, dy } = arg
     const i = window.touches.findIndex(touch => touch.identifier === touchId)
     const { target, clientX, clientY } = window.touches.splice(i, 1)[0]
-    const touch = new Touch({ identifier: touchId, target, clientX: clientX + dx, clientY: clientY + dy })
+    const touch = new Touch({
+      identifier: touchId,
+      target,
+      clientX: clientX + dx,
+      clientY: clientY + dy,
+    })
     window.touches.push(touch)
     const touchEvent = new TouchEvent('touchmove', {
       touches: window.touches,
@@ -79,7 +91,12 @@ export function touchUp(locator: Locator, touchId: number, cancel: boolean = fal
     const { touchId, cancel } = arg
     const i = window.touches.findIndex(touch => touch.identifier === touchId)
     const { target, clientX, clientY } = window.touches.splice(i, 1)[0]
-    const touch = new Touch({ identifier: touchId, target, clientX, clientY })
+    const touch = new Touch({
+      identifier: touchId,
+      target,
+      clientX,
+      clientY,
+    })
     const touchEvent = new TouchEvent(cancel ? 'touchcancel' : 'touchend', {
       touches: window.touches,
       changedTouches: [touch],

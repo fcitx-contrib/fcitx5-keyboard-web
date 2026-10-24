@@ -10,10 +10,12 @@ test('Shift', async ({ page }) => {
   await expect(q).toHaveText('Q1')
 
   await tap(q)
-  expect(await getSentEvents(page), '').toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: 'Q', code: 'KeyQ' },
-  }])
+  expect(await getSentEvents(page), '').toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'Q', code: 'KeyQ' },
+    },
+  ])
 
   await expect(q).toHaveText('q1')
   await tap(q)
@@ -40,16 +42,20 @@ test('Shift hold', async ({ page }) => {
   await expect(q).toHaveText('q1')
   await tap(q)
   const sentEvents = await getSentEvents(page)
-  expect(sentEvents).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: 'Q', code: 'KeyQ' },
-  }, {
-    type: 'KEY_DOWN',
-    data: { key: 'Q', code: 'KeyQ' },
-  }, {
-    type: 'KEY_DOWN',
-    data: { key: 'q', code: 'KeyQ' },
-  }])
+  expect(sentEvents).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'Q', code: 'KeyQ' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'Q', code: 'KeyQ' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'q', code: 'KeyQ' },
+    },
+  ])
 })
 
 test('Shift locked', async ({ page }) => {
@@ -70,16 +76,20 @@ test('Shift locked', async ({ page }) => {
 
   await tap(q)
   const sentEvents = await getSentEvents(page)
-  expect(sentEvents).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: 'Q', code: 'KeyQ' },
-  }, {
-    type: 'KEY_DOWN',
-    data: { key: 'Q', code: 'KeyQ' },
-  }, {
-    type: 'KEY_DOWN',
-    data: { key: 'q', code: 'KeyQ' },
-  }])
+  expect(sentEvents).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'Q', code: 'KeyQ' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'Q', code: 'KeyQ' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'q', code: 'KeyQ' },
+    },
+  ])
 })
 
 test('Shift interrupted', async ({ page }) => {
@@ -96,14 +106,18 @@ test('Shift interrupted', async ({ page }) => {
   await expect(q).toHaveText('q1')
   await tap(q)
   const sentEvents = await getSentEvents(page)
-  expect(sentEvents).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: 'Q', code: 'KeyQ' },
-  }, {
-    type: 'KEY_DOWN',
-    data: { key: 'Q', code: 'KeyQ' },
-  }, {
-    type: 'KEY_DOWN',
-    data: { key: 'q', code: 'KeyQ' },
-  }])
+  expect(sentEvents).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'Q', code: 'KeyQ' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'Q', code: 'KeyQ' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'q', code: 'KeyQ' },
+    },
+  ])
 })

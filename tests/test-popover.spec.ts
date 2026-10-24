@@ -82,7 +82,10 @@ test('Resize the resting SVG and preserve it after a preview', async ({ page }) 
 })
 
 test.describe('Key outline and bubble shadow', () => {
-  test.use({ viewport: { width: 393, height: 800 }, deviceScaleFactor: 3 })
+  test.use({
+    viewport: { width: 393, height: 800 },
+    deviceScaleFactor: 3,
+  })
 
   for (const dark of [false, true]) {
     test(`Cast a soft shadow around the entire bubble in ${dark ? 'dark' : 'light'} theme`, async ({ page }) => {
@@ -109,7 +112,12 @@ test.describe('Key outline and bubble shadow', () => {
       const outline = await background.evaluate((svg) => {
         const box = svg.getBoundingClientRect()
         const path = svg.querySelector('path')!.getBBox()
-        return { x: box.x + path.x, y: box.y + path.y, width: path.width, height: path.height }
+        return {
+          x: box.x + path.x,
+          y: box.y + path.y,
+          width: path.width,
+          height: path.height,
+        }
       })
       const clip = {
         x: Math.floor(outline.x) - 6,

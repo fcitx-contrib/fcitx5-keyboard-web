@@ -23,17 +23,20 @@ for (const bulk of [false, true]) {
     await init(page)
     const list = page.locator('.fcitx-keyboard-candidates')
     let generation = 0
-    const update = (highlighted: number, items = candidates(30)) => sendSystemEvent(page, { type: 'CANDIDATES', data: {
-      inputContext: 'context',
-      generation: ++generation,
-      candidates: items,
-      highlighted,
-      scrollState: bulk ? SCROLLING : SCROLL_NONE,
-      scrollStart: bulk,
-      scrollEnd: true,
-      hasClientPreedit: true,
-      tabActions: [],
-    } })
+    const update = (highlighted: number, items = candidates(30)) => sendSystemEvent(page, {
+      type: 'CANDIDATES',
+      data: {
+        inputContext: 'context',
+        generation: ++generation,
+        candidates: items,
+        highlighted,
+        scrollState: bulk ? SCROLLING : SCROLL_NONE,
+        scrollStart: bulk,
+        scrollEnd: true,
+        hasClientPreedit: true,
+        tabActions: [],
+      },
+    })
 
     await update(-1)
     const clipped = await list.evaluate((element) => {
@@ -67,30 +70,36 @@ for (const bulk of [false, true]) {
 test('appending bulk candidates preserves horizontal scrolling', async ({ page }) => {
   await init(page)
   const list = page.locator('.fcitx-keyboard-candidates')
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: candidates(30),
-    highlighted: 0,
-    scrollState: SCROLLING,
-    scrollStart: true,
-    scrollEnd: true,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: candidates(30),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: true,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   await list.evaluate(element => element.scrollTo({ left: 400 }))
   const before = await list.evaluate(element => element.scrollLeft)
   expect(before).toBeGreaterThan(0)
-  await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-    inputContext: 'context',
-    generation: 1,
-    candidates: candidates(10),
-    highlighted: -1,
-    scrollState: SCROLLING,
-    scrollStart: false,
-    scrollEnd: true,
-    hasClientPreedit: true,
-    tabActions: [],
-  } })
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: candidates(10),
+      highlighted: -1,
+      scrollState: SCROLLING,
+      scrollStart: false,
+      scrollEnd: true,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
   expect(await list.evaluate(element => element.scrollLeft)).toBe(before)
 })

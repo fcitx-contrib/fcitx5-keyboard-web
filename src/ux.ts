@@ -46,7 +46,10 @@ const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 export const DRAG_THRESHOLD_SQUARED = 10 // CSS px squared
 const SWIPE_THRESHOLD = 10
 const numpadSwipe: Swipe = { label: '123', actions: [] }
-const numpadLongPress: LongPress = { cells: [numpadSwipe], index: 0 }
+const numpadLongPress: LongPress = {
+  cells: [numpadSwipe],
+  index: 0,
+}
 
 function dragged(touch: Touch) {
   const { touch: initialTouch, type } = touches[touch.identifier]
@@ -103,7 +106,10 @@ export function redo() {
 }
 
 export function sendKeyDown(key: string, code: string) {
-  sendEvent({ type: 'KEY_DOWN', data: { key, code } })
+  sendEvent({
+    type: 'KEY_DOWN',
+    data: { key, code },
+  })
 }
 
 export function backspace() {
@@ -130,7 +136,10 @@ function getTouchContainer(touch: Touch) {
 }
 
 export function selectCandidate(context: InputContextEvent, index: number) {
-  sendEvent({ type: 'SELECT_CANDIDATE', data: { ...context, index } })
+  sendEvent({
+    type: 'SELECT_CANDIDATE',
+    data: { ...context, index },
+  })
 }
 
 function executeActions(actions: Action[]) {
@@ -264,7 +273,9 @@ function horizontallyMove(touch: Touch, step: number, leftAction: () => void, ri
     touches[touch.identifier].completedSteps = 0
     touches[touch.identifier].startX = touches[touch.identifier].lastX
   }
-  const action = touch.clientX > touches[touch.identifier].startX ? rightAction : leftAction
+  const action = touch.clientX > touches[touch.identifier].startX
+    ? rightAction
+    : leftAction
   const totalSteps = Math.floor(Math.abs((clientX - touches[touch.identifier].startX) / step))
   while (touches[touch.identifier].completedSteps < totalSteps) {
     action()
@@ -293,7 +304,9 @@ function doSwipe(touch: Touch) {
     if (swipe) {
       showPopover(
         getContainer(touches[touch.identifier].touch)!,
-        type === 'symbol' ? numpadLongPress : swipe.label,
+        type === 'symbol'
+          ? numpadLongPress
+          : swipe.label,
       )
     }
     else {

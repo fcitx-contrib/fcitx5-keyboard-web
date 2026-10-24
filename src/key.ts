@@ -69,7 +69,9 @@ export function renderKey(key: Key, context: Context) {
       if (context.layer === 'shift') {
         press(container)
       }
-      el.innerHTML = context.layer === 'shift' ? (context.locked ? ShiftUppercaseFiled : ShiftFiled) : Shift
+      el.innerHTML = context.layer === 'shift'
+        ? (context.locked ? ShiftUppercaseFiled : ShiftFiled)
+        : Shift
       container.appendChild(el)
       container.setAttribute(DATA_KEY, dataKey)
       break
@@ -95,7 +97,12 @@ export function renderKey(key: Key, context: Context) {
     }
   }
   if (container.querySelector('.fcitx-keyboard-key')) {
-    container.prepend(renderKeyBackground(['backspace', 'enter', 'shift', 'symbol'].includes(key.type)))
+    container.prepend(renderKeyBackground([
+      'backspace',
+      'enter',
+      'shift',
+      'symbol',
+    ].includes(key.type)))
   }
   return container
 }

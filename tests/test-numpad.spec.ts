@@ -91,8 +91,14 @@ test('Numpad commits keys', async ({ page }) => {
     { type: 'COMMIT', data: '0' },
     { type: 'COMMIT', data: ' ' },
     { type: 'COMMIT', data: '.' },
-    { type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } },
-    { type: 'KEY_DOWN', data: { key: '\r', code: 'Enter' } },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'Backspace' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '\r', code: 'Enter' },
+    },
   ])
   await tapReturn(page)
   await expect(getKey(page, 'q1')).toBeVisible()
@@ -171,21 +177,28 @@ for (const { name, buttonIndex, surface } of [
 ]) {
   test(`Numpad returns to initial mode after opening ${name} from candidates`, async ({ page }) => {
     await init(page)
-    await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-      inputContext: 'context',
-      generation: 1,
-      candidates: [{ text: '一', label: '1', comment: '' }],
-      highlighted: 0,
-      scrollState: SCROLL_NONE,
-      scrollStart: false,
-      scrollEnd: false,
-      hasClientPreedit: true,
-      tabActions: [],
-    } })
+    await sendSystemEvent(page, {
+      type: 'CANDIDATES',
+      data: {
+        inputContext: 'context',
+        generation: 1,
+        candidates: [
+          { text: '一', label: '1', comment: '' },
+        ],
+        highlighted: 0,
+        scrollState: SCROLL_NONE,
+        scrollStart: false,
+        scrollEnd: false,
+        hasClientPreedit: true,
+        tabActions: [],
+      },
+    })
     await expect(page.locator('.fcitx-keyboard-candidates')).toBeVisible()
 
     await openNumpad(page)
-    expect(await getSentEvents(page)).toEqual([{ type: 'COMMIT', data: '' }])
+    expect(await getSentEvents(page)).toEqual([
+      { type: 'COMMIT', data: '' },
+    ])
     const toolbarButton = page.locator('.fcitx-keyboard-toolbar .fcitx-keyboard-toolbar-button:visible').nth(buttonIndex)
     await toolbarButton.tap()
     await expect(page.locator(surface)).toBeVisible()

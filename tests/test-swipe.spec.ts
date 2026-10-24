@@ -1,7 +1,13 @@
 import test, { expect } from '@playwright/test'
 import { getKeyBackground, getSentEvents, init, tap, touchDown, touchMove, touchUp } from './util'
 
-for (const [dx, dy] of [[0, -5], [0, -9], [5, 0], [0, 5], [9, -9]]) {
+for (const [dx, dy] of [
+  [0, -5],
+  [0, -9],
+  [5, 0],
+  [0, 5],
+  [9, -9],
+]) {
   test(`Movement (${dx}, ${dy}) keeps the preview and commits the letter`, async ({ page }) => {
     await init(page)
     const e = page.getByText('e3')
@@ -11,14 +17,19 @@ for (const [dx, dy] of [[0, -5], [0, -9], [5, 0], [0, 5], [9, -9]]) {
     await expect(page.locator('.fcitx-keyboard-popover')).toHaveText('e')
     expect(await getSentEvents(page)).toEqual([])
     await touchUp(e, touchId)
-    expect(await getSentEvents(page)).toEqual([{
-      type: 'KEY_DOWN',
-      data: { key: 'e', code: 'KeyE' },
-    }])
+    expect(await getSentEvents(page)).toEqual([
+      {
+        type: 'KEY_DOWN',
+        data: { key: 'e', code: 'KeyE' },
+      },
+    ])
   })
 }
 
-for (const [dx, dy] of [[10, 0], [0, 10]]) {
+for (const [dx, dy] of [
+  [10, 0],
+  [0, 10],
+]) {
   test(`Movement (${dx}, ${dy}) cancels the preview and input`, async ({ page }) => {
     await init(page)
     const e = page.getByText('e3')
@@ -74,10 +85,12 @@ test('Keep the preview visible while approaching the swipe threshold', async ({ 
   })).toBe(0)
   await mutations.dispose()
   await touchUp(e, touchId)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: '3', code: 'Digit3' },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: '3', code: 'Digit3' },
+    },
+  ])
 })
 
 test('Swipe up', async ({ page }) => {
@@ -94,10 +107,12 @@ test('Swipe up', async ({ page }) => {
   await expect(page.locator('.fcitx-keyboard-popover-background path')).toHaveCount(1)
 
   await touchUp(y, touchId)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: '6', code: 'Digit6' },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: '6', code: 'Digit6' },
+    },
+  ])
 })
 
 test('Cancel', async ({ page }) => {
@@ -140,8 +155,10 @@ test('Interrupted', async ({ page }) => {
   await expect(popover).not.toBeVisible()
 
   await touchUp(y, touchId)
-  expect(await getSentEvents(page)).toEqual([{
-    type: 'KEY_DOWN',
-    data: { key: 'i', code: 'KeyI' },
-  }])
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'i', code: 'KeyI' },
+    },
+  ])
 })

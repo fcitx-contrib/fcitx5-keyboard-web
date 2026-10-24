@@ -14,7 +14,9 @@ test('Simplified and traditional', async ({ page }) => {
     data: {
       inputContext: 'context',
       generation: 1,
-      actions: [{ desc: '简体中文', icon: 'fcitx-chttrans-inactive', id: 4 }],
+      actions: [
+        { desc: '简体中文', icon: 'fcitx-chttrans-inactive', id: 4 },
+      ],
     },
   })
   await gotoStatusArea(page)
@@ -24,7 +26,10 @@ test('Simplified and traditional', async ({ page }) => {
 
   await button.tap()
   expect(await getSentEvents(page)).toEqual([
-    { type: 'STATUS_AREA_ACTION', data: { inputContext: 'context', generation: 1, id: 4 } },
+    {
+      type: 'STATUS_AREA_ACTION',
+      data: { inputContext: 'context', generation: 1, id: 4 },
+    },
   ])
 
   await sendSystemEvent(page, {
@@ -32,7 +37,9 @@ test('Simplified and traditional', async ({ page }) => {
     data: {
       inputContext: 'context',
       generation: 2,
-      actions: [{ desc: '繁体中文', icon: 'fcitx-chttrans-active', id: 4 }],
+      actions: [
+        { desc: '繁体中文', icon: 'fcitx-chttrans-active', id: 4 },
+      ],
     },
   })
   await expect(button).toHaveText('繁')
@@ -57,11 +64,18 @@ test('Multiple actions: align bottom', async ({ page }) => {
     data: {
       inputContext: 'context',
       generation: 1,
-      actions: [{ desc: '😁 → 😭', children: Array.from({ length: 5 }).map((_, i) => ({
-        desc: `子项${i}`,
-        icon: '',
-        id: i,
-      })), icon: '', id: -1 }],
+      actions: [
+        {
+          desc: '😁 → 😭',
+          children: Array.from({ length: 5 }).map((_, i) => ({
+            desc: `子项${i}`,
+            icon: '',
+            id: i,
+          })),
+          icon: '',
+          id: -1,
+        },
+      ],
     },
   })
   await gotoStatusArea(page)
@@ -85,11 +99,18 @@ test('Many actions: align top', async ({ page }) => {
     data: {
       inputContext: 'context',
       generation: 1,
-      actions: [{ desc: '有 → 无', children: Array.from({ length: 10 }).map((_, i) => ({
-        desc: `子项${i}`,
-        icon: '',
-        id: i,
-      })), icon: '', id: -1 }],
+      actions: [
+        {
+          desc: '有 → 无',
+          children: Array.from({ length: 10 }).map((_, i) => ({
+            desc: `子项${i}`,
+            icon: '',
+            id: i,
+          })),
+          icon: '',
+          id: -1,
+        },
+      ],
     },
   })
   await gotoStatusArea(page)

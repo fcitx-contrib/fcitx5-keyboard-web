@@ -17,21 +17,28 @@ async function initSurface(page: Page, surface: Surface) {
     return page.locator('.fcitx-keyboard-return-backspace')
   }
   if (surface === 'candidates') {
-    await sendSystemEvent(page, { type: 'CANDIDATES', data: {
-      inputContext: 'context',
-      generation: 1,
-      candidates: [{ text: '词', label: '', comment: '' }],
-      highlighted: 0,
-      scrollState: SCROLLING,
-      scrollStart: true,
-      scrollEnd: true,
-      hasClientPreedit: true,
-      tabActions: [],
-    } })
+    await sendSystemEvent(page, {
+      type: 'CANDIDATES',
+      data: {
+        inputContext: 'context',
+        generation: 1,
+        candidates: [
+          { text: '词', label: '', comment: '' },
+        ],
+        highlighted: 0,
+        scrollState: SCROLLING,
+        scrollStart: true,
+        scrollEnd: true,
+        hasClientPreedit: true,
+        tabActions: [],
+      },
+    })
     await page.locator('.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button').tap()
     return page.locator('.fcitx-keyboard-side-button-container').nth(2)
   }
-  return page.locator('.fcitx-keyboard > .fcitx-keyboard-row > .fcitx-keyboard-key-container').filter({ has: page.locator('.fcitx-keyboard-backspace') })
+  return page.locator('.fcitx-keyboard > .fcitx-keyboard-row > .fcitx-keyboard-key-container').filter({
+    has: page.locator('.fcitx-keyboard-backspace'),
+  })
 }
 
 function getInterruptTarget(page: Page, surface: Surface) {
@@ -47,10 +54,19 @@ function getInterruptTarget(page: Page, surface: Surface) {
   }
 }
 
-for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
+for (const surface of [
+  'keyboard',
+  'candidates',
+  'editor',
+  'symbol',
+] as const) {
   test.describe(surface, () => {
-    const colorProperty = surface === 'keyboard' ? 'fill' : 'background-color'
-    const visualSelector = surface === 'keyboard' ? ':scope > .fcitx-keyboard-key-background' : ':scope > div'
+    const colorProperty = surface === 'keyboard'
+      ? 'fill'
+      : 'background-color'
+    const visualSelector = surface === 'keyboard'
+      ? ':scope > .fcitx-keyboard-key-background'
+      : ':scope > div'
 
     test('Backspace', async ({ page }) => {
       const backspace = await initSurface(page, surface)
@@ -61,10 +77,12 @@ for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
       await expect(visual).toHaveCSS(colorProperty, WHITE)
 
       await touchUp(backspace, touchId)
-      expect(await getSentEvents(page)).toEqual([{
-        type: 'KEY_DOWN',
-        data: { key: '', code: 'Backspace' },
-      }])
+      expect(await getSentEvents(page)).toEqual([
+        {
+          type: 'KEY_DOWN',
+          data: { key: '', code: 'Backspace' },
+        },
+      ])
       await expect(visual).toHaveCSS(colorProperty, GRAY)
     })
 
@@ -150,10 +168,21 @@ for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
       await page.clock.runFor(500)
       expect(await getSentEvents(page)).toEqual(surface === 'keyboard'
         ? [
-            { type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } },
-            { type: 'KEY_DOWN', data: { key: 'q', code: 'KeyQ' } },
+            {
+              type: 'KEY_DOWN',
+              data: { key: '', code: 'Backspace' },
+            },
+            {
+              type: 'KEY_DOWN',
+              data: { key: 'q', code: 'KeyQ' },
+            },
           ]
-        : [{ type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } }])
+        : [
+            {
+              type: 'KEY_DOWN',
+              data: { key: '', code: 'Backspace' },
+            },
+          ])
     })
 
     if (surface !== 'keyboard') {
@@ -161,7 +190,10 @@ for (const surface of ['keyboard', 'candidates', 'editor', 'symbol'] as const) {
         const backspace = await initSurface(page, surface)
         await backspace.tap()
         expect(await getSentEvents(page)).toEqual([
-          { type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } },
+          {
+            type: 'KEY_DOWN',
+            data: { key: '', code: 'Backspace' },
+          },
         ])
       })
     }

@@ -17,9 +17,33 @@ function normalKey(label: string, flex: string = middleColumnFlex): Key {
 }
 
 const rows: Row[] = [
-  { keys: [normalKey('+', sideColumnFlex), normalKey('1'), normalKey('2'), normalKey('3'), normalKey('=', sideColumnFlex)] },
-  { keys: [normalKey('-', sideColumnFlex), normalKey('4'), normalKey('5'), normalKey('6'), normalKey('@', sideColumnFlex)] },
-  { keys: [normalKey('*', sideColumnFlex), normalKey('7'), normalKey('8'), normalKey('9'), { type: 'backspace', flex: sideColumnFlex }] },
+  {
+    keys: [
+      normalKey('+', sideColumnFlex),
+      normalKey('1'),
+      normalKey('2'),
+      normalKey('3'),
+      normalKey('=', sideColumnFlex),
+    ],
+  },
+  {
+    keys: [
+      normalKey('-', sideColumnFlex),
+      normalKey('4'),
+      normalKey('5'),
+      normalKey('6'),
+      normalKey('@', sideColumnFlex),
+    ],
+  },
+  {
+    keys: [
+      normalKey('*', sideColumnFlex),
+      normalKey('7'),
+      normalKey('8'),
+      normalKey('9'),
+      { type: 'backspace', flex: sideColumnFlex },
+    ],
+  },
   {
     keys: [
       normalKey('/', sideColumnFlex),

@@ -232,7 +232,11 @@ export function enableScroll(element: HTMLElement) {
     const touch = event.changedTouches[0]
     const { overflowX, overflowY } = getComputedStyle(element)
     // Only allow one direction to scroll, mainly for horizontal candidates.
-    element.scrollBy(overflowX === 'hidden' ? 0 : x - touch.clientX, overflowY === 'hidden' ? 0 : y - touch.clientY)
+    element.scrollBy(overflowX === 'hidden'
+      ? 0
+      : x - touch.clientX, overflowY === 'hidden'
+      ? 0
+      : y - touch.clientY)
     x = touch.clientX
     y = touch.clientY
   })

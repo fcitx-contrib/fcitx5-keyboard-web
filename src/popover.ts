@@ -78,7 +78,11 @@ function getGeometry(element: Element, itemCount: number, index: number, singleT
 
   const width = (1 + 2 * SIDE_RATIO) * keyBox.width + (itemCount - 1) * CELL_WIDTH
   const itemOffset = ((itemCount - 1) / 2 - index) * CELL_WIDTH
-  const edgeOffset = position === 'left' ? side : position === 'right' ? -side : 0
+  const edgeOffset = position === 'left'
+    ? side
+    : position === 'right'
+      ? -side
+      : 0
 
   return {
     columnGap,
@@ -272,7 +276,9 @@ export function showPopover(element: Element, display: string | LongPress) {
   container.classList.remove('fcitx-keyboard-popover-label')
   container.classList.add('fcitx-keyboard-popover-items')
 
-  const rowWidth = singleTextItem ? geometry.width : cells.length * CELL_WIDTH
+  const rowWidth = singleTextItem
+    ? geometry.width
+    : cells.length * CELL_WIDTH
   const rowLeft = (geometry.width - rowWidth) / 2
   for (let i = 0; i < cells.length; ++i) {
     const cell = div('fcitx-keyboard-popover-cell')
@@ -282,7 +288,9 @@ export function showPopover(element: Element, display: string | LongPress) {
     }
     renderContent(cells[i], popover)
     popover.style.fontSize = `${geometry.height * 0.25}px`
-    cell.style.left = `${rowLeft + (singleTextItem ? 0 : i * CELL_WIDTH)}px`
+    cell.style.left = `${rowLeft + (singleTextItem
+      ? 0
+      : i * CELL_WIDTH)}px`
     cell.style.width = `${singleTextItem ? geometry.width : CELL_WIDTH}px`
     cell.appendChild(popover)
     container.appendChild(cell)
@@ -291,7 +299,9 @@ export function showPopover(element: Element, display: string | LongPress) {
 
 export function updateHighlight(index: number, direction: 'LEFT' | 'RIGHT') {
   const cells = document.querySelectorAll('.fcitx-keyboard-popover-cell')
-  const newIndex = direction === 'LEFT' ? index - 1 : index + 1
+  const newIndex = direction === 'LEFT'
+    ? index - 1
+    : index + 1
   if (newIndex < 0 || newIndex >= cells.length) {
     return index
   }

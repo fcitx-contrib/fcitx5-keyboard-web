@@ -18,17 +18,38 @@ test('Basic keys', async ({ page }) => {
     await locator.tap()
   }
   expect(await getSentEvents(page)).toEqual([
-    { type: 'KEY_DOWN', data: { key: '', code: 'ArrowLeft' } },
-    { type: 'KEY_DOWN', data: { key: '', code: 'ArrowUp' } },
-    { type: 'KEY_DOWN', data: { key: '', code: 'ArrowRight' } },
-    { type: 'KEY_DOWN', data: { key: '', code: 'ArrowDown' } },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'ArrowLeft' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'ArrowUp' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'ArrowRight' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'ArrowDown' },
+    },
     { type: 'SELECT' },
     { type: 'CUT' },
     { type: 'COPY' },
     { type: 'PASTE' },
-    { type: 'KEY_DOWN', data: { key: '', code: 'Backspace' } },
-    { type: 'KEY_DOWN', data: { key: '', code: 'Home' } },
-    { type: 'KEY_DOWN', data: { key: '', code: 'End' } },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'Backspace' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'Home' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'End' },
+    },
   ])
 })
 
@@ -42,7 +63,12 @@ test('Long press arrow keys', async ({ page }) => {
   await page.clock.pauseAt(1000)
 
   const buttons = page.locator('.fcitx-keyboard-editor-button-container')
-  const codes = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown']
+  const codes = [
+    'ArrowLeft',
+    'ArrowUp',
+    'ArrowRight',
+    'ArrowDown',
+  ]
   const expected = []
   for (const [index, code] of codes.entries()) {
     const button = buttons.nth(index)
