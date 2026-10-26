@@ -8,7 +8,7 @@ import { LONG_PRESS_THRESHOLD } from './constant'
 import { showContextmenu } from './contextmenu'
 import { updateCandidateDisplayMode } from './display'
 import { getKeyboardContainer } from './selector'
-import { disable, div, enable, enableScroll, getCandidateBar, handleClick, press, release, renderToolbarButton, setSvgStyle } from './util'
+import { disable, div, enable, enableScroll, getCandidateBar, handleClick, Pattern, press, release, renderToolbarButton, setSvgStyle, vibrate } from './util'
 import { DRAG_THRESHOLD_SQUARED, handleBackspace, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
 let touchId: number | null = null
@@ -190,6 +190,7 @@ export function setCandidates(inputContext: string, generation: number, cands: C
     candidateInner.textContent = cands[i].text
     candidate.appendChild(candidateInner)
     candidate.addEventListener('touchstart', (event) => {
+      vibrate()
       candidate.classList.add('fcitx-keyboard-pressed')
       const touch = event.changedTouches[0]
       startX = touch.clientX
@@ -197,6 +198,7 @@ export function setCandidates(inputContext: string, generation: number, cands: C
       cancelLongPress()
       longPressId = window.setTimeout(() => {
         longPressId = null
+        vibrate(candidate, Pattern.Long)
         sendEvent({
           type: 'ASK_CANDIDATE_ACTIONS',
           data: { ...context, index: offset + i },
