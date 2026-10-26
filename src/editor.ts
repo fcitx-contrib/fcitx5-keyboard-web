@@ -1,7 +1,7 @@
 import Backspace from 'bundle-text:../svg/backspace.svg'
 import ChevronLeft from 'bundle-text:../svg/chevron-left.svg'
 import FirstPage from 'bundle-text:../svg/first-page.svg'
-import { div, handleClick, handleRepeatableClick, press, release, setSvgStyle } from './util'
+import { div, handleClick, handleRepeatableClick, press, release, setSvgStyle, vibrate } from './util'
 import { handleBackspace, sendEvent, sendKeyDown } from './ux'
 
 let selecting = false
@@ -66,6 +66,7 @@ export function renderEditor() {
 
   selectButton = renderEditorButton('Select', '2 / 3 / 3 / 5')
   selectButton.addEventListener('touchstart', () => {
+    vibrate()
     sendEvent({
       type: selecting ? 'DESELECT' : 'SELECT',
     })

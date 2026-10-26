@@ -12,7 +12,7 @@ import { setDisplayMode } from './display'
 import { renderRow } from './key'
 import { observeKeyBackgrounds } from './keyBackground'
 import { hidePopover, showKeyPreview, showPopover, updateHighlight } from './popover'
-import { DATA_KEY, getContainer, getKey, isAndroidOrIOS, press, release } from './util'
+import { DATA_KEY, getContainer, getKey, isAndroidOrIOS, Pattern, press, release, vibrate } from './util'
 
 type TouchState = 'HIT' | 'PRESSING' | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
 
@@ -330,6 +330,7 @@ function swipeRelease(touch: Touch) {
 }
 
 function longPressHandler(touchId: number, container: HTMLElement) {
+  vibrate(container, Pattern.Long)
   touches[touchId].timer = null
   touches[touchId].state = 'PRESSING'
   if (touches[touchId].type === 'backspace') {
@@ -388,6 +389,7 @@ export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
   let longPress: LongPress | undefined
   let state: TouchState = 'HIT'
   if (key) {
+    vibrate()
     switch (key.type) {
       case 'shift':
         touchDown(touch)

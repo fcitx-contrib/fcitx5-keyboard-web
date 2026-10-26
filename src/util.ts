@@ -57,6 +57,18 @@ export function release(element: Element) {
   element.classList.remove('fcitx-keyboard-pressed')
 }
 
+export enum Pattern {
+  Short,
+  Long,
+}
+
+export function vibrate(button?: HTMLElement, pattern: Pattern = Pattern.Short) {
+  if (button?.classList.contains('fcitx-keyboard-disabled')) {
+    return
+  }
+  navigator.vibrate?.({ [Pattern.Short]: 60, [Pattern.Long]: 100 }[pattern])
+}
+
 export function renderToolbarButton(svg: string) {
   const button = div('fcitx-keyboard-toolbar-button')
   button.innerHTML = svg
@@ -102,6 +114,7 @@ export const isFirefox = navigator.userAgent.includes('Firefox')
 export function handleClick(element: HTMLElement, handler: () => void) {
   if (isAndroidOrIOS) {
     element.addEventListener('touchstart', (event) => {
+      vibrate(element)
       const touch = event.changedTouches[0]
       element.setAttribute('data-touch-x', touch.clientX.toString())
       element.setAttribute('data-touch-y', touch.clientY.toString())
@@ -187,6 +200,7 @@ export function handleRepeatableClick(element: HTMLElement, handler: () => void)
       if (repeatTouchId !== initiatingTouchId || touchMoved) {
         return
       }
+      vibrate(element, Pattern.Long)
       // Suppress handleClick's tap action after a long press.
       element.setAttribute('data-dragged', 'true')
       repeatTimer = window.setInterval(handler, KEY_REPEAT_INTERVAL)
