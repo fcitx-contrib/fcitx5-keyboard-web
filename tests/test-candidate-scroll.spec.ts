@@ -7,21 +7,31 @@ function candidates(count: number) {
   return Array.from({ length: count }, (_, i) => ({ text: `候选词${i}`, label: '', comment: '' }))
 }
 
-async function repeatRelativeScrollRequests(page: Page) {
-  // Model iOS replaying a relative scroll request on the scrolling thread.
+/** Model duplicate scroll requests for regression tests, not native iOS behavior. */
+async function repeatScrollRequests(page: Page) {
   await page.addInitScript(() => {
-    const scrollBy: (this: Element, options: ScrollToOptions) => void = Element.prototype.scrollBy
-    Element.prototype.scrollBy = function (x?: number | ScrollToOptions, y?: number) {
-      const options = typeof x === 'number'
-        ? { left: x, top: y ?? 0 }
-        : x ?? {}
-      scrollBy.call(this, options)
-      requestAnimationFrame(() => scrollBy.call(this, options))
+    for (const method of ['scrollBy', 'scrollTo'] as const) {
+      const scroll: (this: Element, options: ScrollToOptions) => void = Element.prototype[method]
+      Element.prototype[method] = function (x?: number | ScrollToOptions, y?: number) {
+        const options = typeof x === 'number'
+          ? { left: x, top: y ?? 0 }
+          : { ...x }
+        scroll.call(this, options)
+        requestAnimationFrame(() => scroll.call(this, options))
+      }
     }
   })
 }
 
+async function settleScrollRequests(page: Page) {
+  await page.evaluate(async () => {
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+  })
+}
+
 async function expectFullyVisible(page: Page, index: number) {
+  await settleScrollRequests(page)
   await expect.poll(async () => {
     const list = page.locator('.fcitx-keyboard-candidates')
     const viewport = await getBox(list)
@@ -34,7 +44,7 @@ for (const bulk of [false, true]) {
   const mode = bulk ? 'bulk' : 'non-bulk'
 
   test(`${mode} horizontal highlight reveals clipped and hidden candidates`, async ({ page }) => {
-    await repeatRelativeScrollRequests(page)
+    await repeatScrollRequests(page)
     await init(page)
     const list = page.locator('.fcitx-keyboard-candidates')
     let generation = 0
@@ -119,34 +129,41 @@ test('appending bulk candidates preserves horizontal scrolling', async ({ page }
   expect(await list.evaluate(element => element.scrollLeft)).toBe(before)
 })
 
+async function initCandidateList(page: Page, vertical: boolean) {
+  await init(page)
+  const list = page.locator('.fcitx-keyboard-candidates')
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: candidates(100),
+      highlighted: -1,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: true,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
+  if (vertical) {
+    await tap(page.locator('.fcitx-keyboard-candidate-bar > .fcitx-keyboard-toolbar-button'))
+  }
+  await settleScrollRequests(page)
+  return list
+}
+
 test.describe('manual touch scrolling', () => {
   test.use({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1' })
 
   test.beforeEach(async ({ page }) => {
-    await repeatRelativeScrollRequests(page)
+    await repeatScrollRequests(page)
   })
 
   for (const vertical of [false, true]) {
-    test(`${vertical ? 'vertical' : 'horizontal'} dragging cancels native panning and scrolls one-to-one`, async ({ page }) => {
-      await init(page)
-      const list = page.locator('.fcitx-keyboard-candidates')
-      await sendSystemEvent(page, {
-        type: 'CANDIDATES',
-        data: {
-          inputContext: 'context',
-          generation: 1,
-          candidates: candidates(100),
-          highlighted: -1,
-          scrollState: SCROLLING,
-          scrollStart: true,
-          scrollEnd: true,
-          hasClientPreedit: true,
-          tabActions: [],
-        },
-      })
-      if (vertical) {
-        await tap(page.locator('.fcitx-keyboard-candidate-bar > .fcitx-keyboard-toolbar-button'))
-      }
+    // Synthetic events cover handler logic and configuration, not native panning.
+    test(`${vertical ? 'vertical' : 'horizontal'} synthetic dragging cancels default and scrolls one-to-one`, async ({ page }) => {
+      const list = await initCandidateList(page, vertical)
       const result = await list.evaluate(async (element, vertical) => {
         const touch = (clientX: number, clientY: number) => new Touch({
           identifier: 123,
@@ -185,6 +202,53 @@ test.describe('manual touch scrolling', () => {
       expect(result.touchAction).toBe('auto')
       expect(result.distance).toBe(20)
       expect(result.crossAxisDistance).toBe(0)
+    })
+
+    // Browser-generated touches exercise Chromium's pan path, not iOS WebKit.
+    test(`${vertical ? 'vertical' : 'horizontal'} browser touch dragging stays one-to-one`, async ({ page, browserName }) => {
+      test.skip(browserName !== 'chromium', 'CDP touch input is only available in Chromium')
+      const list = await initCandidateList(page, vertical)
+      const box = await getBox(list)
+      const x = box.x + box.width / 2
+      const y = box.y + box.height / 2
+      const moves = await list.evaluateHandle((element) => {
+        const moves: { trusted: boolean, prevented: boolean }[] = []
+        element.addEventListener('touchmove', event => moves.push({
+          trusted: event.isTrusted,
+          prevented: event.defaultPrevented,
+        }))
+        return moves
+      })
+      const session = await page.context().newCDPSession(page)
+      try {
+        await session.send('Input.dispatchTouchEvent', {
+          type: 'touchStart',
+          touchPoints: [
+            { x, y },
+          ],
+        })
+        for (const distance of [10, 20, 30, 40]) {
+          await session.send('Input.dispatchTouchEvent', {
+            type: 'touchMove',
+            touchPoints: [
+              { x: x - (vertical ? 0 : distance), y: y - (vertical ? distance : 0) },
+            ],
+          })
+        }
+      }
+      finally {
+        await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+        await session.detach()
+      }
+      await settleScrollRequests(page)
+      const observedMoves = await moves.jsonValue()
+      await moves.dispose()
+      expect(observedMoves.length).toBeGreaterThan(0)
+      expect(observedMoves.every(move => move.trusted && move.prevented)).toBe(true)
+      const position = await list.evaluate(element => ({ left: element.scrollLeft, top: element.scrollTop }))
+      expect(vertical ? position.top : position.left).toBeCloseTo(40, 0)
+      expect(vertical ? position.left : position.top).toBe(0)
+      expect(await page.evaluate(() => window.scrollY)).toBe(0)
     })
   }
 })
