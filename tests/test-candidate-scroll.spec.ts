@@ -1,10 +1,24 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { SCROLL_NONE, SCROLLING } from '../src/api.d'
-import { getBox, init, sendSystemEvent } from './util'
+import { getBox, init, sendSystemEvent, tap } from './util'
 
 function candidates(count: number) {
   return Array.from({ length: count }, (_, i) => ({ text: `候选词${i}`, label: '', comment: '' }))
+}
+
+async function repeatRelativeScrollRequests(page: Page) {
+  // Model iOS replaying a relative scroll request on the scrolling thread.
+  await page.addInitScript(() => {
+    const scrollBy: (this: Element, options: ScrollToOptions) => void = Element.prototype.scrollBy
+    Element.prototype.scrollBy = function (x?: number | ScrollToOptions, y?: number) {
+      const options = typeof x === 'number'
+        ? { left: x, top: y ?? 0 }
+        : x ?? {}
+      scrollBy.call(this, options)
+      requestAnimationFrame(() => scrollBy.call(this, options))
+    }
+  })
 }
 
 async function expectFullyVisible(page: Page, index: number) {
@@ -20,6 +34,7 @@ for (const bulk of [false, true]) {
   const mode = bulk ? 'bulk' : 'non-bulk'
 
   test(`${mode} horizontal highlight reveals clipped and hidden candidates`, async ({ page }) => {
+    await repeatRelativeScrollRequests(page)
     await init(page)
     const list = page.locator('.fcitx-keyboard-candidates')
     let generation = 0
@@ -102,4 +117,74 @@ test('appending bulk candidates preserves horizontal scrolling', async ({ page }
     },
   })
   expect(await list.evaluate(element => element.scrollLeft)).toBe(before)
+})
+
+test.describe('manual touch scrolling', () => {
+  test.use({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1' })
+
+  test.beforeEach(async ({ page }) => {
+    await repeatRelativeScrollRequests(page)
+  })
+
+  for (const vertical of [false, true]) {
+    test(`${vertical ? 'vertical' : 'horizontal'} dragging cancels native panning and scrolls one-to-one`, async ({ page }) => {
+      await init(page)
+      const list = page.locator('.fcitx-keyboard-candidates')
+      await sendSystemEvent(page, {
+        type: 'CANDIDATES',
+        data: {
+          inputContext: 'context',
+          generation: 1,
+          candidates: candidates(100),
+          highlighted: -1,
+          scrollState: SCROLLING,
+          scrollStart: true,
+          scrollEnd: true,
+          hasClientPreedit: true,
+          tabActions: [],
+        },
+      })
+      if (vertical) {
+        await tap(page.locator('.fcitx-keyboard-candidate-bar > .fcitx-keyboard-toolbar-button'))
+      }
+      const result = await list.evaluate(async (element, vertical) => {
+        const touch = (clientX: number, clientY: number) => new Touch({
+          identifier: 123,
+          target: element,
+          clientX,
+          clientY,
+        })
+        const dispatch = (type: string, point: Touch) => {
+          const event = new TouchEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            touches: type === 'touchend'
+              ? []
+              : [point],
+            changedTouches: [point],
+          })
+          element.dispatchEvent(event)
+          return event.defaultPrevented
+        }
+        dispatch('touchstart', touch(150, 150))
+        const prevented = [
+          dispatch('touchmove', touch(140, 140)),
+          dispatch('touchmove', touch(130, 130)),
+        ]
+        dispatch('touchend', touch(130, 130))
+        await new Promise(requestAnimationFrame)
+        await new Promise(requestAnimationFrame)
+        return {
+          prevented,
+          touchAction: getComputedStyle(element).touchAction,
+          distance: vertical ? element.scrollTop : element.scrollLeft,
+          crossAxisDistance: vertical ? element.scrollLeft : element.scrollTop,
+        }
+      }, vertical)
+      expect(result.prevented).toEqual([true, true])
+      expect(result.touchAction).toBe('auto')
+      expect(result.distance).toBe(20)
+      expect(result.crossAxisDistance).toBe(0)
+    })
+  }
 })

@@ -150,14 +150,18 @@ function revealHighlightedCandidate(container: Element, candidate: HTMLElement |
   }
   const viewport = container.getBoundingClientRect()
   const box = candidate.getBoundingClientRect()
+  // Use absolute targets to avoid iOS applying relative scroll requests twice.
+  // https://bugs.webkit.org/show_bug.cgi?id=307600
   if (box.width > viewport.width || box.left < viewport.left) {
-    container.scrollBy({
-      left: Math.floor(box.left - viewport.left),
+    container.scrollTo({
+      left: container.scrollLeft + Math.floor(box.left - viewport.left),
+      behavior: 'instant',
     })
   }
   else if (box.right > viewport.right) {
-    container.scrollBy({
-      left: Math.ceil(box.right - viewport.right),
+    container.scrollTo({
+      left: container.scrollLeft + Math.ceil(box.right - viewport.right),
+      behavior: 'instant',
     })
   }
 }
