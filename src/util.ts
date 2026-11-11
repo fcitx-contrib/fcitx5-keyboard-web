@@ -234,7 +234,6 @@ export function enableScroll(element: HTMLElement) {
   if (!isAndroidOrIOS) {
     return
   }
-  // touchstart's default behavior is disabled so no scroll event will be triggered.
   let x: number
   let y: number
   element.addEventListener('touchstart', (event) => {
@@ -243,15 +242,25 @@ export function enableScroll(element: HTMLElement) {
     y = touch.clientY
   })
   element.addEventListener('touchmove', (event) => {
+    // Also cancel Touch Events' native scrolling instead of relying on touchstart.
+    if (event.cancelable) {
+      event.preventDefault()
+    }
     const touch = event.changedTouches[0]
     const { overflowX, overflowY } = getComputedStyle(element)
+    // Use absolute targets to avoid iOS applying relative scroll requests twice.
+    // https://bugs.webkit.org/show_bug.cgi?id=307600
     // Only allow one direction to scroll, mainly for horizontal candidates.
-    element.scrollBy(overflowX === 'hidden'
-      ? 0
-      : x - touch.clientX, overflowY === 'hidden'
-      ? 0
-      : y - touch.clientY)
+    element.scrollTo({
+      left: element.scrollLeft + (overflowX === 'hidden'
+        ? 0
+        : x - touch.clientX),
+      top: element.scrollTop + (overflowY === 'hidden'
+        ? 0
+        : y - touch.clientY),
+      behavior: 'instant',
+    })
     x = touch.clientX
     y = touch.clientY
-  })
+  }, { passive: false })
 }
