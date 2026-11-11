@@ -46,6 +46,50 @@ test('Show and clear', async ({ page }) => {
   await expect(toolbar).toBeVisible()
 })
 
+for (const lineHeight of ['normal', '1.5', '2']) {
+  test(`Candidate text stays vertically centered with line-height ${lineHeight}`, async ({ page }) => {
+    await init(page)
+    await getContainer(page).evaluate((element, value) => {
+      element.style.lineHeight = value
+    }, lineHeight)
+    await sendSystemEvent(page, {
+      type: 'CANDIDATES',
+      data: {
+        inputContext: 'context',
+        generation: 1,
+        candidates: ['你好', '中国', '候选'].map(text => ({ text, label: '', comment: '' })),
+        highlighted: 0,
+        scrollState: SCROLL_NONE,
+        scrollStart: false,
+        scrollEnd: false,
+        hasClientPreedit: true,
+        tabActions: [],
+      },
+    })
+
+    for (const width of [360, 480]) {
+      await page.setViewportSize({ width, height: 720 })
+      for (const expanded of [false, true]) {
+        if (expanded) {
+          await expandOrCollapse(page)
+        }
+        const offsets = await page.locator('.fcitx-keyboard-candidate-inner').evaluateAll(elements => elements.map((element) => {
+          const range = document.createRange()
+          range.selectNodeContents(element)
+          const text = range.getBoundingClientRect()
+          const highlight = element.getBoundingClientRect()
+          return Math.abs(text.top + text.height / 2 - (highlight.top + highlight.height / 2))
+        }))
+        for (const offset of offsets) {
+          // Allow for font metrics and subpixel rounding, not top-aligned line boxes.
+          expect(offset, `width=${width}, expanded=${expanded}`).toBeLessThan(1.5)
+        }
+      }
+      await expandOrCollapse(page)
+    }
+  })
+}
+
 test('Select', async ({ page }) => {
   await init(page)
 
