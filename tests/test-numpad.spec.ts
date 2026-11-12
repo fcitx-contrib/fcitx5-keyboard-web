@@ -14,7 +14,7 @@ function getNumpad(page: Page) {
 async function openNumpad(page: Page) {
   const symbolButton = getSymbolButton(page)
   const touchId = await touchDown(symbolButton)
-  await touchMove(symbolButton, touchId, 0, -20)
+  await touchMove(symbolButton, touchId, 0, -31)
   await touchUp(symbolButton, touchId)
   await expect(getNumpad(page)).toBeVisible()
   const toolbar = page.locator('.fcitx-keyboard-toolbar')
@@ -28,7 +28,7 @@ test('Swipe up on symbol opens numpad', async ({ page }) => {
   await expect(symbolButton.locator('.fcitx-keyboard-sub-label')).toHaveText('123')
 
   const touchId = await touchDown(symbolButton)
-  await touchMove(symbolButton, touchId, 0, -20)
+  await touchMove(symbolButton, touchId, 0, -31)
   await expect(page.locator('.fcitx-keyboard-popover')).toHaveText('123')
   await expect(page.locator('.fcitx-keyboard-popover-background path')).toHaveCount(1)
   await expect(page.locator('.fcitx-keyboard-popover-cell')).not.toContainClass('fcitx-keyboard-highlighted')

@@ -7,6 +7,12 @@ for (const [dx, dy] of [
   [5, 0],
   [0, 5],
   [9, -9],
+  [0, -10],
+  [25, -12],
+  [30, 0],
+  [0, 30],
+  [0, -30],
+  [30, -30],
 ]) {
   test(`Movement (${dx}, ${dy}) keeps the preview and commits the letter`, async ({ page }) => {
     await init(page)
@@ -27,8 +33,9 @@ for (const [dx, dy] of [
 }
 
 for (const [dx, dy] of [
-  [10, 0],
-  [0, 10],
+  [31, 0],
+  [0, 31],
+  [40, -31],
 ]) {
   test(`Movement (${dx}, ${dy}) cancels the preview and input`, async ({ page }) => {
     await init(page)
@@ -59,7 +66,7 @@ test('Keep the preview visible while approaching the swipe threshold', async ({ 
   })
 
   // A gradual swipe remains a tap until it reaches the swipe threshold.
-  for (const dy of [-2, -2, -5]) {
+  for (const dy of [-5, -5, -20]) {
     await touchMove(e, touchId, 0, dy)
     await expect(label).toBeVisible()
     await expect(label).toHaveText('e')
@@ -93,6 +100,46 @@ test('Keep the preview visible while approaching the swipe threshold', async ({ 
   ])
 })
 
+for (const [dx, dy] of [
+  [0, -31],
+  [31, -31],
+]) {
+  test(`n swipe (${dx}, ${dy}) commits apostrophe only on release`, async ({ page }) => {
+    await init(page)
+    const n = page.getByText('n\'', { exact: true })
+    const touchId = await touchDown(n)
+    await touchMove(n, touchId, dx, dy)
+    expect(await getSentEvents(page)).toEqual([])
+    await expect(page.locator('.fcitx-keyboard-popover')).toHaveText('\'')
+    await touchUp(n, touchId)
+    expect(await getSentEvents(page)).toEqual([
+      {
+        type: 'KEY_DOWN',
+        data: { key: '\'', code: 'Quote' },
+      },
+    ])
+  })
+}
+
+for (const finalY of [-5, 0, 5]) {
+  test(`Latched n swipe ending at y=${finalY} follows iOS final-direction rules`, async ({ page }) => {
+    await init(page)
+    const n = page.getByText('n\'', { exact: true })
+    const touchId = await touchDown(n)
+    await touchMove(n, touchId, 0, -31)
+    await touchMove(n, touchId, 0, 31 + finalY)
+    await touchUp(n, touchId)
+    expect(await getSentEvents(page)).toEqual(finalY <= 0
+      ? [
+          {
+            type: 'KEY_DOWN',
+            data: { key: '\'', code: 'Quote' },
+          },
+        ]
+      : [])
+  })
+}
+
 test('Swipe up', async ({ page }) => {
   await init(page)
 
@@ -101,7 +148,7 @@ test('Swipe up', async ({ page }) => {
 
   const y = page.getByText('y6')
   const touchId = await touchDown(y)
-  await touchMove(y, touchId, 5, -15)
+  await touchMove(y, touchId, 5, -31)
   await expect(popover).toBeVisible()
   await expect(popover).toHaveText('6')
   await expect(page.locator('.fcitx-keyboard-popover-background path')).toHaveCount(1)
@@ -121,10 +168,10 @@ test('Cancel', async ({ page }) => {
   const popover = page.locator('.fcitx-keyboard-popover')
   const t = page.getByText('t5')
   const touchId = await touchDown(t)
-  await touchMove(t, touchId, 5, -15)
+  await touchMove(t, touchId, 5, -31)
   await expect(popover).toBeVisible()
 
-  await touchMove(t, touchId, 0, 15)
+  await touchMove(t, touchId, 0, 31)
   await expect(popover).not.toBeVisible()
   await touchUp(t, touchId)
   expect(await getSentEvents(page)).toEqual([])
@@ -138,7 +185,7 @@ test('Reset layer', async ({ page }) => {
   const h = page.getByText('h/')
   await expect(h).toHaveText('H/')
   const touchId = await touchDown(h)
-  await touchMove(h, touchId, 0, -10)
+  await touchMove(h, touchId, 0, -31)
   await touchUp(h, touchId)
   await expect(h).toHaveText('h/')
 })
@@ -150,7 +197,7 @@ test('Interrupted', async ({ page }) => {
   const i = page.getByText('i8')
   const y = page.getByText('y6')
   const touchId = await touchDown(y)
-  await touchMove(y, touchId, 5, -15)
+  await touchMove(y, touchId, 5, -31)
   await touchDown(i)
   await expect(popover).not.toBeVisible()
 
