@@ -44,7 +44,7 @@ const slideStep = 10
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 export const DRAG_THRESHOLD_SQUARED = 10 // CSS px squared
-const SWIPE_THRESHOLD = 10
+const SWIPE_THRESHOLD = 30 // CSS px; iOS uses 30pt.
 const numpadSwipe: Swipe = { label: '123', actions: [] }
 const numpadLongPress: LongPress = {
   cells: [numpadSwipe],
@@ -57,10 +57,9 @@ function dragged(touch: Touch) {
   const { clientX, clientY } = touch
   const dX = clientX - startX
   const dY = clientY - startY
-  // Keep ordinary keys tappable until a gesture reaches the swipe threshold.
-  // Use each axis so a diagonal approach does not cancel before swiping up.
+  // Match iOS: keep ordinary keys tappable until either axis exceeds 30.
   if (type === 'key' || type === 'symbol') {
-    return Math.max(Math.abs(dX), Math.abs(dY)) >= SWIPE_THRESHOLD
+    return Math.max(Math.abs(dX), Math.abs(dY)) > SWIPE_THRESHOLD
   }
   return dX * dX + dY * dY > DRAG_THRESHOLD_SQUARED
 }
@@ -260,8 +259,12 @@ export function onTouchInterrupt(event: TouchEvent) {
 }
 
 function getSwipe(touch: Touch) {
-  const { startY, swipeUp } = touches[touch.identifier]
-  if (touch.clientY <= startY - SWIPE_THRESHOLD) {
+  const { startX, startY, swipeUp } = touches[touch.identifier]
+  const dX = touch.clientX - startX
+  const dY = touch.clientY - startY
+  // Called after entering SWIPING. Like iOS, use the current total direction,
+  // favor vertical on ties, and do not reapply the activation threshold.
+  if (dY <= 0 && Math.abs(dY) >= Math.abs(dX)) {
     return swipeUp
   }
   return undefined
