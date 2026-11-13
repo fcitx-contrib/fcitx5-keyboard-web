@@ -38,10 +38,10 @@ const touches: { [key: string]: {
   startX: number
   startY: number
   lastX: number
-  completedSteps: number
   slideActivated: boolean
 } } = {}
 const SLIDE_STEP = 15 // CSS px; iOS uses 15pt.
+const LONG_PRESS_STEP = 30 // CSS px; iOS uses 30pt per menu item.
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 export const DRAG_THRESHOLD_SQUARED = 10 // CSS px squared
@@ -58,8 +58,8 @@ function dragged(touch: Touch) {
   const { clientX, clientY } = touch
   const dX = clientX - startX
   const dY = clientY - startY
-  // Match iOS: keep ordinary keys tappable until either axis exceeds 30.
-  if (type === 'key' || type === 'symbol') {
+  // Match iOS: keep taps and pending menus until either axis exceeds 30.
+  if (type === 'key' || type === 'symbol' || type === 'globe' || type === 'enter') {
     return Math.max(Math.abs(dX), Math.abs(dY)) > SWIPE_THRESHOLD
   }
   return dX * dX + dY * dY > DRAG_THRESHOLD_SQUARED
@@ -238,10 +238,11 @@ function isSlideKey(type: Key['type'] | undefined) {
   return type === 'space' || type === 'backspace'
 }
 
-function interrupt(touchId: number) {
+function interrupt(touchIds: readonly number[]) {
   for (const [id, { touch, state, type }] of Object.entries(touches)) {
-    // Like iOS, space/backspace belong to their own touch until release.
-    if (Number(id) === touchId || isSlideKey(type)) {
+    // Touches in the same event must not interrupt each other. Space/backspace
+    // always belong to their own touch until release, like iOS.
+    if (touchIds.includes(Number(id)) || isSlideKey(type)) {
       continue
     }
     switch (state) {
@@ -261,7 +262,8 @@ function interrupt(touchId: number) {
 }
 
 export function onTouchInterrupt(event: TouchEvent) {
-  interrupt(event.changedTouches[0].identifier)
+  // The mask has already handled these starts before they bubble here.
+  interrupt(Array.from(event.changedTouches, touch => touch.identifier))
 }
 
 function getSwipe(touch: Touch) {
@@ -274,23 +276,6 @@ function getSwipe(touch: Touch) {
     return swipeUp
   }
   return undefined
-}
-
-function horizontallyMove(touch: Touch, step: number, leftAction: () => void, rightAction: () => void) {
-  const { clientX } = touch
-  if ((clientX - touches[touch.identifier].lastX) * (clientX - touches[touch.identifier].startX) < 0) { // turn around
-    touches[touch.identifier].completedSteps = 0
-    touches[touch.identifier].startX = touches[touch.identifier].lastX
-  }
-  const action = touch.clientX > touches[touch.identifier].startX
-    ? rightAction
-    : leftAction
-  const totalSteps = Math.floor(Math.abs((clientX - touches[touch.identifier].startX) / step))
-  while (touches[touch.identifier].completedSteps < totalSteps) {
-    action()
-    ++touches[touch.identifier].completedSteps
-  }
-  touches[touch.identifier].lastX = clientX
 }
 
 function slide(touch: Touch) {
@@ -398,11 +383,19 @@ function longPressHandler(touchId: number, container: HTMLElement) {
 }
 
 function moveHighlight(touch: Touch) {
-  const action = (direction: 'LEFT' | 'RIGHT') => {
-    const newIndex = updateHighlight(touches[touch.identifier].index, direction)
-    touches[touch.identifier].index = newIndex
+  const gesture = touches[touch.identifier]
+  if ((gesture.longPress?.cells.length ?? 0) < 2) {
+    return
   }
-  horizontallyMove(touch, getContainer(touches[touch.identifier].touch)!.getBoundingClientRect().width, () => action('LEFT'), () => action('RIGHT'))
+  const steps = Math.trunc((touch.clientX - gesture.lastX) / LONG_PRESS_STEP)
+  // Keep the fractional remainder and consume whole steps even at a menu edge.
+  // Unlike space/backspace, menu selection is relative to the last consumed step.
+  gesture.lastX += steps * LONG_PRESS_STEP
+  for (let i = 0; i < Math.abs(steps); ++i) {
+    gesture.index = updateHighlight(gesture.index, steps < 0
+      ? 'LEFT'
+      : 'RIGHT')
+  }
 }
 
 function longPressRelease(touchId: number) {
@@ -428,8 +421,15 @@ function longPressRelease(touchId: number) {
 }
 
 export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
-  const touch = event.changedTouches[0]
-  interrupt(touch.identifier)
+  for (const touch of Array.from(event.changedTouches)) {
+    startTouch(touch, touchContainer)
+  }
+}
+
+function startTouch(touch: Touch, touchContainer?: Element) {
+  // New presses still flush preceding ordinary keys in start order, including
+  // earlier starts in this batch. The bubbling handler must not flush the last.
+  interrupt([touch.identifier])
   hidePopover()
   let container = touchContainer ?? getContainer(touch)
   const key = getKey(container)
@@ -481,13 +481,19 @@ export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
     startX: touch.clientX,
     startY: touch.clientY,
     lastX: touch.clientX,
-    completedSteps: 0,
     slideActivated: false,
   }
 }
 
 export function onTouchMove(event: TouchEvent) {
-  const touch = event.changedTouches[0]
+  const changedTouches = Array.from(event.changedTouches)
+  const touchIds = changedTouches.map(touch => touch.identifier)
+  for (const touch of changedTouches) {
+    moveTouch(touch, touchIds)
+  }
+}
+
+function moveTouch(touch: Touch, touchIds: readonly number[]) {
   const gesture = touches[touch.identifier]
   if (!gesture) {
     return
@@ -499,7 +505,7 @@ export function onTouchMove(event: TouchEvent) {
     }
     return
   }
-  interrupt(touch.identifier)
+  interrupt(touchIds)
   switch (state) {
     case 'HIT':
       if (dragged(touch)) {
@@ -520,12 +526,14 @@ export function onTouchMove(event: TouchEvent) {
 }
 
 export function onTouchEnd(event: TouchEvent) {
-  for (const changed of Array.from(event.changedTouches)) {
-    endTouch(changed)
+  const changedTouches = Array.from(event.changedTouches)
+  const touchIds = changedTouches.map(touch => touch.identifier)
+  for (const changed of changedTouches) {
+    endTouch(changed, touchIds)
   }
 }
 
-function endTouch(changed: Touch) {
+function endTouch(changed: Touch, touchIds: readonly number[]) {
   const touchId = changed.identifier
   const gesture = touches[touchId]
   if (!gesture) {
@@ -533,7 +541,7 @@ function endTouch(changed: Touch) {
   }
   const { touch, state, type, slideActivated } = gesture
   if (!isSlideKey(type)) {
-    interrupt(touchId)
+    interrupt(touchIds)
   }
   cancelLongPress(touchId)
   // Retire before calling the host: release/key callbacks can reenter this handler.

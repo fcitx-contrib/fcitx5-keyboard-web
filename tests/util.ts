@@ -34,56 +34,73 @@ function isUnderMask(point: { x: number, y: number }, page: Page) {
 
 let touchId = 0
 
-export async function touchDown(locator: Locator) {
-  const ctr = await center(locator)
-  const underMask = await isUnderMask(ctr, locator.page())
-  await locator.page().evaluate((arg) => {
-    const { touchId, center, underMask, element } = arg
+export async function touchDownTogether(locators: Locator[]) {
+  const starts = await Promise.all(locators.map(async (locator) => {
+    const ctr = await center(locator)
+    return {
+      touchId: touchId++,
+      center: ctr,
+      underMask: await isUnderMask(ctr, locator.page()),
+      element: (await locator.elementHandle())!,
+    }
+  }))
+  await locators[0].page().evaluate((starts) => {
     window.touches ||= []
-    const target = underMask
-      ? document.querySelector('.fcitx-keyboard-mask')!
-      : element
-    const touch = new Touch({
+    const changedTouches = starts.map(({ touchId, center, underMask, element }) => new Touch({
       identifier: touchId,
-      target,
+      target: underMask
+        ? document.querySelector('.fcitx-keyboard-mask')!
+        : element,
       clientX: center.x,
       clientY: center.y,
-    })
-    window.touches.push(touch)
-    const touchEvent = new TouchEvent('touchstart', {
-      touches: window.touches,
-      changedTouches: [touch],
-      bubbles: true,
-    })
-    target.dispatchEvent(touchEvent)
-  }, {
-    touchId,
-    center: ctr,
-    underMask,
-    element: (await locator.elementHandle())!,
-  })
-  return touchId++
+    }))
+    window.touches.push(...changedTouches)
+    for (const target of new Set(changedTouches.map(touch => touch.target))) {
+      target.dispatchEvent(new TouchEvent('touchstart', {
+        touches: window.touches,
+        changedTouches: changedTouches.filter(touch => touch.target === target),
+        bubbles: true,
+      }))
+    }
+  }, starts)
+  return starts.map(start => start.touchId)
 }
 
-export async function touchMove(locator: Locator, touchId: number, dx: number, dy: number) {
-  return locator.page().evaluate((arg) => {
-    const { touchId, dx, dy } = arg
-    const i = window.touches.findIndex(touch => touch.identifier === touchId)
-    const { target, clientX, clientY } = window.touches.splice(i, 1)[0]
-    const touch = new Touch({
-      identifier: touchId,
-      target,
-      clientX: clientX + dx,
-      clientY: clientY + dy,
+export async function touchDown(locator: Locator) {
+  return (await touchDownTogether([locator]))[0]
+}
+
+export function touchMoveTogether(locator: Locator, moves: { touchId: number, dx: number, dy: number }[]) {
+  return locator.page().evaluate((moves) => {
+    const changedTouches = moves.map(({ touchId, dx, dy }) => {
+      const i = window.touches.findIndex(touch => touch.identifier === touchId)
+      if (i < 0) {
+        throw new Error(`Unknown test touch ${touchId}`)
+      }
+      const { target, clientX, clientY } = window.touches.splice(i, 1)[0]
+      const touch = new Touch({
+        identifier: touchId,
+        target,
+        clientX: clientX + dx,
+        clientY: clientY + dy,
+      })
+      window.touches.push(touch)
+      return touch
     })
-    window.touches.push(touch)
-    const touchEvent = new TouchEvent('touchmove', {
-      touches: window.touches,
-      changedTouches: [touch],
-      bubbles: true,
-    })
-    target.dispatchEvent(touchEvent)
-  }, { touchId, dx, dy })
+    for (const target of new Set(changedTouches.map(touch => touch.target))) {
+      target.dispatchEvent(new TouchEvent('touchmove', {
+        touches: window.touches,
+        changedTouches: changedTouches.filter(touch => touch.target === target),
+        bubbles: true,
+      }))
+    }
+  }, moves)
+}
+
+export function touchMove(locator: Locator, touchId: number, dx: number, dy: number) {
+  return touchMoveTogether(locator, [
+    { touchId, dx, dy },
+  ])
 }
 
 export function touchUpTogether(locator: Locator, touchIds: number[], cancel: boolean = false) {
