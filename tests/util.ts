@@ -86,24 +86,26 @@ export async function touchMove(locator: Locator, touchId: number, dx: number, d
   }, { touchId, dx, dy })
 }
 
-export function touchUp(locator: Locator, touchId: number, cancel: boolean = false) {
-  return locator.page().evaluate((arg) => {
-    const { touchId, cancel } = arg
-    const i = window.touches.findIndex(touch => touch.identifier === touchId)
-    const { target, clientX, clientY } = window.touches.splice(i, 1)[0]
-    const touch = new Touch({
-      identifier: touchId,
-      target,
-      clientX,
-      clientY,
+export function touchUpTogether(locator: Locator, touchIds: number[], cancel: boolean = false) {
+  return locator.page().evaluate(({ touchIds, cancel }) => {
+    const changedTouches = touchIds.map((touchId) => {
+      const i = window.touches.findIndex(touch => touch.identifier === touchId)
+      if (i < 0) {
+        throw new Error(`Unknown test touch ${touchId}`)
+      }
+      return window.touches.splice(i, 1)[0]
     })
     const touchEvent = new TouchEvent(cancel ? 'touchcancel' : 'touchend', {
       touches: window.touches,
-      changedTouches: [touch],
+      changedTouches,
       bubbles: true,
     })
-    target.dispatchEvent(touchEvent)
-  }, { touchId, cancel })
+    changedTouches[0].target.dispatchEvent(touchEvent)
+  }, { touchIds, cancel })
+}
+
+export function touchUp(locator: Locator, touchId: number, cancel: boolean = false) {
+  return touchUpTogether(locator, [touchId], cancel)
 }
 
 export async function tap(locator: Locator) {

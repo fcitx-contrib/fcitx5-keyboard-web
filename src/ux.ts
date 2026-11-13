@@ -39,8 +39,9 @@ const touches: { [key: string]: {
   startY: number
   lastX: number
   completedSteps: number
+  slideActivated: boolean
 } } = {}
-const slideStep = 10
+const SLIDE_STEP = 15 // CSS px; iOS uses 15pt.
 
 const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
 export const DRAG_THRESHOLD_SQUARED = 10 // CSS px squared
@@ -233,9 +234,14 @@ function touchUp(touch: Touch) {
   }
 }
 
+function isSlideKey(type: Key['type'] | undefined) {
+  return type === 'space' || type === 'backspace'
+}
+
 function interrupt(touchId: number) {
-  for (const [id, { touch, state }] of Object.entries(touches)) {
-    if (Number(id) === touchId) {
+  for (const [id, { touch, state, type }] of Object.entries(touches)) {
+    // Like iOS, space/backspace belong to their own touch until release.
+    if (Number(id) === touchId || isSlideKey(type)) {
       continue
     }
     switch (state) {
@@ -287,34 +293,64 @@ function horizontallyMove(touch: Touch, step: number, leftAction: () => void, ri
   touches[touch.identifier].lastX = clientX
 }
 
+function slide(touch: Touch) {
+  const gesture = touches[touch.identifier]
+  const { startX, startY, state, type } = gesture
+  const dx = touch.clientX - startX
+  const dy = touch.clientY - startY
+  if (!gesture.slideActivated) {
+    if (Math.abs(dx) < SWIPE_THRESHOLD) {
+      // Before long press, large movement cancels the tap/repeat, but a later
+      // horizontal move can still activate sliding. After long press, ignore dy.
+      if (state === 'HIT' && Math.max(Math.abs(dx), Math.abs(dy)) > SWIPE_THRESHOLD) {
+        cancelLongPress(touch.identifier)
+        gesture.state = 'SWIPING'
+      }
+      return
+    }
+    gesture.slideActivated = true
+    gesture.state = 'SWIPING'
+    cancelLongPress(touch.identifier)
+    // Consume the initial 30px once; keep this original grid when reversing.
+    gesture.lastX = startX + Math.sign(dx) * SWIPE_THRESHOLD
+  }
+  const stepAt = (x: number) => Math.sign(x - startX) * Math.floor(Math.abs(x - startX) / SLIDE_STEP)
+  const steps = stepAt(touch.clientX) - stepAt(gesture.lastX)
+  gesture.lastX = touch.clientX
+  for (let i = 0; i < Math.abs(steps); ++i) {
+    // sendEvent can synchronously cancel this gesture or replace its surface.
+    if (touches[touch.identifier] !== gesture || gesture.state !== 'SWIPING') {
+      break
+    }
+    if (type === 'space') {
+      sendKeyDown('', steps < 0
+        ? 'ArrowLeft'
+        : 'ArrowRight')
+    }
+    else {
+      sendEvent({
+        type: 'BACKSPACE_SLIDE',
+        data: steps < 0
+          ? 'LEFT'
+          : 'RIGHT',
+      })
+    }
+  }
+}
+
 function doSwipe(touch: Touch) {
   const { type } = touches[touch.identifier]
-  if (['space', 'backspace'].includes(type ?? '')) {
-    let leftAction: () => void
-    let rightAction: () => void
-    if (type === 'space') {
-      leftAction = () => sendKeyDown('', 'ArrowLeft')
-      rightAction = () => sendKeyDown('', 'ArrowRight')
-    }
-    else {
-      leftAction = () => sendEvent({ type: 'BACKSPACE_SLIDE', data: 'LEFT' })
-      rightAction = () => sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RIGHT' })
-    }
-    horizontallyMove(touch, slideStep, leftAction, rightAction)
+  const swipe = getSwipe(touch)
+  if (swipe) {
+    showPopover(
+      getContainer(touches[touch.identifier].touch)!,
+      type === 'symbol'
+        ? numpadLongPress
+        : swipe.label,
+    )
   }
   else {
-    const swipe = getSwipe(touch)
-    if (swipe) {
-      showPopover(
-        getContainer(touches[touch.identifier].touch)!,
-        type === 'symbol'
-          ? numpadLongPress
-          : swipe.label,
-      )
-    }
-    else {
-      hidePopover()
-    }
+    hidePopover()
   }
 }
 
@@ -333,20 +369,30 @@ function swipeRelease(touch: Touch) {
 }
 
 function longPressHandler(touchId: number, container: HTMLElement) {
-  vibrate(container, Pattern.Long)
-  touches[touchId].timer = null
-  touches[touchId].state = 'PRESSING'
-  if (touches[touchId].type === 'backspace') {
-    touches[touchId].timer = window.setInterval(backspace, KEY_REPEAT_INTERVAL)
+  const gesture = touches[touchId]
+  if (!gesture || gesture.state !== 'HIT') {
+    return
   }
-  else if (touches[touchId].type === 'globe') {
+  vibrate(container, Pattern.Long)
+  gesture.timer = null
+  gesture.state = 'PRESSING'
+  if (gesture.type === 'backspace') {
+    gesture.timer = window.setInterval(() => {
+      // Reject a queued repeat after sliding, release, or identifier reuse.
+      if (touches[touchId] === gesture && gesture.state === 'PRESSING') {
+        backspace()
+      }
+    }, KEY_REPEAT_INTERVAL)
+  }
+  else if (gesture.type === 'globe') {
     showContextmenu(container, inputMethods_.map(inputMethod => ({
       text: inputMethod.displayName,
       callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
     })))
   }
-  else {
-    const { touch, longPress } = touches[touchId]
+  else if (gesture.type !== 'space') {
+    // Space enters long-press state on iOS, but has no menu/action to show.
+    const { touch, longPress } = gesture
     showPopover(getContainer(touch)!, longPress!)
   }
 }
@@ -398,6 +444,7 @@ export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
         touchDown(touch)
         state = 'DOWN'
         break
+      case 'space':
       case 'backspace':
       case 'globe':
         timer = window.setTimeout(longPressHandler, LONG_PRESS_THRESHOLD, touch.identifier, container)
@@ -435,13 +482,24 @@ export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
     startY: touch.clientY,
     lastX: touch.clientX,
     completedSteps: 0,
+    slideActivated: false,
   }
 }
 
 export function onTouchMove(event: TouchEvent) {
   const touch = event.changedTouches[0]
+  const gesture = touches[touch.identifier]
+  if (!gesture) {
+    return
+  }
+  const { state, type } = gesture
+  if (isSlideKey(type)) {
+    if (state !== 'DOWN' && state !== 'INTERRUPTED') {
+      slide(touch)
+    }
+    return
+  }
   interrupt(touch.identifier)
-  const { state } = touches[touch.identifier]
   switch (state) {
     case 'HIT':
       if (dragged(touch)) {
@@ -462,10 +520,24 @@ export function onTouchMove(event: TouchEvent) {
 }
 
 export function onTouchEnd(event: TouchEvent) {
-  const touchId = event.changedTouches[0].identifier
-  interrupt(touchId)
+  for (const changed of Array.from(event.changedTouches)) {
+    endTouch(changed)
+  }
+}
+
+function endTouch(changed: Touch) {
+  const touchId = changed.identifier
+  const gesture = touches[touchId]
+  if (!gesture) {
+    return
+  }
+  const { touch, state, type, slideActivated } = gesture
+  if (!isSlideKey(type)) {
+    interrupt(touchId)
+  }
   cancelLongPress(touchId)
-  const { touch, state, type } = touches[touchId]
+  // Retire before calling the host: release/key callbacks can reenter this handler.
+  gesture.state = 'INTERRUPTED'
   const container = getTouchContainer(touch)
   container && release(container)
   hidePopover()
@@ -480,19 +552,25 @@ export function onTouchEnd(event: TouchEvent) {
     case 'SWIPING':
       switch (type) {
         case 'backspace':
-          sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
+          if (slideActivated) {
+            sendEvent({ type: 'BACKSPACE_SLIDE', data: 'RELEASE' })
+          }
           break
         case 'key':
         case 'symbol':
-          swipeRelease(event.changedTouches[0])
+          swipeRelease(changed)
           break
       }
       break
     case 'PRESSING':
-      longPressRelease(touchId)
+      if (!isSlideKey(type)) {
+        longPressRelease(touchId)
+      }
       break
   }
-  delete touches[touchId]
+  if (touches[touchId] === gesture) {
+    delete touches[touchId]
+  }
 }
 
 export function setLayer(id: string, locked: boolean) {

@@ -1,5 +1,5 @@
 import test, { expect } from '@playwright/test'
-import { getKeyBackground, getSentEvents, init, tap, touchDown, touchMove, touchUp } from './util'
+import { getKeyBackground, getSentEvents, init, tap, touchDown, touchMove, touchUp, touchUpTogether } from './util'
 
 for (const [dx, dy] of [
   [0, -5],
@@ -137,6 +137,35 @@ for (const finalY of [-5, 0, 5]) {
           },
         ]
       : [])
+  })
+}
+
+for (const cancel of [false, true]) {
+  test(`Batched touch${cancel ? 'cancel' : 'end'} uses the swiping letter's own changed touch after Backspace`, async ({ page }) => {
+    await init(page)
+    await page.clock.install({ time: 0 })
+    await page.clock.pauseAt(1000)
+    const errors: Error[] = []
+    page.on('pageerror', error => errors.push(error))
+    const backspace = page.locator('.fcitx-keyboard .fcitx-keyboard-backspace')
+    const letter = page.getByText('e3')
+    const backspaceTouch = await touchDown(backspace)
+    const letterTouch = await touchDown(letter)
+    await touchMove(letter, letterTouch, 0, -31)
+    await expect(page.locator('.fcitx-keyboard-popover')).toHaveText('3')
+
+    await touchUpTogether(letter, [backspaceTouch, letterTouch], cancel)
+    expect(errors, 'The first touch has already been retired when the swipe releases').toEqual([])
+    expect(await getSentEvents(page)).toEqual([
+      {
+        type: 'KEY_DOWN',
+        data: { key: '', code: 'Backspace' },
+      },
+      {
+        type: 'KEY_DOWN',
+        data: { key: '3', code: 'Digit3' },
+      },
+    ])
   })
 }
 
