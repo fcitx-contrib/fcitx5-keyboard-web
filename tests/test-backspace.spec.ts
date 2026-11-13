@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 import type { VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
 import { SCROLLING } from '../src/api.d'
-import { getKey, getSentEvents, getToolbarButton, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
+import { getKey, getSentEvents, getToolbarButton, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, touchUpTogether, WHITE } from './util'
 
 type Surface = 'keyboard' | 'candidates' | 'editor' | 'symbol'
 
@@ -296,6 +296,46 @@ for (const surface of [
         ])
       })
     }
+  })
+}
+
+for (const cancel of [false, true]) {
+  test(`Batched touch${cancel ? 'cancel' : 'end'} stops repeating Backspace in the second changed touch`, async ({ page }) => {
+    const backspace = await initSurface(page, 'keyboard')
+    await page.clock.install({ time: 0 })
+    await page.clock.pauseAt(1000)
+    const letterTouch = await touchDown(getKey(page, 'q'))
+    const backspaceTouch = await touchDown(backspace)
+    await page.clock.runFor(380)
+    const repeatEvent: VirtualKeyboardEvent = {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'Backspace' },
+    }
+    expect(await getBackspaceEvents(page)).toEqual([repeatEvent])
+
+    await touchUpTogether(backspace, [letterTouch, backspaceTouch], cancel)
+    expect(await page.evaluate(() => window.touches)).toEqual([])
+    await page.clock.runFor(500)
+    expect(await getBackspaceEvents(page), 'No repeat after either touch has ended').toEqual([repeatEvent])
+  })
+
+  test(`Batched touch${cancel ? 'cancel' : 'end'} releases a sliding Backspace in the second changed touch once`, async ({ page }) => {
+    const backspace = await initSurface(page, 'keyboard')
+    await page.clock.install({ time: 0 })
+    await page.clock.pauseAt(1000)
+    const letterTouch = await touchDown(getKey(page, 'q'))
+    const backspaceTouch = await touchDown(backspace)
+    await touchMove(backspace, backspaceTouch, -45, 0)
+    expect(await getBackspaceEvents(page)).toEqual([
+      { type: 'BACKSPACE_SLIDE', data: 'LEFT' },
+    ])
+
+    await touchUpTogether(backspace, [letterTouch, backspaceTouch], cancel)
+    await page.clock.runFor(500)
+    expect(await getBackspaceEvents(page)).toEqual([
+      { type: 'BACKSPACE_SLIDE', data: 'LEFT' },
+      { type: 'BACKSPACE_SLIDE', data: 'RELEASE' },
+    ])
   })
 }
 

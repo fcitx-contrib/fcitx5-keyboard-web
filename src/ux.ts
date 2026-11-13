@@ -520,7 +520,13 @@ export function onTouchMove(event: TouchEvent) {
 }
 
 export function onTouchEnd(event: TouchEvent) {
-  const touchId = event.changedTouches[0].identifier
+  for (const changed of Array.from(event.changedTouches)) {
+    endTouch(changed)
+  }
+}
+
+function endTouch(changed: Touch) {
+  const touchId = changed.identifier
   const gesture = touches[touchId]
   if (!gesture) {
     return
@@ -552,7 +558,7 @@ export function onTouchEnd(event: TouchEvent) {
           break
         case 'key':
         case 'symbol':
-          swipeRelease(event.changedTouches[0])
+          swipeRelease(changed)
           break
       }
       break
