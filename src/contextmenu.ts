@@ -1,6 +1,9 @@
 import { div, enableScroll, handleClick, hide, press, release, show } from './util'
 
+let menuGeneration = 0
+
 export function hideContextMenu() {
+  ++menuGeneration
   hide(document.querySelector('.fcitx-keyboard-contextmenu-container')!)
 }
 
@@ -33,6 +36,7 @@ export function showContextmenu(element: Element, items: {
   separator?: boolean
   callback: () => void
 }[]) {
+  const generation = ++menuGeneration
   const contextmenu = document.querySelector('.fcitx-keyboard-contextmenu') as HTMLElement
   contextmenu.innerHTML = ''
   for (let i = 0; i < items.length; i++) {
@@ -46,8 +50,13 @@ export function showContextmenu(element: Element, items: {
     else {
       const element = renderItem(item.text)
       handleClick(element, () => {
+        if (generation !== menuGeneration) {
+          return
+        }
         item.callback()
-        hideContextMenu()
+        if (generation === menuGeneration) {
+          hideContextMenu()
+        }
       })
       contextmenu.appendChild(element)
     }
@@ -77,4 +86,10 @@ export function showContextmenu(element: Element, items: {
   const x = Math.min(targetBox.left, containerBox.right - menuBox.width)
   contextmenu.style.left = `${x}px`
   contextmenu.style.top = `${y}px`
+  // Only dismiss this rendering; another owner may have opened a newer menu.
+  return () => {
+    if (generation === menuGeneration) {
+      hideContextMenu()
+    }
+  }
 }

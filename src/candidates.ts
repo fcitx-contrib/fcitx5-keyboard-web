@@ -12,6 +12,7 @@ import { disable, div, enable, enableScroll, getCandidateBar, handleClick, Patte
 import { DRAG_THRESHOLD_SQUARED, handleBackspace, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
 let touchId: number | null = null
+let pressedCandidate: HTMLElement | null = null
 let longPressId: number | null = null
 let startX = 0
 let startY = 0
@@ -22,6 +23,12 @@ let hasNext_ = false
 let fetching = false
 let scrollDirection: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL'
 let candidateContext: InputContextEvent | null = null
+let dismissCandidateMenu: (() => void) | null = null
+
+function hideCandidateMenu() {
+  dismissCandidateMenu?.()
+  dismissCandidateMenu = null
+}
 
 function renderTabAction(context: InputContextEvent, action: CandidateAction) {
   const tab = div('fcitx-keyboard-candidate-tab')
@@ -72,10 +79,26 @@ function dragged(touch: Touch) {
 }
 
 function cancelLongPress() {
-  if (longPressId) {
+  if (longPressId !== null) {
     clearTimeout(longPressId)
     longPressId = null
   }
+}
+
+function cancelCandidateTouch() {
+  cancelLongPress()
+  if (pressedCandidate) {
+    release(pressedCandidate)
+    pressedCandidate = null
+  }
+  touchId = null
+}
+
+function getCandidateTouch(candidate: HTMLElement, event: TouchEvent) {
+  if (pressedCandidate !== candidate) {
+    return undefined
+  }
+  return Array.from(event.changedTouches).find(touch => touch.identifier === touchId)
 }
 
 const textEncoder = new TextEncoder()
@@ -167,11 +190,11 @@ function revealHighlightedCandidate(container: Element, candidate: HTMLElement |
 }
 
 export function setCandidates(inputContext: string, generation: number, cands: Candidate[], highlighted: number, scrollState: ScrollState, scrollStart: boolean, scrollEnd: boolean, hasPrev: boolean, hasNext: boolean, hasClientPreedit: boolean, tabActions: CandidateAction[]) {
+  hideCandidateMenu()
   const context = { inputContext, generation }
   candidateContext = context
   scrollState_ = scrollState
-  touchId = null
-  cancelLongPress()
+  cancelCandidateTouch()
   setTabActions(context, scrollState === SCROLLING
     ? tabActions
     : [])
@@ -194,13 +217,18 @@ export function setCandidates(inputContext: string, generation: number, cands: C
     candidateInner.textContent = cands[i].text
     candidate.appendChild(candidateInner)
     candidate.addEventListener('touchstart', (event) => {
+      cancelCandidateTouch()
       vibrate()
-      candidate.classList.add('fcitx-keyboard-pressed')
+      press(candidate)
       const touch = event.changedTouches[0]
+      pressedCandidate = candidate
+      touchId = touch.identifier
       startX = touch.clientX
       startY = touch.clientY
-      cancelLongPress()
       longPressId = window.setTimeout(() => {
+        if (pressedCandidate !== candidate || touchId !== touch.identifier) {
+          return
+        }
         longPressId = null
         vibrate(candidate, Pattern.Long)
         sendEvent({
@@ -208,23 +236,28 @@ export function setCandidates(inputContext: string, generation: number, cands: C
           data: { ...context, index: offset + i },
         })
       }, LONG_PRESS_THRESHOLD)
-      touchId = event.changedTouches[0].identifier
     })
     candidate.addEventListener('touchmove', (event) => {
-      const touch = event.changedTouches[0]
-      // Doesn't care if same touch.
-      if (dragged(touch)) {
-        cancelLongPress()
+      const touch = getCandidateTouch(candidate, event)
+      if (touch && dragged(touch)) {
+        cancelCandidateTouch()
       }
     })
     candidate.addEventListener('touchend', (event) => {
-      candidate.classList.remove('fcitx-keyboard-pressed')
-      const touch = event.changedTouches[0]
-      if (touchId === touch.identifier) {
-        if (longPressId && !dragged(touch)) {
-          selectCandidate(context, offset + i)
-        }
-        cancelLongPress()
+      const touch = getCandidateTouch(candidate, event)
+      if (!touch) {
+        return
+      }
+      const select = longPressId !== null && !dragged(touch)
+      // Retire before callbacks: selecting can synchronously render new candidates.
+      cancelCandidateTouch()
+      if (select) {
+        selectCandidate(context, offset + i)
+      }
+    })
+    candidate.addEventListener('touchcancel', (event) => {
+      if (getCandidateTouch(candidate, event)) {
+        cancelCandidateTouch()
       }
     })
     if (i === highlighted) {
@@ -251,7 +284,7 @@ export function setCandidateActions(inputContext: string, generation: number, in
   if (!candidate) {
     return
   }
-  showContextmenu(candidate, actions.map(action => ({
+  dismissCandidateMenu = showContextmenu(candidate, actions.map(action => ({
     text: action.text,
     callback: () => sendEvent({
       type: 'CANDIDATE_ACTION',
@@ -459,5 +492,7 @@ export function renderCandidateBar() {
 }
 
 export function clearCandidateContext() {
+  hideCandidateMenu()
+  cancelCandidateTouch()
   candidateContext = null
 }
