@@ -82,13 +82,13 @@ test('Preserve press order', async ({ page }) => {
 test('HIDE event', async ({ page }) => {
   await init(page)
 
-  const q = getKey(page, 'q1')
+  const k = getKey(page, 'k(')
   const shift = page.locator('.fcitx-keyboard-shift')
   await tap(shift)
-  await expect(q).toHaveText('Q1')
+  await expect(k).toHaveText('K(')
 
   await sendSystemEvent(page, { type: 'HIDE' })
-  await expect(q).toHaveText('q1')
+  await expect(k).toHaveText('k(')
 })
 
 test('Number input type opens numpad', async ({ page }) => {
