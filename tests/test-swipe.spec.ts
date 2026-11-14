@@ -219,6 +219,96 @@ test('Reset layer', async ({ page }) => {
   await expect(h).toHaveText('h/')
 })
 
+for (const locked of [false, true]) {
+  for (const keyType of ['letter', 'symbol'] as const) {
+    for (const moves of [
+      [
+        [31, 0],
+      ],
+      [
+        [0, 31],
+      ],
+      [
+        [40, -31],
+      ],
+      [
+        [0, -31],
+        [0, 36],
+      ],
+    ]) {
+      test(`Empty ${keyType} swipe ${JSON.stringify(moves)} preserves Shift (locked: ${locked})`, async ({ page }) => {
+        await init(page)
+        await page.clock.install({ time: 0 })
+        await page.clock.pauseAt(1000)
+        const shift = page.locator('.fcitx-keyboard-shift')
+        const k = page.getByText('k(')
+        await tap(shift)
+        if (locked) {
+          await page.clock.runFor(50)
+          await tap(shift)
+        }
+        const key = keyType === 'letter'
+          ? k
+          : page.locator('.fcitx-keyboard-symbol')
+        const touchId = await touchDown(key)
+        for (const [dx, dy] of moves) {
+          await touchMove(key, touchId, dx, dy)
+        }
+        await touchUp(key, touchId)
+        expect(await getSentEvents(page)).toEqual([])
+        await expect(page.locator('.fcitx-keyboard-popover')).not.toBeVisible()
+        await expect(page.locator('.fcitx-keyboard-numpad')).not.toBeVisible()
+        await expect(k).toHaveText('K(')
+        await tap(k)
+        await expect(k).toHaveText(locked ? 'K(' : 'k(')
+        await tap(k)
+        expect(await getSentEvents(page)).toEqual([
+          {
+            type: 'KEY_DOWN',
+            data: { key: 'K', code: 'KeyK' },
+          },
+          {
+            type: 'KEY_DOWN',
+            data: {
+              key: locked ? 'K' : 'k',
+              code: 'KeyK',
+            },
+          },
+        ])
+      })
+    }
+  }
+}
+
+for (const returnToOrigin of [false, true]) {
+  test(`Successful K swipe still consumes one-shot Shift (return to origin: ${returnToOrigin})`, async ({ page }) => {
+    await init(page)
+    await page.clock.install({ time: 0 })
+    await page.clock.pauseAt(1000)
+    const shift = page.locator('.fcitx-keyboard-shift')
+    const k = page.getByText('k(')
+    await tap(shift)
+    const touchId = await touchDown(k)
+    await touchMove(k, touchId, 0, -31)
+    if (returnToOrigin) {
+      await touchMove(k, touchId, 0, 31)
+    }
+    await touchUp(k, touchId)
+    await expect(k).toHaveText('k(')
+    await tap(k)
+    expect(await getSentEvents(page)).toEqual([
+      {
+        type: 'KEY_DOWN',
+        data: { key: '(', code: '' },
+      },
+      {
+        type: 'KEY_DOWN',
+        data: { key: 'k', code: 'KeyK' },
+      },
+    ])
+  })
+}
+
 test('Interrupted', async ({ page }) => {
   await init(page)
 
