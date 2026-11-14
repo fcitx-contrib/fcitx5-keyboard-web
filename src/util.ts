@@ -182,6 +182,7 @@ export function handleRepeatableClick(element: HTMLElement, handler: () => void)
   }
   cancelRepeat = () => {
     element.setAttribute('data-dragged', 'true')
+    release(element)
     stopRepeat()
     repeatTouchId = null
   }
@@ -203,7 +204,11 @@ export function handleRepeatableClick(element: HTMLElement, handler: () => void)
       vibrate(element, Pattern.Long)
       // Suppress handleClick's tap action after a long press.
       element.setAttribute('data-dragged', 'true')
-      repeatTimer = window.setInterval(handler, KEY_REPEAT_INTERVAL)
+      repeatTimer = window.setInterval(() => {
+        if (repeatTouchId === initiatingTouchId && activeRepeatStopper === cancelRepeat) {
+          handler()
+        }
+      }, KEY_REPEAT_INTERVAL)
     }, LONG_PRESS_THRESHOLD)
   })
   element.addEventListener('touchmove', (event) => {

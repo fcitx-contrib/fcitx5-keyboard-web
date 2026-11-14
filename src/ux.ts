@@ -23,6 +23,7 @@ let shiftPressTime: number | null = null
 let shiftPressed = false
 let shiftReleased = true
 let keyPressedWithShiftPressed = false
+let touchSession = 0
 let enterKeyType = ''
 let spaceKeyLabel = ''
 let inputMethods_: InputMethod[] = []
@@ -81,6 +82,21 @@ export function cancelPendingTouches() {
     touches[id].state = 'INTERRUPTED'
   }
   hidePopover()
+}
+
+export function abortPendingTouches() {
+  ++touchSession
+  cancelPendingTouches()
+  for (const id of Object.keys(touches)) {
+    delete touches[id]
+  }
+  shiftPressTime = null
+  shiftPressed = false
+  shiftReleased = true
+  keyPressedWithShiftPressed = false
+  if (currentLayer !== 'default' || layerLocked) {
+    setLayer('default', false)
+  }
 }
 
 export function setLayout(layout: Layout) {
@@ -143,7 +159,11 @@ export function selectCandidate(context: InputContextEvent, index: number) {
 }
 
 function executeActions(actions: Action[]) {
+  const session = touchSession
   for (const action of actions) {
+    if (session !== touchSession) {
+      return
+    }
     switch (action.type) {
       case 'key':
         sendKeyDown(action.key ?? '', action.code ?? '')
@@ -152,13 +172,14 @@ function executeActions(actions: Action[]) {
   }
 }
 
-function resetShiftLayer() {
-  if (currentLayer === 'shift' && !layerLocked && !shiftPressed) {
+function resetShiftLayer(session: number) {
+  if (session === touchSession && currentLayer === 'shift' && !layerLocked && !shiftPressed) {
     setLayer('default', false)
   }
 }
 
 function touchDown(touch: Touch) {
+  const session = touchSession
   const container = getTouchContainer(touch)
   const key = getKey(container)
   switch (key?.type) {
@@ -169,7 +190,7 @@ function touchDown(touch: Touch) {
       else {
         sendKeyDown(key.key ?? '', key.code ?? '')
       }
-      resetShiftLayer()
+      resetShiftLayer(session)
       break
     }
     case 'enter': {
@@ -179,7 +200,7 @@ function touchDown(touch: Touch) {
     case 'space': {
       if (key.commit) {
         sendEvent({ type: 'COMMIT', data: ' ' })
-        resetShiftLayer()
+        resetShiftLayer(session)
       }
       else {
         sendKeyDown(' ', 'Space')
@@ -238,7 +259,11 @@ function isSlideKey(type: Key['type'] | undefined) {
 }
 
 function interrupt(touchIds: readonly number[]) {
-  for (const [id, { touch, state, type }] of Object.entries(touches)) {
+  for (const [id, gesture] of Object.entries(touches)) {
+    if (touches[id] !== gesture) {
+      continue
+    }
+    const { touch, state, type } = gesture
     // Touches in the same event must not interrupt each other. Space/backspace
     // always belong to their own touch until release, like iOS.
     if (touchIds.includes(Number(id)) || isSlideKey(type)) {
@@ -247,8 +272,8 @@ function interrupt(touchIds: readonly number[]) {
     switch (state) {
       case 'HIT':
         cancelLongPress(Number(id))
+        gesture.state = 'DOWN'
         touchDown(touch)
-        touches[id].state = 'DOWN'
         break
       case 'DOWN':
         break
@@ -339,6 +364,7 @@ function doSwipe(touch: Touch) {
 }
 
 function swipeRelease(touch: Touch) {
+  const session = touchSession
   const { type } = touches[touch.identifier]
   const swipeUp = getSwipe(touch)
   // A canceled swipe has not used one-shot Shift.
@@ -351,7 +377,7 @@ function swipeRelease(touch: Touch) {
   else {
     executeActions(swipeUp.actions)
   }
-  resetShiftLayer()
+  resetShiftLayer(session)
 }
 
 function longPressHandler(touchId: number, container: HTMLElement) {
@@ -400,6 +426,7 @@ function moveHighlight(touch: Touch) {
 }
 
 function longPressRelease(touchId: number) {
+  const session = touchSession
   const { longPress, index, type } = touches[touchId]
   if (type === 'symbol') {
     setDisplayMode('numpad')
@@ -416,11 +443,15 @@ function longPressRelease(touchId: number) {
       executeActions(cell.actions)
     }
   }
-  resetShiftLayer()
+  resetShiftLayer(session)
 }
 
 export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
+  const session = touchSession
   for (const touch of Array.from(event.changedTouches)) {
+    if (session !== touchSession) {
+      return
+    }
     startTouch(touch, touchContainer)
   }
 }
@@ -428,7 +459,11 @@ export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
 function startTouch(touch: Touch, touchContainer?: Element) {
   // New presses still flush preceding ordinary keys in start order, including
   // earlier starts in this batch. The bubbling handler must not flush the last.
+  const session = touchSession
   interrupt([touch.identifier])
+  if (session !== touchSession) {
+    return
+  }
   hidePopover()
   let container = touchContainer ?? getContainer(touch)
   const key = getKey(container)
@@ -494,9 +529,13 @@ function startTouch(touch: Touch, touchContainer?: Element) {
 }
 
 export function onTouchMove(event: TouchEvent) {
+  const session = touchSession
   const changedTouches = Array.from(event.changedTouches)
   const touchIds = changedTouches.map(touch => touch.identifier)
   for (const touch of changedTouches) {
+    if (session !== touchSession) {
+      return
+    }
     moveTouch(touch, touchIds)
   }
 }
@@ -514,6 +553,9 @@ function moveTouch(touch: Touch, touchIds: readonly number[]) {
     return
   }
   interrupt(touchIds)
+  if (touches[touch.identifier] !== gesture || gesture.state !== state) {
+    return
+  }
   switch (state) {
     case 'HIT':
       if (dragged(touch)) {
@@ -534,10 +576,14 @@ function moveTouch(touch: Touch, touchIds: readonly number[]) {
 }
 
 export function onTouchEnd(event: TouchEvent) {
+  const session = touchSession
   const changedTouches = Array.from(event.changedTouches)
   const touchIds = changedTouches.map(touch => touch.identifier)
   const shiftTouches: Touch[] = []
   for (const changed of changedTouches) {
+    if (session !== touchSession) {
+      return
+    }
     // Pending keys in this batch must commit before Shift resets their layer.
     // Keep the original order of all other endings and exclude the full batch.
     if (touches[changed.identifier]?.type === 'shift') {
@@ -547,6 +593,9 @@ export function onTouchEnd(event: TouchEvent) {
     endTouch(changed, touchIds)
   }
   for (const changed of shiftTouches) {
+    if (session !== touchSession) {
+      return
+    }
     endTouch(changed, touchIds)
   }
 }
@@ -561,6 +610,9 @@ function endTouch(changed: Touch, touchIds: readonly number[]) {
   if (!isSlideKey(type)) {
     interrupt(touchIds)
   }
+  if (touches[touchId] !== gesture || gesture.state !== state) {
+    return
+  }
   cancelLongPress(touchId)
   // Retire before calling the host: release/key callbacks can reenter this handler.
   gesture.state = 'INTERRUPTED'
@@ -571,6 +623,9 @@ function endTouch(changed: Touch, touchIds: readonly number[]) {
   switch (state) {
     case 'HIT':
       touchDown(touch)
+      if (touches[touchId] !== gesture) {
+        return
+      }
       // fall through
     case 'DOWN':
       touchUp(touch)

@@ -45,7 +45,8 @@ export type SystemEvent = {
   type: 'INPUT_TYPE'
   data: InputType
 } | {
-  type: 'CLEAR' | 'HIDE' | 'SELECT' | 'DESELECT'
+  // ABORT ends an input session's gestures; ordinary UI updates use CLEAR/HIDE.
+  type: 'ABORT' | 'CLEAR' | 'HIDE' | 'SELECT' | 'DESELECT'
 } | {
   type: 'UNDO' | 'REDO'
   data: boolean

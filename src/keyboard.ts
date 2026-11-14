@@ -14,8 +14,8 @@ import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
 import { setTheme } from './theme'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
-import { div, hide, isAndroidOrIOS, isFirefox } from './util'
-import { onTouchEnd, onTouchInterrupt, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
+import { cancelRepeatableClick, div, hide, isAndroidOrIOS, isFirefox } from './util'
+import { abortPendingTouches, onTouchEnd, onTouchInterrupt, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
@@ -109,6 +109,12 @@ export function setBuiltInLayout(id: string, name: BUILTIN_LAYOUT) {
   setLayout(id, builtInLayoutMap[name])
 }
 
+function clearPanel() {
+  hideContextMenu()
+  clearCandidateContext()
+  clearCandidates()
+}
+
 export function onMessage(message: string) {
   const event = JSON.parse(message) as SystemEvent
   switch (event.type) {
@@ -118,13 +124,16 @@ export function onMessage(message: string) {
     case 'INPUT_TYPE':
       handleInputType(event.data)
       break
+    case 'ABORT':
+      abortPendingTouches()
+      cancelRepeatableClick()
+      clearPanel()
+      break
     case 'HIDE':
       setLayer('default', false)
     // fall through
     case 'CLEAR':
-      hideContextMenu()
-      clearCandidateContext()
-      clearCandidates()
+      clearPanel()
       break
     case 'PREEDIT':
       setPreedit(event.data.auxUp, event.data.preedit, event.data.caret)
