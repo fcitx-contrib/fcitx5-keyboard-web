@@ -234,3 +234,135 @@ for (const trigger of ['start', 'end', 'actions'] as const) {
     await expect(k).toHaveText('K(')
   })
 }
+
+for (const command of ['Undo', 'Cut', 'Paste', 'ArrowLeft'] as const) {
+  test(`Session ABORT discards a pending ${command} click and accepts a fresh press`, async ({ page }) => {
+    if (command !== 'Undo') {
+      await tap(getToolbarButton(page, 4))
+      await sendSystemEvent(page, { type: 'SELECT' })
+    }
+    const button = command === 'Undo'
+      ? getToolbarButton(page, 2)
+      : page.locator('.fcitx-keyboard-editor-button-container').nth({ Cut: 5, Paste: 7, ArrowLeft: 0 }[command])
+    const id = await touchDown(button)
+    await sendSystemEvent(page, { type: 'ABORT' })
+    const pressedAfterAbort = await button.evaluate(element => element.classList.contains('fcitx-keyboard-pressed'))
+    await touchUp(button, id)
+    expect(await getSentEvents(page)).toEqual([])
+    expect(pressedAfterAbort).toBe(false)
+    await tap(button)
+    expect(await getSentEvents(page)).toEqual([
+      command === 'ArrowLeft'
+        ? {
+            type: 'KEY_DOWN',
+            data: { key: '', code: 'ArrowLeft' },
+          }
+        : {
+            type: command.toUpperCase(),
+          },
+    ])
+  })
+}
+
+for (const type of ['CLEAR', 'HIDE'] as const) {
+  test(`Ordinary ${type} preserves a pending toolbar click`, async ({ page }) => {
+    const undo = getToolbarButton(page, 2)
+    const id = await touchDown(undo)
+    await sendSystemEvent(page, { type })
+    await touchUp(undo, id)
+    expect(await getSentEvents(page)).toEqual([
+      { type: 'UNDO' },
+    ])
+  })
+}
+
+test('An aborted bubbling start preserves a fresh pending swipe', async ({ page }) => {
+  const freshId = 0x7FFFFFFE
+  await page.evaluate((freshId) => {
+    const original = window.sentEvents.push.bind(window.sentEvents)
+    let aborted = false
+    window.sentEvents.push = (...events) => {
+      const result = original(...events)
+      if (!aborted && events.some(event => event.type === 'KEY_DOWN')) {
+        aborted = true
+        window.onMessage(JSON.stringify({ type: 'ABORT' }))
+        const mask = document.querySelector('.fcitx-keyboard-mask')!
+        const key = Array.from(document.querySelectorAll('.fcitx-keyboard-key-container[data-key]'))
+          .find(element => JSON.parse(element.getAttribute('data-key')!).code === 'KeyM')!
+        const box = key.getBoundingClientRect()
+        const freshTouch = new Touch({
+          identifier: freshId,
+          target: mask,
+          clientX: box.x + box.width / 2,
+          clientY: box.y + box.height / 2,
+        })
+        window.touches.push(freshTouch)
+        mask.dispatchEvent(new TouchEvent('touchstart', {
+          touches: window.touches,
+          changedTouches: [freshTouch],
+          bubbles: true,
+        }))
+      }
+      return result
+    }
+  }, freshId)
+  const k = page.getByText('k(')
+  const l = page.getByText('l)')
+  const first = await touchDown(k)
+  const second = await touchDown(l)
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'k', code: 'KeyK' },
+    },
+  ])
+  await touchMove(k, freshId, 0, -31)
+  await touchUp(k, first)
+  await touchUp(l, second)
+  await touchUp(k, freshId)
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'k', code: 'KeyK' },
+    },
+    {
+      type: 'KEY_DOWN',
+      data: { key: '"', code: '' },
+    },
+  ])
+})
+
+test('An ordinary toolbar start still flushes a pending letter', async ({ page }) => {
+  const k = page.getByText('k(')
+  const undo = getToolbarButton(page, 2)
+  const first = await touchDown(k)
+  const second = await touchDown(undo)
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'k', code: 'KeyK' },
+    },
+  ])
+  await touchUp(k, first)
+  await touchUp(undo, second)
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'k', code: 'KeyK' },
+    },
+    { type: 'UNDO' },
+  ])
+})
+
+test('An aborted toolbar release cannot complete or cancel a newer press', async ({ page }) => {
+  const undo = getToolbarButton(page, 2)
+  const old = await touchDown(undo)
+  await sendSystemEvent(page, { type: 'ABORT' })
+  const fresh = await touchDown(undo)
+  await touchUp(undo, old)
+  expect(await getSentEvents(page)).toEqual([])
+  await touchUp(undo, fresh)
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'UNDO' },
+  ])
+})

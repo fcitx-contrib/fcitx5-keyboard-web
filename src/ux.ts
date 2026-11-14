@@ -24,6 +24,7 @@ let shiftPressed = false
 let shiftReleased = true
 let keyPressedWithShiftPressed = false
 let touchSession = 0
+const touchStartSessions = new WeakMap<TouchEvent, number>()
 let enterKeyType = ''
 let spaceKeyLabel = ''
 let inputMethods_: InputMethod[] = []
@@ -286,6 +287,12 @@ function interrupt(touchIds: readonly number[]) {
 }
 
 export function onTouchInterrupt(event: TouchEvent) {
+  // A host callback during the target handler may have started a new session.
+  // Do not let the old event's bubble flush that session's pending gestures.
+  const session = touchStartSessions.get(event)
+  if (session !== undefined && session !== touchSession) {
+    return
+  }
   // The mask has already handled these starts before they bubble here.
   interrupt(Array.from(event.changedTouches, touch => touch.identifier))
 }
@@ -448,6 +455,7 @@ function longPressRelease(touchId: number) {
 
 export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
   const session = touchSession
+  touchStartSessions.set(event, session)
   for (const touch of Array.from(event.changedTouches)) {
     if (session !== touchSession) {
       return

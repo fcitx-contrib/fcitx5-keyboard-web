@@ -111,18 +111,40 @@ export function setSvgStyle(container: HTMLElement, style: { [key: string]: stri
 export const isAndroidOrIOS = /Android|iPhone|iPad|iPod/.test(navigator.userAgent)
 export const isFirefox = navigator.userAgent.includes('Firefox')
 
+const pendingClickCancelers = new Set<() => void>()
+
+export function cancelPendingClicks() {
+  for (const cancel of pendingClickCancelers) {
+    cancel()
+  }
+}
+
 export function handleClick(element: HTMLElement, handler: () => void) {
   if (isAndroidOrIOS) {
+    let touchId: number | null = null
+    const retire = () => {
+      touchId = null
+      pendingClickCancelers.delete(cancel)
+    }
+    function cancel() {
+      retire()
+      release(element)
+    }
     element.addEventListener('touchstart', (event) => {
       vibrate(element)
       const touch = event.changedTouches[0]
+      touchId = touch.identifier
+      pendingClickCancelers.add(cancel)
       element.setAttribute('data-touch-x', touch.clientX.toString())
       element.setAttribute('data-touch-y', touch.clientY.toString())
       element.removeAttribute('data-dragged')
     })
 
     element.addEventListener('touchmove', (event) => {
-      const touch = event.changedTouches[0]
+      const touch = Array.from(event.changedTouches).find(touch => touch.identifier === touchId)
+      if (!touch) {
+        return
+      }
       const x = Number.parseFloat(element.getAttribute('data-touch-x') ?? '0')
       const y = Number.parseFloat(element.getAttribute('data-touch-y') ?? '0')
       // If the touch is moved more than half of the element's width or height, we consider it a drag.
@@ -132,8 +154,18 @@ export function handleClick(element: HTMLElement, handler: () => void) {
     })
 
     // touchstart's default behavior is disabled so no click event will be triggered.
+    element.addEventListener('touchcancel', (event) => {
+      if (Array.from(event.changedTouches).some(touch => touch.identifier === touchId)) {
+        retire()
+      }
+    })
     element.addEventListener('touchend', (event) => {
-      const touch = event.changedTouches[0]
+      const touch = Array.from(event.changedTouches).find(touch => touch.identifier === touchId)
+      if (!touch) {
+        return
+      }
+      // Retire before dispatch: the host may synchronously abort and start anew.
+      retire()
       const box = element.getBoundingClientRect()
       if (element.getAttribute('data-dragged') === 'true') {
         return

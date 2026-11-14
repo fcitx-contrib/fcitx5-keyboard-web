@@ -14,7 +14,7 @@ import { renderStatusArea, setStatusArea } from './statusArea'
 import { renderSymbolSelector } from './symbol'
 import { setTheme } from './theme'
 import { enableRedo, enableUndo, renderToolbar } from './toolbar'
-import { cancelRepeatableClick, div, hide, isAndroidOrIOS, isFirefox } from './util'
+import { cancelPendingClicks, cancelRepeatableClick, div, hide, isAndroidOrIOS, isFirefox } from './util'
 import { abortPendingTouches, onTouchEnd, onTouchInterrupt, onTouchMove, onTouchStart, setEnterKeyType, setInputMethods, setLayer, setLayout as setLayout_ } from './ux'
 
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
@@ -126,6 +126,7 @@ export function onMessage(message: string) {
       break
     case 'ABORT':
       abortPendingTouches()
+      cancelPendingClicks()
       cancelRepeatableClick()
       clearPanel()
       break
