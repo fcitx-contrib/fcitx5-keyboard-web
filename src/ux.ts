@@ -152,6 +152,12 @@ function executeActions(actions: Action[]) {
   }
 }
 
+function resetShiftLayer() {
+  if (currentLayer === 'shift' && !layerLocked && !shiftPressed) {
+    setLayer('default', false)
+  }
+}
+
 function touchDown(touch: Touch) {
   const container = getTouchContainer(touch)
   const key = getKey(container)
@@ -163,12 +169,7 @@ function touchDown(touch: Touch) {
       else {
         sendKeyDown(key.key ?? '', key.code ?? '')
       }
-      if (shiftPressed) {
-        keyPressedWithShiftPressed = true
-      }
-      else if (currentLayer === 'shift' && !layerLocked) {
-        setLayer('default', false)
-      }
+      resetShiftLayer()
       break
     }
     case 'enter': {
@@ -178,9 +179,7 @@ function touchDown(touch: Touch) {
     case 'space': {
       if (key.commit) {
         sendEvent({ type: 'COMMIT', data: ' ' })
-        if (currentLayer === 'shift' && !layerLocked) {
-          setLayer('default', false)
-        }
+        resetShiftLayer()
       }
       else {
         sendKeyDown(' ', 'Space')
@@ -348,9 +347,7 @@ function swipeRelease(touch: Touch) {
   else {
     swipeUp && executeActions(swipeUp.actions)
   }
-  if (currentLayer === 'shift' && !layerLocked) {
-    setLayer('default', false)
-  }
+  resetShiftLayer()
 }
 
 function longPressHandler(touchId: number, container: HTMLElement) {
@@ -415,9 +412,7 @@ function longPressRelease(touchId: number) {
       executeActions(cell.actions)
     }
   }
-  if (currentLayer === 'shift' && !layerLocked) {
-    setLayer('default', false)
-  }
+  resetShiftLayer()
 }
 
 export function onTouchStart(event: TouchEvent, touchContainer?: Element) {
@@ -455,6 +450,10 @@ function startTouch(touch: Touch, touchContainer?: Element) {
         timer = window.setTimeout(longPressHandler, LONG_PRESS_THRESHOLD, touch.identifier, container)
         break
       case 'key':
+        // Count accepted keys even when they end in a swipe, menu or no output.
+        if (shiftPressed) {
+          keyPressedWithShiftPressed = true
+        }
         swipeUp = key.swipeUp
         if (key.longPress) {
           timer = window.setTimeout(longPressHandler, LONG_PRESS_THRESHOLD, touch.identifier, container)
