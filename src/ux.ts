@@ -225,7 +225,7 @@ function touchUp(touch: Touch) {
   if (key?.type === 'shift') {
     shiftPressed = false
     shiftReleased = true
-    if (keyPressedWithShiftPressed) {
+    if (keyPressedWithShiftPressed && !layerLocked) {
       setLayer('default', false)
     }
   }
