@@ -341,11 +341,15 @@ function doSwipe(touch: Touch) {
 function swipeRelease(touch: Touch) {
   const { type } = touches[touch.identifier]
   const swipeUp = getSwipe(touch)
-  if (type === 'symbol' && swipeUp) {
+  // A canceled swipe has not used one-shot Shift.
+  if (!swipeUp) {
+    return
+  }
+  if (type === 'symbol') {
     setDisplayMode('numpad')
   }
   else {
-    swipeUp && executeActions(swipeUp.actions)
+    executeActions(swipeUp.actions)
   }
   resetShiftLayer()
 }
