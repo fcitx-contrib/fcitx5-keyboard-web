@@ -19,7 +19,7 @@ type TouchState = 'HIT' | 'PRESSING' | 'SWIPING' | 'DOWN' | 'INTERRUPTED'
 let layout_: Layout
 let currentLayer = 'default'
 let layerLocked = false
-let shiftPressTime = 0
+let shiftPressTime: number | null = null
 let shiftPressed = false
 let shiftReleased = true
 let keyPressedWithShiftPressed = false
@@ -43,7 +43,7 @@ const touches: { [key: string]: {
 const SLIDE_STEP = 15 // CSS px; iOS uses 15pt.
 const LONG_PRESS_STEP = 30 // CSS px; iOS uses 30pt per menu item.
 
-const DOUBLE_TAP_INTERVAL = 300 // Same with f5a.
+const DOUBLE_TAP_INTERVAL = 300 // iOS recognizes intervals strictly below 300ms.
 export const DRAG_THRESHOLD_SQUARED = 10 // CSS px squared
 const SWIPE_THRESHOLD = 30 // CSS px; iOS uses 30pt.
 const numpadSwipe: Swipe = { label: '123', actions: [] }
@@ -195,19 +195,19 @@ function touchDown(touch: Touch) {
       shiftPressed = true
       keyPressedWithShiftPressed = false
       const time = Date.now()
-      if (currentLayer === 'default') {
+      const isDoubleTap = shiftReleased && shiftPressTime !== null && time - shiftPressTime < DOUBLE_TAP_INTERVAL
+      // Consume the pair like iOS: the third press is a new single tap, not
+      // another double tap. A fourth press can complete the next pair.
+      shiftPressTime = isDoubleTap ? null : time
+      if (isDoubleTap) {
+        setLayer('shift', true)
+      }
+      else if (currentLayer === 'default') {
         setLayer('shift', false)
       }
       else {
-        const isDoubleTap = shiftReleased && time - shiftPressTime <= DOUBLE_TAP_INTERVAL
-        if (isDoubleTap) {
-          setLayer('shift', true)
-        }
-        else {
-          setLayer('default', false)
-        }
+        setLayer('default', false)
       }
-      shiftPressTime = time
       break
     }
     case 'symbol':
