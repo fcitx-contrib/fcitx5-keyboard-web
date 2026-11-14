@@ -532,7 +532,17 @@ function moveTouch(touch: Touch, touchIds: readonly number[]) {
 export function onTouchEnd(event: TouchEvent) {
   const changedTouches = Array.from(event.changedTouches)
   const touchIds = changedTouches.map(touch => touch.identifier)
+  const shiftTouches: Touch[] = []
   for (const changed of changedTouches) {
+    // Pending keys in this batch must commit before Shift resets their layer.
+    // Keep the original order of all other endings and exclude the full batch.
+    if (touches[changed.identifier]?.type === 'shift') {
+      shiftTouches.push(changed)
+      continue
+    }
+    endTouch(changed, touchIds)
+  }
+  for (const changed of shiftTouches) {
     endTouch(changed, touchIds)
   }
 }

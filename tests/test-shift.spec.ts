@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { getSentEvents, init, sendSystemEvent, tap, touchDown, touchMove, touchUp } from './util'
+import { getSentEvents, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, touchUpTogether } from './util'
 
 test('Shift', async ({ page }) => {
   await init(page)
@@ -57,6 +57,50 @@ test('Shift hold', async ({ page }) => {
     },
   ])
 })
+
+for (const locked of [false, true]) {
+  for (const shiftFirst of [false, true]) {
+    test(`Shift and K ending together commit uppercase (locked: ${locked}, Shift first: ${shiftFirst})`, async ({ page }) => {
+      await init(page)
+      await page.clock.install({ time: 0 })
+      await page.clock.pauseAt(1000)
+      const shift = page.locator('.fcitx-keyboard-shift')
+      const k = page.getByText('k(')
+      if (locked) {
+        await tap(shift)
+        await page.clock.runFor(50)
+      }
+      const heldShift = await touchDown(shift)
+      const heldK = await touchDown(k)
+      await touchUpTogether(shift, shiftFirst
+        ? [heldShift, heldK]
+        : [heldK, heldShift])
+      expect(await getSentEvents(page)).toEqual([
+        {
+          type: 'KEY_DOWN',
+          data: { key: 'K', code: 'KeyK' },
+        },
+      ])
+      expect(await page.evaluate(() => window.touches)).toEqual([])
+      await expect(k).toHaveText(locked ? 'K(' : 'k(')
+      await tap(k)
+      await tap(k)
+      expect(await getSentEvents(page)).toEqual([
+        {
+          type: 'KEY_DOWN',
+          data: { key: 'K', code: 'KeyK' },
+        },
+        ...Array.from({ length: 2 }, () => ({
+          type: 'KEY_DOWN',
+          data: {
+            key: locked ? 'K' : 'k',
+            code: 'KeyK',
+          },
+        })),
+      ])
+    })
+  }
+}
 
 for (const locked of [false, true]) {
   for (const gesture of ['swipe', 'menu', 'cancel'] as const) {
