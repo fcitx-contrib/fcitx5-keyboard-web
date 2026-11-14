@@ -37,6 +37,12 @@ export function showContextmenu(element: Element, items: {
   callback: () => void
 }[]) {
   const generation = ++menuGeneration
+  // Only dismiss this rendering; another owner may have opened a newer menu.
+  const dismiss = () => {
+    if (generation === menuGeneration) {
+      hideContextMenu()
+    }
+  }
   const contextmenu = document.querySelector('.fcitx-keyboard-contextmenu') as HTMLElement
   contextmenu.innerHTML = ''
   for (let i = 0; i < items.length; i++) {
@@ -54,12 +60,14 @@ export function showContextmenu(element: Element, items: {
           return
         }
         item.callback()
-        if (generation === menuGeneration) {
-          hideContextMenu()
-        }
+        dismiss()
       })
       contextmenu.appendChild(element)
     }
+  }
+  if (!contextmenu.childElementCount) {
+    dismiss()
+    return dismiss
   }
   show(contextmenu.parentElement!)
   const containerBox = contextmenu.parentElement!.getBoundingClientRect()
@@ -86,10 +94,5 @@ export function showContextmenu(element: Element, items: {
   const x = Math.min(targetBox.left, containerBox.right - menuBox.width)
   contextmenu.style.left = `${x}px`
   contextmenu.style.top = `${y}px`
-  // Only dismiss this rendering; another owner may have opened a newer menu.
-  return () => {
-    if (generation === menuGeneration) {
-      hideContextMenu()
-    }
-  }
+  return dismiss
 }
