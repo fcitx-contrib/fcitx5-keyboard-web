@@ -4,6 +4,7 @@ import { setClient } from '../src/ux'
 
 window.sentEvents = []
 window.onMessage = onMessage
+window.setBuiltInLayout = setBuiltInLayout
 
 setClient({
   sendEvent(event: VirtualKeyboardEvent) {
