@@ -141,6 +141,56 @@ for (const interval of [299, 300]) {
   })
 }
 
+for (const firstShiftHeld of [false, true]) {
+  for (const releaseQFirst of [false, true]) {
+    test(`Held Q interrupts Shift pairing (first Shift held: ${firstShiftHeld}, Q released first: ${releaseQFirst})`, async ({ page }) => {
+      await init(page)
+      await page.clock.install({ time: 0 })
+      await page.clock.pauseAt(1000)
+      const shift = page.locator('.fcitx-keyboard-shift')
+      const q = page.getByText('q1')
+      const firstShift = await touchDown(shift)
+      if (!firstShiftHeld) {
+        await touchUp(shift, firstShift)
+      }
+      await page.clock.runFor(50)
+      const heldQ = await touchDown(q)
+      if (firstShiftHeld) {
+        await touchUp(shift, firstShift)
+      }
+      await page.clock.runFor(50)
+      const secondShift = await touchDown(shift)
+      if (releaseQFirst) {
+        await touchUp(q, heldQ)
+        await touchUp(shift, secondShift)
+      }
+      else {
+        await touchUp(shift, secondShift)
+        await touchUp(q, heldQ)
+      }
+
+      await expect(q).toHaveText('Q1')
+      await tap(q)
+      await expect(q).toHaveText('q1')
+      await tap(q)
+      expect(await getSentEvents(page)).toEqual([
+        {
+          type: 'KEY_DOWN',
+          data: { key: 'Q', code: 'KeyQ' },
+        },
+        {
+          type: 'KEY_DOWN',
+          data: { key: 'Q', code: 'KeyQ' },
+        },
+        {
+          type: 'KEY_DOWN',
+          data: { key: 'q', code: 'KeyQ' },
+        },
+      ])
+    })
+  }
+}
+
 test('Shift interrupted', async ({ page }) => {
   await init(page)
 

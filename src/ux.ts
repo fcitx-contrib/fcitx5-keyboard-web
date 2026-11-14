@@ -438,6 +438,11 @@ function startTouch(touch: Touch, touchContainer?: Element) {
   let longPress: LongPress | undefined
   let state: TouchState = 'HIT'
   if (key) {
+    // Break the pending pair at key acceptance, even if this touch stays held.
+    // Clearing the timestamp also survives a later release of a held Shift.
+    if (key.type !== 'shift') {
+      shiftPressTime = null
+    }
     vibrate()
     switch (key.type) {
       case 'shift':
