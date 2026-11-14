@@ -20,6 +20,10 @@ import { abortPendingTouches, onTouchEnd, onTouchInterrupt, onTouchMove, onTouch
 const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
 export function setLayout(id: string, layout: Layout) {
+  // Replacing the mounted tree ends its gestures before event targets disappear.
+  if (document.querySelector('.fcitx-keyboard-container')) {
+    abortSession()
+  }
   setLayout_(layout)
 
   const style = document.createElement('style')
@@ -115,6 +119,13 @@ function clearPanel() {
   clearCandidates()
 }
 
+function abortSession() {
+  abortPendingTouches()
+  cancelPendingClicks()
+  cancelRepeatableClick()
+  clearPanel()
+}
+
 export function onMessage(message: string) {
   const event = JSON.parse(message) as SystemEvent
   switch (event.type) {
@@ -125,10 +136,7 @@ export function onMessage(message: string) {
       handleInputType(event.data)
       break
     case 'ABORT':
-      abortPendingTouches()
-      cancelPendingClicks()
-      cancelRepeatableClick()
-      clearPanel()
+      abortSession()
       break
     case 'HIDE':
       setLayer('default', false)
