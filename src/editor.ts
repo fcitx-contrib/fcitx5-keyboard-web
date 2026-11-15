@@ -38,9 +38,19 @@ function renderEditorButton(label: string, gridArea: string) {
   container.style.gridArea = gridArea
   container.appendChild(button)
   if (label !== 'Select') {
-    container.addEventListener('touchstart', () => press(container))
-    container.addEventListener('touchend', () => release(container))
-    container.addEventListener('touchcancel', () => release(container))
+    let touchId: number | null = null
+    container.addEventListener('touchstart', (event) => {
+      touchId = event.changedTouches[0].identifier
+      press(container)
+    })
+    const releaseTouch = (event: TouchEvent) => {
+      if (Array.from(event.changedTouches).some(touch => touch.identifier === touchId)) {
+        touchId = null
+        release(container)
+      }
+    }
+    container.addEventListener('touchend', releaseTouch)
+    container.addEventListener('touchcancel', releaseTouch)
   }
   return container
 }
