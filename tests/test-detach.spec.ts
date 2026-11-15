@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import { SCROLL_NONE } from '../src/api.d'
+import { SCROLL_NONE, SCROLLING } from '../src/api.d'
 import { getSentEvents, getToolbarButton, init, sendSystemEvent, tap, touchDown, touchMove, touchUp } from './util'
 
 const errors = new WeakMap<Page, Error[]>()
@@ -266,4 +266,55 @@ test('Synchronous removal after a shifted key retires the session before release
       data: { key: 'K', code: 'KeyK' },
     },
   ])
+})
+
+async function expandBulkCandidates(page: Page) {
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: Array.from({ length: 85 }, (_, i) => ({ text: `词${i}`, label: '', comment: '' })),
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: true,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
+  await tap(page.locator('.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button'))
+}
+
+test('A queued candidate scroll after removal cannot access missing paging buttons', async ({ page }) => {
+  await expandBulkCandidates(page)
+  await page.locator('.fcitx-keyboard-candidates').evaluate((list) => {
+    // Model an element scroll event already queued when the host removes its tree.
+    window.setTimeout(() => list.dispatchEvent(new Event('scroll')), 0)
+    document.querySelector('.fcitx-keyboard-container')!.remove()
+  })
+  await page.clock.runFor(1)
+  expect(await getSentEvents(page)).toEqual([])
+})
+
+test('A retired candidate scroll cannot change the new keyboard paging buttons', async ({ page }) => {
+  await expandBulkCandidates(page)
+  const old = await page.locator('.fcitx-keyboard-candidates').elementHandle()
+  await detach(page)
+  await rebuild(page)
+  await expandBulkCandidates(page)
+  const pageUp = page.locator('.fcitx-keyboard-side-button-container:nth-child(1)')
+  await page.locator('.fcitx-keyboard-candidates').evaluate((list) => {
+    list.scrollTop = 2
+    list.dispatchEvent(new Event('scroll'))
+  })
+  await expect(pageUp).not.toContainClass('fcitx-keyboard-disabled')
+  const disabledByOldScroll = await old!.evaluate((list) => {
+    list.dispatchEvent(new Event('scroll'))
+    return document.querySelector('.fcitx-keyboard-side-button-container:nth-child(1)')!
+      .classList
+      .contains('fcitx-keyboard-disabled')
+  })
+  expect(disabledByOldScroll).toBe(false)
+  expect(await getSentEvents(page)).toEqual([])
 })

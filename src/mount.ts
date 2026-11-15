@@ -37,6 +37,7 @@ export function mountKeyboard(container: HTMLElement, onUnmount: () => void) {
     'touchend',
     'touchcancel',
     'click',
+    'scroll',
   ]) {
     container.addEventListener(type, (event) => {
       if (!isKeyboardMounted(container)) {
