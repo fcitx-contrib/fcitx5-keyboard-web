@@ -18,6 +18,9 @@ function setDarkTheme() {
 }
 
 function systemThemeHandler() {
+  if (!getKeyboardContainer()) {
+    return
+  }
   if (isSystemDark) {
     setDarkTheme()
   }

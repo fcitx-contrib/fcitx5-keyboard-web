@@ -310,12 +310,15 @@ export function updateHighlight(index: number, direction: 'LEFT' | 'RIGHT') {
   return newIndex
 }
 
-export function hidePopover() {
+export function hidePopover(root: ParentNode = document) {
   largeLabelGeometry = null
   if (popoverSource) {
     restoreKeyBackground(popoverSource.querySelector('.fcitx-keyboard-key-background')!)
   }
   popoverSource?.classList.remove('fcitx-keyboard-popover-source')
   popoverSource = null
-  hide(document.querySelector('.fcitx-keyboard-popover-container')!)
+  const container = root.querySelector('.fcitx-keyboard-popover-container')
+  if (container) {
+    hide(container as HTMLElement)
+  }
 }
