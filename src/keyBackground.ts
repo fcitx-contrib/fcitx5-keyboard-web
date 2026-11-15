@@ -92,6 +92,10 @@ export function renderKeyBackground(functionKey: boolean) {
 
 let resizeObserver: ResizeObserver | undefined
 
+export function disconnectKeyBackgrounds() {
+  resizeObserver?.disconnect()
+}
+
 export function observeKeyBackgrounds(container: Element) {
   // Layers replace their keys. Release the old targets rather than retaining
   // detached SVGs, and observe the numpad as well as the current layout.

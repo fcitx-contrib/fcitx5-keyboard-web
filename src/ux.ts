@@ -11,6 +11,7 @@ import { showContextmenu } from './contextmenu'
 import { setDisplayMode } from './display'
 import { renderRow } from './key'
 import { observeKeyBackgrounds } from './keyBackground'
+import { isKeyboardMounted } from './mount'
 import { hidePopover, showKeyPreview, showPopover, updateHighlight } from './popover'
 import { DATA_KEY, getContainer, getKey, isAndroidOrIOS, Pattern, press, release, vibrate } from './util'
 
@@ -75,19 +76,27 @@ function cancelLongPress(touchId: number) {
   }
 }
 
-export function cancelPendingTouches() {
+function cancelTouches(root?: HTMLElement) {
   for (const [id, { touch }] of Object.entries(touches)) {
     cancelLongPress(Number(id))
     const container = getTouchContainer(touch)
     container && release(container)
     touches[id].state = 'INTERRUPTED'
   }
-  hidePopover()
+  // A detached mask no longer resolves keys through document hit testing.
+  for (const container of root?.querySelectorAll('.fcitx-keyboard-key-container.fcitx-keyboard-pressed') ?? []) {
+    release(container)
+  }
+  hidePopover(root)
 }
 
-export function abortPendingTouches() {
+export function cancelPendingTouches() {
+  cancelTouches()
+}
+
+export function abortPendingTouches(root?: HTMLElement) {
   ++touchSession
-  cancelPendingTouches()
+  cancelTouches(root)
   for (const id of Object.keys(touches)) {
     delete touches[id]
   }
@@ -96,7 +105,13 @@ export function abortPendingTouches() {
   shiftReleased = true
   keyPressedWithShiftPressed = false
   if (currentLayer !== 'default' || layerLocked) {
-    setLayer('default', false)
+    if (root && !root.isConnected) {
+      currentLayer = 'default'
+      layerLocked = false
+    }
+    else {
+      setLayer('default', false)
+    }
   }
 }
 
@@ -111,7 +126,12 @@ export function setClient(client: VirtualKeyboardClient) {
 }
 
 export function sendEvent(event: VirtualKeyboardEvent) {
+  // A host callback can remove the tree before the mutation observer runs.
+  if (!isKeyboardMounted()) {
+    return
+  }
   client_.sendEvent(event)
+  isKeyboardMounted()
 }
 
 export function undo() {

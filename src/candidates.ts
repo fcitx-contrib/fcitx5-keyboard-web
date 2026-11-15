@@ -492,6 +492,7 @@ export function renderCandidateBar() {
 }
 
 export function clearCandidateContext() {
+  scrollDirection = 'HORIZONTAL'
   hideCandidateMenu()
   cancelCandidateTouch()
   candidateContext = null

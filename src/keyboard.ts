@@ -7,6 +7,8 @@ import { SYSTEM } from './constant'
 import { hideContextMenu, renderContextmenu } from './contextmenu'
 import { clearCandidates, setDisplayMode } from './display'
 import { deselect, renderEditor, select } from './editor'
+import { disconnectKeyBackgrounds } from './keyBackground'
+import { isKeyboardMounted, mountKeyboard, unmountKeyboard } from './mount'
 import { renderNumpad } from './numpad'
 import { renderPopover } from './popover'
 import { renderReturnBar } from './return'
@@ -21,9 +23,7 @@ const builtInLayoutMap = { qwerty } as { [key: string]: Layout }
 
 export function setLayout(id: string, layout: Layout) {
   // Replacing the mounted tree ends its gestures before event targets disappear.
-  if (document.querySelector('.fcitx-keyboard-container')) {
-    abortSession()
-  }
+  unmountKeyboard()
   setLayout_(layout)
 
   const style = document.createElement('style')
@@ -96,12 +96,18 @@ export function setLayout(id: string, layout: Layout) {
   const app = document.getElementById(id)!
   app.innerHTML = ''
   app.appendChild(container)
+  mountKeyboard(container, () => {
+    abortSession(container)
+    disconnectKeyBackgrounds()
+  })
   setDisplayMode('initial')
   setTheme(SYSTEM)
   if (isFirefox) {
     // Firefox is buggy if render synchronously.
     setTimeout(() => {
-      setLayer('default', false)
+      if (isKeyboardMounted(container)) {
+        setLayer('default', false)
+      }
     }, 0)
   }
   else {
@@ -113,17 +119,19 @@ export function setBuiltInLayout(id: string, name: BUILTIN_LAYOUT) {
   setLayout(id, builtInLayoutMap[name])
 }
 
-function clearPanel() {
-  hideContextMenu()
+function clearPanel(container?: HTMLElement) {
+  hideContextMenu(container)
   clearCandidateContext()
-  clearCandidates()
+  if (document.querySelector('.fcitx-keyboard-candidate-bar')) {
+    clearCandidates()
+  }
 }
 
-function abortSession() {
-  abortPendingTouches()
+function abortSession(container?: HTMLElement) {
+  abortPendingTouches(container)
   cancelPendingClicks()
   cancelRepeatableClick()
-  clearPanel()
+  clearPanel(container)
 }
 
 export function onMessage(message: string) {

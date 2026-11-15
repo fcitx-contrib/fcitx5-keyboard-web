@@ -2,9 +2,12 @@ import { div, enableScroll, handleClick, hide, press, release, show } from './ut
 
 let menuGeneration = 0
 
-export function hideContextMenu() {
+export function hideContextMenu(root: ParentNode = document) {
   ++menuGeneration
-  hide(document.querySelector('.fcitx-keyboard-contextmenu-container')!)
+  const container = root.querySelector('.fcitx-keyboard-contextmenu-container')
+  if (container) {
+    hide(container as HTMLElement)
+  }
 }
 
 export function renderContextmenu() {
