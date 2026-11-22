@@ -29,7 +29,7 @@ const touchStartSessions = new WeakMap<TouchEvent, number>()
 let enterKeyType = ''
 let spaceKeyLabel = ''
 let inputMethods_: InputMethod[] = []
-let dismissInputMethodMenu: (() => void) | null = null
+let inputMethodMenu: { surface: Element, dismiss: () => void } | null = null
 const touches: { [key: string]: {
   touch: Touch
   container?: Element
@@ -96,22 +96,31 @@ export function cancelPendingTouches() {
   cancelTouches()
 }
 
+function dismissInputMethodMenu() {
+  inputMethodMenu?.dismiss()
+  inputMethodMenu = null
+}
+
 export function cancelHiddenPanelTouches() {
   for (const [id, gesture] of Object.entries(touches)) {
     if (gesture.panelKey?.surface.getClientRects().length === 0) {
       cancelLongPress(Number(id))
       release(gesture.panelKey.element)
       delete touches[id]
-      if (gesture.type === 'key') {
+      if (gesture.type === 'key' || gesture.type === 'symbol') {
         hidePopover()
       }
     }
+  }
+  if (inputMethodMenu?.surface.getClientRects().length === 0) {
+    dismissInputMethodMenu()
   }
 }
 
 export function abortPendingTouches(root?: HTMLElement) {
   ++touchSession
   cancelTouches(root)
+  dismissInputMethodMenu()
   for (const id of Object.keys(touches)) {
     delete touches[id]
   }
@@ -439,10 +448,16 @@ function longPressHandler(touchId: number, container: HTMLElement) {
     }, KEY_REPEAT_INTERVAL)
   }
   else if (gesture.type === 'globe') {
-    dismissInputMethodMenu = showContextmenu(container, inputMethods_.map(inputMethod => ({
-      text: inputMethod.displayName,
-      callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
-    })))
+    const surface = gesture.panelKey?.surface
+    if (surface) {
+      inputMethodMenu = {
+        surface,
+        dismiss: showContextmenu(container, inputMethods_.map(inputMethod => ({
+          text: inputMethod.displayName,
+          callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
+        }))),
+      }
+    }
   }
   else if (gesture.type !== 'space') {
     // Space enters long-press state on iOS, but has no menu/action to show.
@@ -555,9 +570,9 @@ function startTouch(touch: Touch, touchContainer?: Element) {
   if (container && key?.type === 'key') {
     showKeyPreview(container, key.label)
   }
-  // The mask is shared by the letter and number panels. Remember the panel
-  // rather than following the mask or a key replaced by a Shift layer change.
-  const keySurface = key?.type === 'key' || isSlideKey(key?.type)
+  // The mask is shared by the letter and number panels. Track the original
+  // panel so a held key cannot act on its replacement. Shift spans panels.
+  const keySurface = key && key.type !== 'shift'
     ? touchContainer ?? container?.closest('.fcitx-keyboard-frame')
     : null
   touches[touch.identifier] = {
@@ -766,8 +781,7 @@ export function setInputMethods(inputMethods: InputMethod[], currentInputMethod:
     || inputMethods.some((method, index) => method.name !== inputMethods_[index]?.name
       || method.displayName !== inputMethods_[index]?.displayName)
   if (optionsChanged) {
-    dismissInputMethodMenu?.()
-    dismissInputMethodMenu = null
+    dismissInputMethodMenu()
   }
   inputMethods_ = inputMethods
   for (const inputMethod of inputMethods) {
