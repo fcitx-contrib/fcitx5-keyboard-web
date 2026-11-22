@@ -84,3 +84,61 @@ test('Holding Enter retains its existing ordinary release behavior', async ({ pa
     },
   ])
 })
+
+for (const { label, selector, numberFirst } of [
+  { label: 'main Enter', selector: '.fcitx-keyboard-enter', numberFirst: false },
+  { label: 'numpad Enter', selector: '.fcitx-keyboard-numpad-enter', numberFirst: true },
+  { label: 'Globe', selector: '.fcitx-keyboard-globe', numberFirst: false },
+  { label: '#+=', selector: '.fcitx-keyboard-symbol', numberFirst: false },
+]) {
+  test(`Switching input type cancels a held ${label} from the previous panel`, async ({ page }) => {
+    if (numberFirst) {
+      await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'number' })
+    }
+    const key = page.locator(selector)
+    const id = await touchDown(key)
+    const nextType = numberFirst ? 'text' : 'number'
+    await sendSystemEvent(page, { type: 'INPUT_TYPE', data: nextType })
+    await touchUp(key, id)
+    expect(await getSentEvents(page)).toEqual([])
+  })
+}
+
+test('Switching input type dismisses the Globe menu and invalidates old items', async ({ page }) => {
+  await sendSystemEvent(page, {
+    type: 'INPUT_METHODS',
+    data: {
+      currentInputMethod: 'keyboard-us',
+      inputMethods: [
+        { name: 'keyboard-us', displayName: 'English' },
+        { name: 'pinyin', displayName: 'Pinyin' },
+      ],
+    },
+  })
+  const globe = page.locator('.fcitx-keyboard-globe')
+  const id = await touchDown(globe)
+  await page.clock.runFor(300)
+  await touchUp(globe, id)
+  const item = page.locator('.fcitx-keyboard-contextmenu').getByText('Pinyin')
+  await expect(item).toBeVisible()
+  const old = await item.elementHandle()
+
+  await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'number' })
+  const oldMenuVisible = await item.isVisible()
+  // The old item may already have a selection event queued.
+  await old!.evaluate(element => (element as HTMLElement).click())
+  expect({ oldMenuVisible, events: await getSentEvents(page) }).toEqual({ oldMenuVisible: false, events: [] })
+})
+
+test('Switching input type clears the 123 preview before the symbol touch ends', async ({ page }) => {
+  const symbol = page.locator('.fcitx-keyboard-symbol')
+  const id = await touchDown(symbol)
+  await touchMove(symbol, id, 0, -31)
+  const preview = page.locator('.fcitx-keyboard-popover')
+  await expect(preview).toBeVisible()
+  await expect(preview).toHaveText('123')
+
+  await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'number' })
+  expect(await preview.isVisible()).toBe(false)
+  await touchUp(symbol, id)
+})
