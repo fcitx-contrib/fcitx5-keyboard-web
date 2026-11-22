@@ -2,7 +2,7 @@ import type { Locator } from '@playwright/test'
 import type { VirtualKeyboardEvent } from '../src/api'
 import { expect, test } from '@playwright/test'
 import { SCROLL_NONE } from '../src/api.d'
-import { getKey, getKeyBackground, getSentEvents, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
+import { getKey, getKeyBackground, getSentEvents, getToolbarButton, GRAY, init, sendSystemEvent, tap, touchDown, touchMove, touchUp, WHITE } from './util'
 
 async function getFontSize(locator: Locator) {
   const fontSize = await locator.evaluate(element => window.getComputedStyle(element).getPropertyValue('font-size'))
@@ -301,6 +301,50 @@ test('Continuous slide shouldn\'t be interrupted by setCandidates', async ({ pag
   })
   await expect(getKeyBackground(space)).toHaveCSS('fill', GRAY)
 
+  await touchMove(space, touchId, -15, 0)
   await touchUp(space, touchId)
   await expect(getKeyBackground(space)).toHaveCSS('fill', WHITE)
+  const step = {
+    type: 'KEY_DOWN',
+    data: { key: '', code: 'ArrowLeft' },
+  }
+  expect(await getSentEvents(page)).toEqual([step, step])
+})
+
+test('Opening the editor stops an active Space slide', async ({ page }) => {
+  await init(page)
+
+  const space = page.locator('.fcitx-keyboard-space')
+  const touchId = await touchDown(space)
+  await touchMove(space, touchId, -45, 0)
+  await getToolbarButton(page, 4).tap()
+  await expect(page.locator('.fcitx-keyboard-editor')).toBeVisible()
+  await touchMove(space, touchId, -30, 0)
+  await touchUp(space, touchId)
+
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: '', code: 'ArrowLeft' },
+    },
+  ])
+})
+
+test('Returning to the letter panel discards the old numpad Space press', async ({ page }) => {
+  await init(page)
+
+  await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'number' })
+  const space = page.locator('.fcitx-keyboard-numpad-space')
+  const touchId = await touchDown(space)
+  await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'text' })
+  await touchUp(space, touchId)
+  expect(await getSentEvents(page)).toEqual([])
+
+  await tap(page.locator('.fcitx-keyboard-space'))
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: ' ', code: 'Space' },
+    },
+  ])
 })
