@@ -9,7 +9,7 @@ import { showContextmenu } from './contextmenu'
 import { updateCandidateDisplayMode } from './display'
 import { getKeyboardContainer } from './selector'
 import { disable, div, enable, enableScroll, getCandidateBar, handleClick, Pattern, press, release, renderToolbarButton, setSvgStyle, vibrate } from './util'
-import { cancelHiddenSlideTouches, DRAG_THRESHOLD_SQUARED, handleBackspace, selectCandidate, sendEvent, sendKeyDown } from './ux'
+import { cancelHiddenPanelTouches, DRAG_THRESHOLD_SQUARED, handleBackspace, selectCandidate, sendEvent, sendKeyDown } from './ux'
 
 let touchId: number | null = null
 let pressedCandidate: HTMLElement | null = null
@@ -333,7 +333,7 @@ function expand() {
   side.style.height = `calc(${height}px - 100cqh)`
   scrollDirection = 'VERTICAL'
   setPagingButtons(list)
-  cancelHiddenSlideTouches()
+  cancelHiddenPanelTouches()
 }
 
 export function collapse() {
@@ -343,7 +343,7 @@ export function collapse() {
   parent.classList.remove('fcitx-keyboard-expanded')
   list.style.height = 'auto'
   scrollDirection = 'HORIZONTAL'
-  cancelHiddenSlideTouches()
+  cancelHiddenPanelTouches()
 }
 
 function renderSideButton(label: string) {

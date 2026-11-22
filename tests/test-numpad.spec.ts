@@ -274,3 +274,48 @@ for (const response of ['clear', 'remove', 'rebuild', 'text'] as const) {
     }
   })
 }
+
+for (const hold of [false, true]) {
+  test(`Switching to the numpad cancels an old letter ${hold ? 'long press' : 'tap'}`, async ({ page }) => {
+    await init(page)
+    await page.clock.install({ time: 0 })
+    await page.clock.pauseAt(1000)
+    const k = getKey(page, 'k')
+    const id = await touchDown(k)
+    const popover = page.locator('.fcitx-keyboard-popover-container')
+    if (hold) {
+      await page.clock.runFor(300)
+      await expect(popover).toContainText('(')
+    }
+    await expect(popover).toBeVisible()
+
+    await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'number' })
+    const popoverVisibleAfterSwitch = await popover.isVisible()
+    await touchUp(k, id)
+    expect(await getSentEvents(page)).toEqual([])
+    expect(popoverVisibleAfterSwitch).toBe(false)
+
+    await tap(getNumpad(page).getByText('1', { exact: true }))
+    expect(await getSentEvents(page)).toEqual([
+      { type: 'COMMIT', data: '1' },
+    ])
+  })
+}
+
+test('Returning to the letter panel discards an old number press', async ({ page }) => {
+  await init(page)
+  await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'number' })
+  const digit = getNumpad(page).getByText('6', { exact: true })
+  const id = await touchDown(digit)
+  await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'text' })
+  await touchUp(digit, id)
+  expect(await getSentEvents(page)).toEqual([])
+
+  await tap(getKey(page, 'k'))
+  expect(await getSentEvents(page)).toEqual([
+    {
+      type: 'KEY_DOWN',
+      data: { key: 'k', code: 'KeyK' },
+    },
+  ])
+})
