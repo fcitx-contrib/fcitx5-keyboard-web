@@ -3,7 +3,7 @@ import { collapse } from './candidates'
 import { selectCategory } from './symbol'
 import { renderToolbarPlaceholder } from './toolbar'
 import { cancelRepeatableClick, getCandidateBar, getNumpad, getStatusArea, getSymbolSelector, handleClick, hide, release, renderToolbarButton, show } from './util'
-import { cancelPendingTouches, sendEvent } from './ux'
+import { cancelHiddenBackspaces, cancelPendingTouches, sendEvent } from './ux'
 
 export type DisplayMode = 'initial' | 'candidates' | 'edit' | 'statusArea' | 'symbol' | 'numpad'
 
@@ -131,6 +131,7 @@ export function setDisplayMode(mode: DisplayMode) {
       show(numpad)
       break
   }
+  cancelHiddenBackspaces()
 }
 
 export function updateCandidateDisplayMode() {

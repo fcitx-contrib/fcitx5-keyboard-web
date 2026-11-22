@@ -33,6 +33,7 @@ let dismissInputMethodMenu: (() => void) | null = null
 const touches: { [key: string]: {
   touch: Touch
   container?: Element
+  backspace?: { element: Element, surface: Element }
   state: TouchState
   timer: number | null
   longPress?: LongPress
@@ -93,6 +94,16 @@ function cancelTouches(root?: HTMLElement) {
 
 export function cancelPendingTouches() {
   cancelTouches()
+}
+
+export function cancelHiddenBackspaces() {
+  for (const [id, gesture] of Object.entries(touches)) {
+    if (gesture.backspace?.surface.getClientRects().length === 0) {
+      cancelLongPress(Number(id))
+      release(gesture.backspace.element)
+      delete touches[id]
+    }
+  }
 }
 
 export function abortPendingTouches(root?: HTMLElement) {
@@ -541,9 +552,17 @@ function startTouch(touch: Touch, touchContainer?: Element) {
   if (container && key?.type === 'key') {
     showKeyPreview(container, key.label)
   }
+  // The mask is shared by the letter and number panels. Remember the panel
+  // rather than following the mask or a key replaced by a Shift layer change.
+  const backspaceSurface = key?.type === 'backspace'
+    ? touchContainer ?? container?.closest('.fcitx-keyboard-frame')
+    : null
   touches[touch.identifier] = {
     touch,
     container: touchContainer,
+    backspace: container && backspaceSurface
+      ? { element: container, surface: backspaceSurface }
+      : undefined,
     state,
     timer,
     type: key?.type,
