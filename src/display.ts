@@ -1,5 +1,7 @@
 import ArrowLeft from 'bundle-text:../svg/arrow-left.svg'
 import { collapse } from './candidates'
+import { isKeyboardMounted } from './mount'
+import { getKeyboardContainer } from './selector'
 import { selectCategory } from './symbol'
 import { renderToolbarPlaceholder } from './toolbar'
 import { cancelRepeatableClick, getCandidateBar, getNumpad, getStatusArea, getSymbolSelector, handleClick, hide, release, renderToolbarButton, show } from './util'
@@ -27,7 +29,12 @@ export function setDisplayMode(mode: DisplayMode) {
   }
   currentMode = mode
   if (shouldResetInput) {
+    const container = getKeyboardContainer() as HTMLElement
     sendEvent({ type: 'COMMIT', data: '' })
+    // Resetting input can synchronously replace the keyboard or select another mode.
+    if (!isKeyboardMounted(container) || currentMode !== mode) {
+      return
+    }
   }
 
   const toolbar = document.querySelector('.fcitx-keyboard-toolbar') as HTMLElement

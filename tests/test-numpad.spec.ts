@@ -210,3 +210,67 @@ for (const { name, buttonIndex, surface } of [
     await expect(page.locator('.fcitx-keyboard-candidates')).toBeHidden()
   })
 }
+
+for (const response of ['clear', 'remove', 'rebuild', 'text'] as const) {
+  test(`Opening the numpad respects synchronous host response: ${response}`, async ({ page }) => {
+    await init(page)
+    await sendSystemEvent(page, {
+      type: 'CANDIDATES',
+      data: {
+        inputContext: 'context',
+        generation: 1,
+        candidates: [
+          { text: '候选', label: '', comment: '' },
+        ],
+        highlighted: 0,
+        scrollState: SCROLL_NONE,
+        scrollStart: true,
+        scrollEnd: true,
+        hasClientPreedit: true,
+        tabActions: [],
+      },
+    })
+    await expect(page.locator('.fcitx-keyboard-candidate-bar')).toBeVisible()
+    await page.evaluate((response) => {
+      const originalPush = window.sentEvents.push.bind(window.sentEvents)
+      window.sentEvents.push = (...events) => {
+        const length = originalPush(...events)
+        if (events.some(event => event.type === 'COMMIT' && event.data === '')) {
+          switch (response) {
+            case 'clear':
+              window.onMessage(JSON.stringify({ type: 'CLEAR' }))
+              break
+            case 'remove':
+              document.querySelector('.fcitx-keyboard-container')!.remove()
+              break
+            case 'rebuild':
+              window.setBuiltInLayout('fcitx-app', 'qwerty')
+              break
+            case 'text':
+              window.onMessage(JSON.stringify({ type: 'INPUT_TYPE', data: 'text' }))
+              break
+          }
+        }
+        return length
+      }
+    }, response)
+
+    await sendSystemEvent(page, { type: 'INPUT_TYPE', data: 'number' })
+    expect(await getSentEvents(page)).toEqual([
+      { type: 'COMMIT', data: '' },
+    ])
+    if (response === 'clear') {
+      await expect(getNumpad(page)).toBeVisible()
+    }
+    else {
+      await expect(getNumpad(page)).toBeHidden()
+      if (response !== 'remove') {
+        await tap(getKey(page, 'k'))
+        expect((await getSentEvents(page)).at(-1)).toEqual({
+          type: 'KEY_DOWN',
+          data: { key: 'k', code: 'KeyK' },
+        })
+      }
+    }
+  })
+}
