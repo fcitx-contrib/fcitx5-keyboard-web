@@ -33,7 +33,7 @@ let dismissInputMethodMenu: (() => void) | null = null
 const touches: { [key: string]: {
   touch: Touch
   container?: Element
-  slideKey?: { element: Element, surface: Element }
+  panelKey?: { element: Element, surface: Element }
   state: TouchState
   timer: number | null
   longPress?: LongPress
@@ -96,12 +96,15 @@ export function cancelPendingTouches() {
   cancelTouches()
 }
 
-export function cancelHiddenSlideTouches() {
+export function cancelHiddenPanelTouches() {
   for (const [id, gesture] of Object.entries(touches)) {
-    if (gesture.slideKey?.surface.getClientRects().length === 0) {
+    if (gesture.panelKey?.surface.getClientRects().length === 0) {
       cancelLongPress(Number(id))
-      release(gesture.slideKey.element)
+      release(gesture.panelKey.element)
       delete touches[id]
+      if (gesture.type === 'key') {
+        hidePopover()
+      }
     }
   }
 }
@@ -554,14 +557,14 @@ function startTouch(touch: Touch, touchContainer?: Element) {
   }
   // The mask is shared by the letter and number panels. Remember the panel
   // rather than following the mask or a key replaced by a Shift layer change.
-  const slideSurface = isSlideKey(key?.type)
+  const keySurface = key?.type === 'key' || isSlideKey(key?.type)
     ? touchContainer ?? container?.closest('.fcitx-keyboard-frame')
     : null
   touches[touch.identifier] = {
     touch,
     container: touchContainer,
-    slideKey: container && slideSurface
-      ? { element: container, surface: slideSurface }
+    panelKey: container && keySurface
+      ? { element: container, surface: keySurface }
       : undefined,
     state,
     timer,
