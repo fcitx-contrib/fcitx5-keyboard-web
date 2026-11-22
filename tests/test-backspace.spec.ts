@@ -459,3 +459,68 @@ test('Queued repeat callbacks cannot act after sliding or during a replacement t
   expect(await getSentEvents(page)).toHaveLength(2)
   await pending.dispose()
 })
+
+test('Opening the editor stops a held main Backspace', async ({ page }) => {
+  const backspace = await initSurface(page, 'keyboard')
+  await page.clock.install({ time: 0 })
+  await page.clock.pauseAt(1000)
+  const id = await touchDown(backspace)
+  await page.clock.runFor(380)
+  const deletion = {
+    type: 'KEY_DOWN',
+    data: { key: '', code: 'Backspace' },
+  }
+  expect(await getSentEvents(page)).toEqual([deletion])
+
+  await getToolbarButton(page, 4).tap()
+  await page.clock.runFor(240)
+  await touchUp(backspace, id)
+  expect(await getSentEvents(page)).toEqual([deletion])
+
+  await tap(page.locator('.fcitx-keyboard-editor-button-container').nth(8))
+  expect(await getSentEvents(page)).toEqual([deletion, deletion])
+})
+
+test('Collapsing the candidate panel abandons its Backspace slide without deleting', async ({ page }) => {
+  const backspace = await initSurface(page, 'candidates')
+  const id = await touchDown(backspace)
+  await touchMove(backspace, id, -45, 0)
+  await page.locator('.fcitx-keyboard-candidate-bar .fcitx-keyboard-toolbar-button').tap()
+  await touchMove(backspace, id, -45, 0)
+  await touchUp(backspace, id)
+  expect(await getSentEvents(page)).toEqual([
+    { type: 'BACKSPACE_SLIDE', data: 'LEFT' },
+  ])
+})
+
+test('Candidate updates keep repeating Backspace on the still-visible main keyboard', async ({ page }) => {
+  const backspace = await initSurface(page, 'keyboard')
+  await page.clock.install({ time: 0 })
+  await page.clock.pauseAt(1000)
+  const id = await touchDown(backspace)
+  await page.clock.runFor(380)
+  const deletion = {
+    type: 'KEY_DOWN',
+    data: { key: '', code: 'Backspace' },
+  }
+  expect(await getSentEvents(page)).toEqual([deletion])
+  await sendSystemEvent(page, {
+    type: 'CANDIDATES',
+    data: {
+      inputContext: 'context',
+      generation: 1,
+      candidates: [
+        { text: '词', label: '', comment: '' },
+      ],
+      highlighted: 0,
+      scrollState: SCROLLING,
+      scrollStart: true,
+      scrollEnd: true,
+      hasClientPreedit: true,
+      tabActions: [],
+    },
+  })
+  await page.clock.runFor(80)
+  await touchUp(backspace, id)
+  expect(await getSentEvents(page)).toEqual([deletion, deletion])
+})
