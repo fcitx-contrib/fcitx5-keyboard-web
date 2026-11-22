@@ -29,6 +29,7 @@ const touchStartSessions = new WeakMap<TouchEvent, number>()
 let enterKeyType = ''
 let spaceKeyLabel = ''
 let inputMethods_: InputMethod[] = []
+let dismissInputMethodMenu: (() => void) | null = null
 const touches: { [key: string]: {
   touch: Touch
   container?: Element
@@ -424,7 +425,7 @@ function longPressHandler(touchId: number, container: HTMLElement) {
     }, KEY_REPEAT_INTERVAL)
   }
   else if (gesture.type === 'globe') {
-    showContextmenu(container, inputMethods_.map(inputMethod => ({
+    dismissInputMethodMenu = showContextmenu(container, inputMethods_.map(inputMethod => ({
       text: inputMethod.displayName,
       callback() { sendEvent({ type: 'SET_INPUT_METHOD', data: inputMethod.name }) },
     })))
@@ -738,6 +739,14 @@ export function setSpaceKeyLabel(space: HTMLElement | null, label: string) {
 }
 
 export function setInputMethods(inputMethods: InputMethod[], currentInputMethod: string) {
+  // A selection-only update leaves the displayed menu options valid.
+  const optionsChanged = inputMethods.length !== inputMethods_.length
+    || inputMethods.some((method, index) => method.name !== inputMethods_[index]?.name
+      || method.displayName !== inputMethods_[index]?.displayName)
+  if (optionsChanged) {
+    dismissInputMethodMenu?.()
+    dismissInputMethodMenu = null
+  }
   inputMethods_ = inputMethods
   for (const inputMethod of inputMethods) {
     if (inputMethod.name === currentInputMethod) {
