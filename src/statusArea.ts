@@ -13,6 +13,8 @@ export function renderStatusArea() {
   return div('fcitx-keyboard-status-area')
 }
 
+let dismissStatusMenu: (() => void) | null = null
+
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 
 function getLabel(icon: string, desc: string): [string, boolean /* isText */] {
@@ -44,6 +46,8 @@ function getLabel(icon: string, desc: string): [string, boolean /* isText */] {
 }
 
 export function setStatusArea(inputContext: string, generation: number, actions: StatusAreaAction[]) {
+  dismissStatusMenu?.()
+  dismissStatusMenu = null
   const context = { inputContext, generation }
   const statusArea = getStatusArea()
   statusArea.innerHTML = ''
@@ -59,7 +63,7 @@ export function setStatusArea(inputContext: string, generation: number, actions:
     }
     handleClick(circle, () => {
       if (action.children) {
-        showContextmenu(circle, action.children.map(child => ({
+        dismissStatusMenu = showContextmenu(circle, action.children.map(child => ({
           text: child.desc,
           separator: child.separator,
           callback: () => {
